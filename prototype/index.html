@@ -1315,7 +1315,7 @@ function taskRow(t){
   return `<div class="task-swipe">
     ${swipe}
     <div class="task-item ${t.done?'done':''}" data-id="${t.id}">
-      <div class="check" onclick="completeTask(${t.id})">${ico('check',14)}</div>
+      <div class="check" onclick="completeTask(${t.id}, this)">${ico('check',14)}</div>
       <div class="task-body">
         <div class="task-title">${t.title}</div>
         <div class="task-sub">${imp}${parts.length?' '+parts.join(' '):''}${overdue?' '+overdue:''}</div>
@@ -1339,48 +1339,52 @@ function renderTasks(){
   bindTaskSwipe();
 }
 /* iOS 提醒事项式完成动画：该项变完成态后，以「浮动白卡」从原位飞到列表底部（撤销则反向飞回），其余卡片同步滑动补位 */
-function flyTask(activeId){
-  const oldItem = document.querySelector('.task-item[data-id="'+activeId+'"]');
-  const oldCard = oldItem ? oldItem.closest('.task-swipe') : null;
+function flyTask(activeId, el){
+  const idStr = String(activeId);
+  /* 优先用被点击的元素定位——同一个任务在「今天」和「全部」两个列表里各有一份 DOM，
+     用全局 querySelector 会抓到错误的那份（今天页在前），导致可见的那张卡不动。 */
+  let oldCard = el ? el.closest('.task-swipe') : null;
+  if(!oldCard){
+    const oi = document.querySelector('.task-item[data-id="'+idStr+'"]');
+    oldCard = oi ? oi.closest('.task-swipe') : null;
+  }
   const container = oldCard ? oldCard.closest('#task-list,#task-list-all') : null;
   if(!oldCard || !container){ renderTasks(); renderAll(); return; }
-  const completing = !oldItem.classList.contains('done');
-  const keyOf = el => el.querySelector('.task-item') ? el.querySelector('.task-item').dataset.id : null;
-  /* First：按 data-id 记录每张卡片飞行前的位置（重建 DOM 后仍能正确匹配） */
+  /* First：记录每张卡片（含嵌套「已完成」组）飞行前的位置，键用 data-id 才能跨重建匹配 */
   const firsts = new Map();
-  container.querySelectorAll(':scope > .task-swipe').forEach(el=>{
-    const k = keyOf(el);
-    if(k) firsts.set(k, el.getBoundingClientRect());
+  container.querySelectorAll('.task-swipe').forEach(el=>{
+    const it = el.querySelector('.task-item');
+    if(it) firsts.set(it.dataset.id, el.getBoundingClientRect());
   });
-  const first = firsts.get(String(activeId));
-  /* 飞行体：克隆整卡，完成时预置完成态，并剥掉左滑操作的删除/跳过按钮 */
-  const fly = oldCard.cloneNode(true);
-  if(completing) fly.querySelector('.task-item').classList.add('done');
-  fly.querySelectorAll('.swipe-btn').forEach(b=>b.remove());
+  const first = firsts.get(idStr);
 
   renderTasks(); renderAll();
 
-  const newItem = container.querySelector('.task-item[data-id="'+activeId+'"]');
-  if(!newItem || !first){ return; }
-  const newCard = newItem.closest('.task-swipe');
+  const newItem = container.querySelector('.task-item[data-id="'+idStr+'"]');
+  if(!newItem){ return; }
+  const newCard = newItem.closest('.task-swipe');   /* 这就是那条待办本身，已是最终态（完成/未完成图标都对了） */
   const last = newCard.getBoundingClientRect();
-  /* 真身先藏住，由克隆飞行，落地后先显示真身再移除克隆（避免结尾闪一帧） */
-  newCard.style.visibility = 'hidden';
-  fly.style.cssText += `position:fixed;left:${first.left}px;top:${first.top}px;width:${first.width}px;height:${first.height}px;margin:0;z-index:998;pointer-events:none;box-shadow:0 10px 28px rgba(0,0,0,.14);`;
-  document.body.appendChild(fly);
-  const dur = 340, ease = 'cubic-bezier(.45,.08,.28,1)';
-  fly.animate(
-    [{transform:'translateY(0px)'},{transform:`translateY(${last.top-first.top}px)`}],
-    {duration:dur, easing:ease, fill:'forwards'}
-  ).onfinish = ()=>{ newCard.style.visibility=''; requestAnimationFrame(()=>fly.remove()); };
-  /* 其余卡片 FLIP 补位：只给位置真正变化的卡加过渡，未移动的卡不闪 */
-  container.querySelectorAll(':scope > .task-swipe').forEach(el=>{
+  const dur = 320, ease = 'cubic-bezier(.22,1,.36,1)';
+  /* 唯一一张卡：先把它视觉上挪回旧位置，再滑到新位置——不会多出一个图标 */
+  if(first){
+    const dy = first.top - last.top;
+    newCard.style.zIndex = '50';                 /* 飞行时压在其它卡片之上（低于新建按钮 z-index:1000） */
+    newCard.style.transform = `translateY(${dy}px)`;
+    newCard.animate(
+      [{transform:`translateY(${dy}px)`},{transform:'translateY(0px)'}],
+      {duration:dur, easing:ease}
+    ).onfinish = ()=>{ newCard.style.transform=''; newCard.style.zIndex=''; };
+  }
+  /* 其余卡片 FLIP 同步补位：只给位置真正变化的卡加过渡，没动的卡完全不动、不闪 */
+  container.querySelectorAll('.task-swipe').forEach(el=>{
     if(el===newCard) return;
-    const k = keyOf(el);
-    const f = k ? firsts.get(k) : null;
-    if(!f){ el.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease'}); return; }
+    const it = el.querySelector('.task-item');
+    const k = it ? it.dataset.id : null;
+    if(!k) return;
+    const f = firsts.get(k);
+    if(!f) return;
     const dy = f.top - el.getBoundingClientRect().top;
-    if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:dur,easing:ease});
+    if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'translateY(0px)'}],{duration:dur,easing:ease});
   });
 }
 /* ============ 全部页：列表 + 四象限 ============ */
@@ -1486,7 +1490,7 @@ function renderQuadrant(){
       const impQ = t.important ? `<span class="imp">${ico('star',10)}</span>` : '';
       return `
       <div class="quad-task ${t.done?'done':''} ${isFuture?'future':''} ${isOverdue(t)?'overdue':''}" data-id="${t.id}">
-        <div class="qdot" onclick="completeTask(${t.id})">${ico('check',12)}</div>
+        <div class="qdot" onclick="completeTask(${t.id}, this)">${ico('check',12)}</div>
         <div class="quad-body">
           <div class="qt">${t.title}</div>
           ${(impQ||meta)?`<div class="qt-t">${[impQ,meta].filter(Boolean).join(' ')}</div>`:''}
@@ -1518,10 +1522,10 @@ function renderMemories(){
   const el = $('#memory-list'); if(!el) return;
   el.innerHTML = MEMORIES.map(m=>`<div class="memory-item"><span class="d">${m.d}</span><span>${m.t}</span></div>`).join('');
 }
-function completeTask(id){
+function completeTask(id, el){
   const t = tasks.find(x=>x.id===id);
   if(!t) return;
-  if(t.done){ undoComplete(t); return; }
+  if(t.done){ undoComplete(t, el); return; }
   if(t.date && t.date > todayStr()){
     toast(relDate(t.date)==='明天' ? '明天的任务，明天再勾' : '还没到日期的任务，到那天再勾');
     return;
@@ -1538,7 +1542,7 @@ function completeTask(id){
     tasks.push(nt);
     t.genId = nt.id;   /* 记到本任务上，撤销时只删它生成的那条 */
   }
-  flyTask(id); renderCalendar();
+  flyTask(id, el); renderCalendar();
   const n = parseInt($('#pet-done').textContent) + 1;
   $('#pet-done').textContent = n;
   petBubble(`${ico('coin',13)} ${currentPet}留下一枚金币，已收入回忆册`);
@@ -1547,7 +1551,7 @@ function completeTask(id){
   renderMemories();
 }
 /* 再点打勾 = 撤销完成：恢复任务、回滚计数与足迹、删掉自动生成的下一条 */
-function undoComplete(t){
+function undoComplete(t, el){
   t.done = false;
   delete t.doneDate;
   if(t.genId){
@@ -1559,7 +1563,7 @@ function undoComplete(t){
   $('#pet-done').textContent = Math.max(0,n);
   for(let i=MEMORIES.length-1;i>=0;i--){ if(MEMORIES[i]._tid===t.id) MEMORIES.splice(i,1); }
   renderMemories();
-  flyTask(t.id); renderCalendar();
+  flyTask(t.id, el); renderCalendar();
 }
 /* 宠物对话框：默认挂今日页宠物卡片右上角；专注页传 'ct' 挂 focus-stage 宠物上方居中 */
 let petBubbleEl = null, petBubbleTimer = null;
