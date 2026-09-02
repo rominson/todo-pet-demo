@@ -1338,7 +1338,45 @@ function renderTasks(){
   $('#today-progress').textContent = done + '/' + todays.length;
   bindTaskSwipe();
 }
-/* FLIP 动画：勾选/撤销后，列表项从原位置平滑滑动到新位置（已完成沉底 / 撤销回到原位），过程可见 */
+/* iOS 提醒事项式完成动画：该项变完成态后，以「浮动白卡」从原位飞到列表底部（撤销则反向飞回），其余卡片同步滑动补位 */
+function flyTask(activeId){
+  const oldItem = document.querySelector('.task-item[data-id="'+activeId+'"]');
+  const oldCard = oldItem ? oldItem.closest('.task-swipe') : null;
+  if(!oldCard){ renderTasks(); renderAll(); return; }
+  const container = oldCard.closest('#task-list,#task-list-all');
+  const completing = !oldItem.classList.contains('done');
+  /* 记录飞行前所有卡片位置（First） */
+  const firsts = new Map();
+  container.querySelectorAll(':scope > .task-swipe').forEach(el=>firsts.set(el, el.getBoundingClientRect()));
+  const first = firsts.get(oldCard);
+  /* 克隆一份并（完成时）预置为完成态，作为飞行体 */
+  const fly = oldCard.cloneNode(true);
+  if(completing) fly.querySelector('.task-item').classList.add('done');
+
+  renderTasks(); renderAll();
+
+  const newItem = container.querySelector('.task-item[data-id="'+activeId+'"]');
+  if(!newItem || !first) return;
+  const newCard = newItem.closest('.task-swipe');
+  const last = newCard.getBoundingClientRect();
+  /* 真身先藏住，由克隆飞行，落地后现身 */
+  newCard.style.visibility = 'hidden';
+  fly.style.cssText += `position:fixed;left:${first.left}px;top:${first.top}px;width:${first.width}px;height:${first.height}px;margin:0;z-index:999;pointer-events:none;box-shadow:0 10px 28px rgba(0,0,0,.14);`;
+  document.body.appendChild(fly);
+  const dur = 340, ease = 'cubic-bezier(.45,.08,.28,1)';
+  fly.animate(
+    [{transform:'translateY(0px)'},{transform:`translateY(${last.top-first.top}px)`}],
+    {duration:dur, easing:ease, fill:'forwards'}
+  ).onfinish = ()=>{ fly.remove(); newCard.style.visibility=''; };
+  /* 其余卡片 FLIP 同步滑动补位；新出现的卡片（重复任务生成的下一条）淡入 */
+  container.querySelectorAll(':scope > .task-swipe').forEach(el=>{
+    if(el===newCard) return;
+    const f = firsts.get(el);
+    if(!f){ el.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease'}); return; }
+    const dy = f.top - el.getBoundingClientRect().top;
+    if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:dur,easing:ease});
+  });
+}
 /* ============ 全部页：列表 + 四象限 ============ */
 /* 已完成分组状态：是否展开、额外加载的更早完成条数（默认只显示最近 7 天） */
 let allDoneExpanded = true;
@@ -1494,7 +1532,7 @@ function completeTask(id){
     tasks.push(nt);
     t.genId = nt.id;   /* 记到本任务上，撤销时只删它生成的那条 */
   }
-  renderTasks(); renderAll(); renderCalendar();
+  flyTask(id); renderCalendar();
   const n = parseInt($('#pet-done').textContent) + 1;
   $('#pet-done').textContent = n;
   petBubble(`${ico('coin',13)} ${currentPet}留下一枚金币，已收入回忆册`);
@@ -1515,7 +1553,7 @@ function undoComplete(t){
   $('#pet-done').textContent = Math.max(0,n);
   for(let i=MEMORIES.length-1;i>=0;i--){ if(MEMORIES[i]._tid===t.id) MEMORIES.splice(i,1); }
   renderMemories();
-  renderTasks(); renderAll(); renderCalendar();
+  flyTask(t.id); renderCalendar();
 }
 /* 宠物对话框：默认挂今日页宠物卡片右上角；专注页传 'ct' 挂 focus-stage 宠物上方居中 */
 let petBubbleEl = null, petBubbleTimer = null;
