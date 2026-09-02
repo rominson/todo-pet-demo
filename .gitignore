@@ -1,0 +1,12 @@
+# WorkBuddy 内部目录：记忆 / 技能 / 临时发布基线，不入库
+.workbuddy/
+
+# 系统文件
+.DS_Store
+
+# 误生成的文件（终端宽度输出残留）
+--width
+
+# 素材与参考图（index.html 已内联所需资源，运行时无需这些文件）
+prototype/assets/
+design-concepts/
