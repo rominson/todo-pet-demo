@@ -1342,24 +1342,29 @@ function renderTasks(){
 function flyTask(activeId){
   const oldItem = document.querySelector('.task-item[data-id="'+activeId+'"]');
   const oldCard = oldItem ? oldItem.closest('.task-swipe') : null;
-  if(!oldCard){ renderTasks(); renderAll(); return; }
-  const container = oldCard.closest('#task-list,#task-list-all');
+  const container = oldCard ? oldCard.closest('#task-list,#task-list-all') : null;
+  if(!oldCard || !container){ renderTasks(); renderAll(); return; }
   const completing = !oldItem.classList.contains('done');
-  /* 记录飞行前所有卡片位置（First） */
+  const keyOf = el => el.querySelector('.task-item') ? el.querySelector('.task-item').dataset.id : null;
+  /* First：按 data-id 记录每张卡片飞行前的位置（重建 DOM 后仍能正确匹配） */
   const firsts = new Map();
-  container.querySelectorAll(':scope > .task-swipe').forEach(el=>firsts.set(el, el.getBoundingClientRect()));
-  const first = firsts.get(oldCard);
-  /* 克隆一份并（完成时）预置为完成态，作为飞行体 */
+  container.querySelectorAll(':scope > .task-swipe').forEach(el=>{
+    const k = keyOf(el);
+    if(k) firsts.set(k, el.getBoundingClientRect());
+  });
+  const first = firsts.get(String(activeId));
+  /* 飞行体：克隆整卡，完成时预置完成态，并剥掉左滑操作的删除/跳过按钮 */
   const fly = oldCard.cloneNode(true);
   if(completing) fly.querySelector('.task-item').classList.add('done');
+  fly.querySelectorAll('.swipe-btn').forEach(b=>b.remove());
 
   renderTasks(); renderAll();
 
   const newItem = container.querySelector('.task-item[data-id="'+activeId+'"]');
-  if(!newItem || !first) return;
+  if(!newItem || !first){ return; }
   const newCard = newItem.closest('.task-swipe');
   const last = newCard.getBoundingClientRect();
-  /* 真身先藏住，由克隆飞行，落地后现身 */
+  /* 真身先藏住，由克隆飞行，落地后先显示真身再移除克隆（避免结尾闪一帧） */
   newCard.style.visibility = 'hidden';
   fly.style.cssText += `position:fixed;left:${first.left}px;top:${first.top}px;width:${first.width}px;height:${first.height}px;margin:0;z-index:999;pointer-events:none;box-shadow:0 10px 28px rgba(0,0,0,.14);`;
   document.body.appendChild(fly);
@@ -1367,11 +1372,12 @@ function flyTask(activeId){
   fly.animate(
     [{transform:'translateY(0px)'},{transform:`translateY(${last.top-first.top}px)`}],
     {duration:dur, easing:ease, fill:'forwards'}
-  ).onfinish = ()=>{ fly.remove(); newCard.style.visibility=''; };
-  /* 其余卡片 FLIP 同步滑动补位；新出现的卡片（重复任务生成的下一条）淡入 */
+  ).onfinish = ()=>{ newCard.style.visibility=''; requestAnimationFrame(()=>fly.remove()); };
+  /* 其余卡片 FLIP 补位：只给位置真正变化的卡加过渡，未移动的卡不闪 */
   container.querySelectorAll(':scope > .task-swipe').forEach(el=>{
     if(el===newCard) return;
-    const f = firsts.get(el);
+    const k = keyOf(el);
+    const f = k ? firsts.get(k) : null;
     if(!f){ el.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease'}); return; }
     const dy = f.top - el.getBoundingClientRect().top;
     if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:dur,easing:ease});
