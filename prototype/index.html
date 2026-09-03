@@ -795,7 +795,7 @@
     <div data-page-node-id="2IZQ8aGi7aO8b5krNOWEQM" class="store-banner" id="store-banner">
       <div data-page-node-id="3hx6dyrSmaAvBoKVBXyfrl">
         <div data-page-node-id="8dZQB98HgRnKtZfdG1ykSw" class="t" id="store-banner-title"><!--pnid:mwTMO13JAi0fC7ZnKgpHh4-->12 个星座伙伴</div>
-        <div data-page-node-id="ULtwDj1FLdWASEj7QcpvPx" class="s" id="store-banner-sub"><!--pnid:XQDmPtdRWDmwwCctBTZB7Y-->单个 ¥9.9 买断 · 全家桶 12 个 ¥99</div>
+        <div data-page-node-id="ULtwDj1FLdWASEj7QcpvPx" class="s" id="store-banner-sub"><!--pnid:XQDmPtdRWDmwwCctBTZB7Y-->单个 ¥9.9 买断 · 全家桶 12 个 ¥69.9</div>
       </div>
       <span data-page-node-id="storeProgress" class="store-progress" id="store-progress"><!--pnid:G7IsesjjEuV3bU6jaYT6eh-->已拥有 0/12</span>
     </div>
@@ -901,7 +901,7 @@
 
   </div>
 
-  <button data-page-node-id="bundleBtn01" class="bundle-cta" id="bundle-btn" onclick="buyAll()"><span data-page-node-id="bundleIco" data-ico="star" data-size="16"><span data-page-node-id="IOilKuYLKe2700YNgZqbQ3" class="ico" style="width:16px; height:16px"><svg data-page-node-id="nBwKpEhYae5MJ2FY0VOE0L" fill="none" height="100%" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="100%"><path data-page-node-id="6fb5ehuRqLhbHBLGKFdD4A" d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8Z"></path></svg></span></span><span data-page-node-id="bundleTitle" id="bundle-title"><!--pnid:Ag88WRRgWMkCWrsvd55jKb-->全家桶 · 12 只 ¥99</span><span data-page-node-id="bundleSub" class="bc-sub" id="bundle-sub"><!--pnid:k9oGJfACVpanIjWGwY6CsX-->已拥有 0/12 · 单买立省 ¥19.8</span></button>
+  <button data-page-node-id="bundleBtn01" class="bundle-cta" id="bundle-btn" onclick="buyAll()"><span data-page-node-id="bundleIco" data-ico="star" data-size="16"><span data-page-node-id="IOilKuYLKe2700YNgZqbQ3" class="ico" style="width:16px; height:16px"><svg data-page-node-id="nBwKpEhYae5MJ2FY0VOE0L" fill="none" height="100%" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="100%"><path data-page-node-id="6fb5ehuRqLhbHBLGKFdD4A" d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8Z"></path></svg></span></span><span data-page-node-id="bundleTitle" id="bundle-title"><!--pnid:Ag88WRRgWMkCWrsvd55jKb-->全家桶 · 12 只 ¥69.9</span><span data-page-node-id="bundleSub" class="bc-sub" id="bundle-sub"><!--pnid:k9oGJfACVpanIjWGwY6CsX-->已拥有 0/12 · 单买立省 ¥48.9</span></button>
 
   <!--pnid:RzMgpEhw7LCFkGdI9dfTnS--><!-- ============ Tabbar ============ -->
   <div data-page-node-id="UZ5xz3GeDpz19kv2EmZ3RN" class="tabbar">
@@ -2048,7 +2048,7 @@ function renderStore(){
   }else{
     if(banner) banner.classList.remove('done');
     if(bTitle) bTitle.textContent = '12 个星座伙伴';
-    if(bSub) bSub.textContent = '单个 ¥9.9 买断 · 全家桶 12 个 ¥99';
+    if(bSub) bSub.textContent = '单个 ¥9.9 买断 · 全家桶 12 个 ¥69.9';
     if(prog) prog.textContent = `已拥有 ${ownedCount}/12`;
     const remain = 12 - ownedCount;
     /* 补差价：全家桶价 - 已单买只数×单买价，下限 0 */
@@ -2104,7 +2104,7 @@ function setUse(){
   toast(`${currentPet} 现在是你的搭档了`);
 }
 /* 全家桶：一键带走全部 12 只（支持按已拥有数量补差价） */
-const BUNDLE_PRICE = 99, SINGLE_PRICE = 9.9;
+const BUNDLE_PRICE = 69.9, SINGLE_PRICE = 9.9;
 function buyAll(){
   const missing = ZODIAC.filter(it=>!owned.includes(it.a));
   if(!missing.length){ toast('12 只伙伴已经都是你的了'); return; }
