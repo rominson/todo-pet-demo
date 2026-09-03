@@ -148,6 +148,13 @@
   .focus-stage .pet-in-corner.scene-live{width:280px;height:170px;margin:0 auto 6px}
   .focus-stage .pet-in-corner.scene-live .pet-video-wrap{width:280px;height:170px}
   .focus-stage .stage-line{font-size:13px;color:var(--ink-2)}
+  /* 运行锁定：专注/冥想进行中只留卡片上的「结束/快进」可操作，底部 Tab、模式切换等整机置灰禁点 */
+  body.focus-lock .tabbar,
+  body.focus-lock .bundle-cta,
+  body.focus-lock .fab{pointer-events:none;opacity:.5;filter:grayscale(.9)}
+  body.focus-lock .focus-mode-switch{pointer-events:none}
+  body.focus-lock .focus-mode-switch div{cursor:not-allowed}
+  body.focus-lock .focus-mode-switch div:not(.on){opacity:.45;filter:grayscale(.9)}
   .timer{font-size:74px;font-weight:800;letter-spacing:2px;margin:26px 0 8px;font-variant-numeric:tabular-nums}
   .timer-sub{font-size:13px;color:var(--ink-2);margin-bottom:28px}
   .focus-context{
@@ -1288,6 +1295,7 @@ function renderTabs(){
   });
 }
 function switchTab(name, keepTask){
+  if(focusRunning) return;   /* 运行中整机锁定：只能等结束或点结束按钮 */
   hideArchive();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('#screen-'+name).classList.add('active');
@@ -1734,12 +1742,14 @@ function addTask(){
 }
 
 /* ============ 专注模式 ============ */
+/* 运行锁定：focusRunning 期间 body 挂 focus-lock，置灰禁点 Tab/模式切换等，只留卡片上的结束与快进 */
+function setFocusLock(on){ document.body.classList.toggle('focus-lock', on); }
 function switchMode(el){
+  if(focusRunning) return;   /* 运行中锁死模式切换，只能等结束或点结束按钮 */
   document.querySelectorAll('.focus-mode-switch div').forEach(d=>d.classList.remove('on'));
   el.classList.add('on'); focusMode = el.dataset.mode;
   const fb = $('#focus-btn');
-  if(fb && !focusRunning) fb.textContent = focusMode==='focus' ? '开始专注' : '开始冥想';
-  if(focusRunning){ liveScene = focusMode; renderPets(); return; }   /* 运行中切模式：立即换陪伴场景 */
+  if(fb) fb.textContent = focusMode==='focus' ? '开始专注' : '开始冥想';
   focusLeft = focusMode==='focus' ? 25*60 : 15*60;
   renderTimer();
   renderFocusContext();
@@ -1754,6 +1764,7 @@ function startFocus(){
   if(focusRunning){ finishFocus(false); return; }
   if(focusMode!=='focus') focusTask = '';
   focusRunning = true;
+  setFocusLock(true);          /* 上锁：Tab/模式切换全部禁点，只留结束与快进 */
   liveScene = focusMode;   /* 陪伴动画跟状态走：专注→敲键盘 / 冥想→看夕阳 */
   renderPets();
   const btn = $('#focus-btn');
@@ -1775,6 +1786,7 @@ function fastForward(){
 }
 function finishFocus(completed){
   clearInterval(focusTimer); focusRunning = false;
+  setFocusLock(false);       /* 解锁：恢复正常导航与切换 */
   liveScene = '';            /* 结束/中断都回到日常静态形象 */
   renderPets();
   const btn = $('#focus-btn');
