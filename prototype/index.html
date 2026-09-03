@@ -144,6 +144,9 @@
   .focus-mode-switch div.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .focus-stage{position:relative;text-align:center;padding:8px 0 4px}
   .focus-stage .pet-in-corner{width:56px;height:56px;margin:0 auto 6px}
+  /* 专注/冥想进行中：角落宠物放大成陪伴场景动画（敲键盘/看夕阳） */
+  .focus-stage .pet-in-corner.scene-live{width:280px;height:170px;margin:0 auto 6px}
+  .focus-stage .pet-in-corner.scene-live .pet-video-wrap{width:280px;height:170px}
   .focus-stage .stage-line{font-size:13px;color:var(--ink-2)}
   .timer{font-size:74px;font-weight:800;letter-spacing:2px;margin:26px 0 8px;font-variant-numeric:tabular-nums}
   .timer-sub{font-size:13px;color:var(--ink-2);margin-bottom:28px}
@@ -1245,54 +1248,33 @@ function petImg(name){
   return (z ? z.img : DEFAULT_PET_IMG);
 }
 let currentPet = '橘小满';   /* 当前陪伴的宠物，默认橘小满 */
-let currentScene = (function(){ const k = Object.keys(SCENE); return k[Math.floor(Math.random()*k.length)]; })(); /* 当前陪伴场景，随机起始，由 startSceneRotation 定时随机切 */
-let _sceneTimer = null;     /* 场景轮换定时器 */
-let _sceneRotating = false; /* 是否正在自动轮换（仅橘小满） */
+/* 陪伴动画状态绑定（2026-09-03 取消随机轮换）：''=日常静态；focus=专注(敲键盘)；meditate=冥想(看夕阳) */
+let liveScene = '';
+const SCENE_BY_MODE = { focus:'keyboard', meditate:'sunset' };   /* 模式 → 场景动画 */
+/* 返回正在播放的场景动画 src；日常无动画返回空串 */
+function liveSceneSrc(){ return SCENE_BY_MODE[liveScene] ? SCENE[SCENE_BY_MODE[liveScene]] : ''; }
 function renderPets(){
   const SLOTS = ['#pet-avatar-home','#pet-corner','#reward-pet','#pet-profile-avatar','#share-pet','#ceremony-pet'];
   const img = petImg(currentPet);
+  const scene = liveSceneSrc();
   SLOTS.forEach(s=>{
     const el = $(s); if(!el) return;
-    if(s==='#pet-avatar-home' && currentPet==='橘小满'){
-      el.innerHTML = `<div class="pet-video-wrap"><img class="pet-video" src="${SCENE[currentScene]}" alt="橘小满"></div>`;
+    if(scene && (s==='#pet-avatar-home' || s==='#pet-corner')){
+      /* 专注/冥想进行中：两个陪伴位显示对应场景动画 */
+      el.classList.add('scene-live');
+      el.innerHTML = `<div class="pet-video-wrap"><img class="pet-video" src="${scene}" alt="橘小满"></div>`;
     } else {
+      /* 日常：静态形象（橘小满用橘猫图，星座动物用各自形象） */
+      el.classList.remove('scene-live');
       el.innerHTML = `<img class="pet-img" src="${PIC[img]||''}" alt="${currentPet}">`;
     }
   });
   const p = $('#pet-profile-name'); if(p) p.textContent = currentPet;
-  if(currentPet==='橘小满') startSceneRotation(); else stopSceneRotation();
 }
-function switchScene(id){
-  if(!SCENE[id] || currentScene===id) return;
-  currentScene = id;
-  renderPets();
-}
-/* ---- 场景自动随机轮换：橘小满陪伴时，每个场景随机展示 5~60 秒后随机切到另一个场景 ---- */
-/* 顺序随机、时长随机；SCENE 里新增场景后无需改这里，会自动纳入轮换。              */
-function _scheduleNextScene(){
-  const delay = 5000 + Math.random() * 55000;   /* 5s ~ 60s 随机 */
-  _sceneTimer = setTimeout(() => {
-    const keys = Object.keys(SCENE);
-    let cands = keys.filter(k => k !== currentScene);
-    if(cands.length === 0) cands = keys;          /* 仅 1 个场景时回退为自身 */
-    const next = cands[Math.floor(Math.random() * cands.length)];
-    switchScene(next);
-    _scheduleNextScene();
-  }, delay);
-}
-function startSceneRotation(){
-  if(_sceneRotating) return;
-  _sceneRotating = true;
-  _scheduleNextScene();
-}
-function stopSceneRotation(){
-  _sceneRotating = false;
-  if(_sceneTimer){ clearTimeout(_sceneTimer); _sceneTimer = null; }
-}
+/* 宠物档案快捷浮层（头像长按弹出） */
 function toggleArchive(){ const b=$('#pet-archive-pop'); if(b) b.classList.toggle('show'); }
 function openArchive(){ const b=$('#pet-archive-pop'); if(b) b.classList.remove('show'); openSheet('sheet-profile'); }
 function hideArchive(){ const b=$('#pet-archive-pop'); if(b) b.classList.remove('show'); }
-renderPets();  /* renderPets 内部会为橘小满启动 startSceneRotation() */
 
 /* ============ Tab 切换 ============ */
 /* 底部 tab 图标：激活态用填充图标，未激活用描边图标 */
@@ -1757,7 +1739,7 @@ function switchMode(el){
   el.classList.add('on'); focusMode = el.dataset.mode;
   const fb = $('#focus-btn');
   if(fb && !focusRunning) fb.textContent = focusMode==='focus' ? '开始专注' : '开始冥想';
-  if(focusRunning) return;
+  if(focusRunning){ liveScene = focusMode; renderPets(); return; }   /* 运行中切模式：立即换陪伴场景 */
   focusLeft = focusMode==='focus' ? 25*60 : 15*60;
   renderTimer();
   renderFocusContext();
@@ -1772,6 +1754,8 @@ function startFocus(){
   if(focusRunning){ finishFocus(false); return; }
   if(focusMode!=='focus') focusTask = '';
   focusRunning = true;
+  liveScene = focusMode;   /* 陪伴动画跟状态走：专注→敲键盘 / 冥想→看夕阳 */
+  renderPets();
   const btn = $('#focus-btn');
   btn.textContent = focusMode==='focus' ? '专注中 · 点击结束' : '冥想中 · 点击结束';
   btn.classList.remove('primary'); btn.classList.add('ghost');
@@ -1791,6 +1775,8 @@ function fastForward(){
 }
 function finishFocus(completed){
   clearInterval(focusTimer); focusRunning = false;
+  liveScene = '';            /* 结束/中断都回到日常静态形象 */
+  renderPets();
   const btn = $('#focus-btn');
   btn.textContent = focusMode==='focus' ? '开始专注' : '开始冥想';
   btn.classList.add('primary'); btn.classList.remove('ghost');
@@ -2114,6 +2100,7 @@ function buyAll(){
   $('#today-date').textContent = new Date().toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'long'});
   selectedDay = new Date().getDate();
   renderTasks(); renderAll(); renderCalendar(); renderStore();
+  renderPets();   /* 初始：日常静态形象（橘小满=橘猫图）；专注/冥想启动后由 liveScene 驱动 */
   $('#all-view-list').addEventListener('scroll', onAllScroll);
   attachDaySwipe($('#day-detail'));
   $('#anniv-list').innerHTML = `
