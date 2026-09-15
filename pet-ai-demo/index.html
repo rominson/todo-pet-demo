@@ -309,7 +309,7 @@ ${block}`;
     $("#send").onclick = send;
     $("#msg").addEventListener("keydown",(e)=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); }});
 
-    function escapeHtml(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+    function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
     // ---------------- 初始化 CloudBase ----------------
     function showBanner(html){ const b=$("#banner"); b.style.display="block"; b.innerHTML=html; }
@@ -324,7 +324,14 @@ ${block}`;
         // AI 通过云函数（服务端）调用，这里只验证能连上环境
         statusDot.className="dot ok"; statusText.textContent="已连上 · 真实 AI";
         loadCtx();
-        addBubble("pet", `嗨，我是${PERSONAS[currentKey].name}～ 你今天有什么要一起搞定的事吗？`);
+        // 开场问候写入历史并落库，保证切换伙伴 / 刷新后对话连贯一致
+        if(history.length === 0){
+          history.push({role:"assistant", content:`嗨，我是${PERSONAS[currentKey].name}～ 你今天有什么要一起搞定的事吗？`});
+          localStorage.setItem(LS.hist(currentKey), JSON.stringify(history.slice(-20)));
+        }
+        // 渲染历史（含问候），与 switchPersona 行为保持一致
+        chatEl.innerHTML="";
+        history.forEach(m=> m.role==="user"?addBubble("user",m.content):addBubble("pet",m.content,true));
       }catch(e){
         statusDot.className="dot bad"; statusText.textContent="连接失败";
         showBanner("<b>初始化失败：</b>"+(e.message||e)+"<br>常见原因：① accessKey 未填/填错 ② 环境未开启「匿名登录」 ③ 网络问题。详见 README。");
