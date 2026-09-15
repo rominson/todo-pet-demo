@@ -1,19 +1,19 @@
-<!-- 专注：番茄 / 冥想 / 白噪音 -->
+<!-- pages/focus/focus.wxml —— 专注模式 / 冥想模式 -->
 <view class="page">
-  <view class="modes">
-    <view class="mode card" bindtap="startMode" data-mode="pomodoro">
-      <view class="mode-emoji">🍅</view><view>番茄钟</view>
-    </view>
-    <view class="mode card" bindtap="startMode" data-mode="meditation">
-      <view class="mode-emoji">🧘</view><view>冥想</view>
-    </view>
-    <view class="mode card" bindtap="startMode" data-mode="whitenoise">
-      <view class="mode-emoji">🌿</view><view>白噪音</view>
-    </view>
+  <view class="stage">
+    <view class="pet-ava {{running?'anim':''}}" style="background:{{pet.color}}">{{petFace}}</view>
+    <view wx:if="{{taskTitle}}" class="ctx">为「{{taskTitle}}」专注</view>
+    <view class="timer {{running?'running':''}}">{{timeText}}</view>
+    <view class="sub">{{sub}}</view>
   </view>
 
-  <view class="timer card center" wx:if="{{running}}">
-    <view class="time">{{display}}</view>
-    <view class="btn-primary" bindtap="stop">结束</view>
+  <view class="mode-switch {{running?'locked':''}}">
+    <view class="mode {{mode==='focus'?'on':''}}" data-mode="focus" bindtap="switchMode">专注 25′</view>
+    <view class="mode {{mode==='meditate'?'on':''}}" data-mode="meditate" bindtap="switchMode">冥想 15′</view>
   </view>
+
+  <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始' + (mode==='focus'?'专注':'冥想')}}</button>
+  <view wx:if="{{showCancel}}" class="cancel" bindtap="cancel">中断也没关系</view>
+
+  <view wx:if="{{bubbleText}}" class="bubble">{{bubbleText}}</view>
 </view>

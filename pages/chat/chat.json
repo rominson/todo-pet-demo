@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "陪伴对话" }
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "悄悄话"
+}

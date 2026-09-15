@@ -1,21 +1,67 @@
-<!-- 首页：陪伴播报 + 今日待办 -->
+<!-- pages/index/index.wxml —— 首页：宠物陪伴 + 待办清单 -->
 <view class="page">
-  <view class="hero card">
-    <view class="hero-pet">{{petName}} 陪着你</view>
-    <view class="broadcast muted">{{broadcast || '今天也要照顾好自己呀～'}}</view>
+  <!-- 宠物陪伴区 -->
+  <view class="pet-card">
+    <view class="pet-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
+    <view class="pet-meta">
+      <view class="pet-name">{{pet.name}}</view>
+      <view class="pet-sub">一直在这儿陪着你</view>
+    </view>
+    <view wx:if="{{greeting}}" class="pet-bubble">“{{greeting}}”</view>
   </view>
 
-  <view class="section-title">今日待办</view>
-  <view class="card todo-list" wx:if="{{todos.length}}">
-    <view class="todo-item" wx:for="{{todos}}" wx:key="id">
-      <text>{{item.text}}</text>
+  <!-- 统计 -->
+  <view class="stats">
+    <view class="stat">
+      <view class="num">{{doneTotal}}</view>
+      <view class="lbl">一起搞定</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{streak}}</view>
+      <view class="lbl">连续天数</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{companionDays}}</view>
+      <view class="lbl">陪伴天数</view>
     </view>
   </view>
-  <view class="card muted center" wx:else>还没有待办，去添加一件小事吧</view>
 
-  <view class="quick">
-    <view class="quick-btn" bindtap="goPets">🐾 宠物</view>
-    <view class="quick-btn" bindtap="goChat">💬 聊聊天</view>
-    <view class="quick-btn" bindtap="goFocus">🍅 专注</view>
+  <!-- 待办 -->
+  <view class="section-title">今天的事</view>
+  <view class="task-list">
+    <view wx:for="{{tasks}}" wx:key="_id" class="task {{item.done?'done':''}}">
+      <view class="check {{item.done?'on':''}}" catchtap="onToggle" data-id="{{item._id}}">{{item.done?'✓':''}}</view>
+      <view class="task-body" catchtap="onToggle" data-id="{{item._id}}">
+        <view class="task-title">{{item.title}}</view>
+        <view wx:if="{{item.tag || item.due}}" class="task-tags">
+          <text wx:if="{{item.tag}}" class="tag">{{item.tag}}</text>
+          <text wx:if="{{item.due}}" class="due">📅 {{item.due}}</text>
+        </view>
+      </view>
+      <view wx:if="{{item.type==='focus' && !item.done}}" class="focus-badge" catchtap="goFocus" data-id="{{item._id}}">专注</view>
+      <view class="del" catchtap="onRemove" data-id="{{item._id}}">✕</view>
+    </view>
+    <view wx:if="{{tasks.length===0}}" class="empty">还没有待办，点下面的 ＋ 加一件吧</view>
+  </view>
+
+  <view class="add-bar" bindtap="showAdd">＋ 加一件待办</view>
+</view>
+
+<!-- 完成/陪伴气泡 -->
+<view wx:if="{{bubble}}" class="float-bubble">{{bubble}}</view>
+
+<!-- 新增弹层 -->
+<view wx:if="{{showAdd}}" class="modal-mask" bindtap="hideAdd">
+  <view class="modal" catchtap="noop">
+    <view class="modal-title">新待办</view>
+    <input class="fld" placeholder="要做什么？" value="{{form.title}}" bindinput="onTitle" />
+    <input class="fld" placeholder="标签（可选）" value="{{form.tag}}" bindinput="onTag" />
+    <input class="fld" placeholder="截止日期 如 2026-09-20（可选）" value="{{form.due}}" bindinput="onDue" />
+    <view class="type-row">
+      <view class="type-opt {{form.type==='normal'?'on':''}}" bindtap="setType" data-t="normal">勾选完成</view>
+      <view class="type-opt {{form.type==='focus'?'on':''}}" bindtap="setType" data-t="focus">计时专注</view>
+    </view>
+    <button class="btn-primary" bindtap="onCreate">添加</button>
+    <button class="btn-ghost" bindtap="hideAdd">取消</button>
   </view>
 </view>

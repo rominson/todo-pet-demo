@@ -44,11 +44,16 @@ App({
       const res = await wx.cloud.callFunction({ name: 'auth' });
       if (res && res.result && res.result.ok) {
         this.globalData.openid = res.result.openid;
+        // 同步云端当前宠物，供各页 onShow 读取（切换宠物时已就近更新 globalData）
+        const mine = await wx.cloud.callFunction({ name: 'petService', data: { action: 'getMine' } });
+        if (mine && mine.result && mine.result.ok && mine.result.current) {
+          this.globalData.currentPet = mine.result.current;
+        }
       } else {
         console.warn('匿名登录未返回 openid:', res && res.result);
       }
     } catch (e) {
-      console.warn('匿名登录失败（检查 auth 云函数是否已部署）:', e);
+      console.warn('匿名登录失败（检查云函数是否已部署）:', e);
     }
   }
 });

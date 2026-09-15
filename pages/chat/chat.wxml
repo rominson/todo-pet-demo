@@ -1,14 +1,21 @@
-<!-- 陪伴对话：宠物读取待办/足迹做陪伴式互动（AI 在阶段3 接通） -->
-<view class="page chat">
-  <scroll-view scroll-y class="msgs" scroll-into-view="{{scrollTo}}">
-    <view wx:for="{{messages}}" wx:key="idx" id="m{{idx}}"
-          class="msg {{item.role === 'user' ? 'me' : 'pet'}}">
-      <view class="bubble">{{item.content}}</view>
-    </view>
-  </scroll-view>
-
-  <view class="input-bar">
-    <input class="input" value="{{draft}}" bindinput="onInput" placeholder="和 {{petName}} 说点什么…" />
-    <view class="send btn-primary" bindtap="send">发送</view>
+<!-- pages/chat/chat.wxml —— 宠物陪伴悄悄话（单向） -->
+<view class="page">
+  <view class="hero">
+    <view class="hero-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
+    <view class="hero-name">{{pet.name}} 的悄悄话</view>
+    <view class="hero-sub">它只读你的待办，不会替你做主</view>
   </view>
+
+  <view class="lines">
+    <view wx:for="{{lines}}" wx:key="id" class="line">
+      <view class="line-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
+      <view class="line-bubble">
+        <text class="line-text">{{item.text}}</text>
+        <text class="line-date">{{item.date}}</text>
+      </view>
+    </view>
+    <view wx:if="{{lines.length===0}}" class="empty">还没有悄悄话，点下面的按钮让{{pet.name}}说一句</view>
+  </view>
+
+  <button class="btn-primary talk" bindtap="say" disabled="{{thinking}}">{{thinking ? '它正在想…' : '让' + pet.name + '说一句'}}</button>
 </view>

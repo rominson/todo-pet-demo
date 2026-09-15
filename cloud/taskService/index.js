@@ -12,13 +12,13 @@ exports.main = async (event) => {
 
   switch (action) {
     case 'create': {
-      const { title, tag = '', due = '', note = '' } = event;
+      const { title, tag = '', due = '', note = '', type = 'normal' } = event;
       if (!title || !String(title).trim()) return { ok: false, error: '标题不能为空' };
       const res = await tasks.add({
         data: {
           openid: OPENID,
           title: String(title).trim(),
-          tag, due, note,
+          tag, due, note, type,
           done: false,
           done_at: null,
           created_at: new Date(),

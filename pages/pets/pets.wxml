@@ -1,13 +1,39 @@
-<!-- 宠物：橘小满(免费) + 12 星座(付费解锁) -->
+<!-- pages/pets/pets.wxml —— 宠物商店：目录 / 解锁 / 切换 -->
 <view class="page">
+  <view class="hero">
+    <view class="hero-ava" style="background:{{currentPet.color}}">{{currentPet.emoji}}</view>
+    <view class="hero-name">当前陪伴：{{currentPet.name}}</view>
+    <view class="hero-sub">点下面的伙伴，可以切换或解锁它</view>
+  </view>
+
+  <view wx:if="{{birthZodiac}}" class="birth-tip">
+    <text wx:if="{{birthZodiac.owned}}">你的本命「{{birthZodiac.name}}」已解锁 🎉</text>
+    <text wx:else>你的本命是「{{birthZodiac.name}}」——解锁它，让它成为真正属于你的那只</text>
+  </view>
+
   <view class="grid">
-    <view class="pet-card card" wx:for="{{personas}}" wx:key="key"
-          bindtap="onTap" data-key="{{item.key}}">
-      <view class="pet-emoji">{{item.free ? '🐱' : '⭐'}}</view>
-      <view class="pet-name">{{item.name}}</view>
-      <view class="pet-tag {{item.free ? 'free' : 'locked'}}">
-        {{item.free ? '免费' : (owned[item.key] ? '已拥有' : '解锁')}}
-      </view>
+    <view wx:for="{{pets}}" wx:key="key"
+          class="pet-cell {{item.owned?'owned':''}} {{item.key===currentKey?'active':''}} {{item.key===birthKey?'isbirth':''}}"
+          catchtap="onTap" data-key="{{item.key}}">
+      <view wx:if="{{item.key===birthKey}}" class="birth-flag">本命</view>
+      <view class="cell-ava" style="background:{{item.color}}">{{item.emoji}}</view>
+      <view class="cell-name">{{item.name}}</view>
+      <view wx:if="{{item.owned}}" class="cell-tag">已拥有</view>
+      <view wx:elif="{{item.free}}" class="cell-tag free">免费</view>
+      <view wx:else class="cell-tag price">¥{{item.price}}</view>
+    </view>
+  </view>
+
+  <!-- 详情弹层 -->
+  <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">
+    <view class="modal" catchtap="noop">
+      <view class="d-ava" style="background:{{detail.color}}">{{detail.emoji}}</view>
+      <view class="d-name">{{detail.name}}{{detail.key===birthKey?' · 你的本命':''}}</view>
+      <view class="d-desc">{{detail.desc}}</view>
+      <button wx:if="{{detail.owned}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">切换为当前伙伴</button>
+      <button wx:elif="{{detail.free}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">设为当前（免费）</button>
+      <button wx:else class="btn-primary" catchtap="doUnlock" data-key="{{detail.key}}">解锁 ¥{{detail.price}}</button>
+      <button class="btn-ghost" catchtap="closeDetail">关闭</button>
     </view>
   </view>
 </view>
