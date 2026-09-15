@@ -169,6 +169,10 @@ Page({
     wx.navigateTo({ url: '/pages/focus/focus?title=' + encodeURIComponent(t ? t.title : '') });
   },
 
+  openChat() {
+    wx.navigateTo({ url: '/pages/chat/chat' });
+  },
+
   onRemove(e) {
     const id = e.currentTarget.dataset.id;
     wx.showModal({

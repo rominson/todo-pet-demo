@@ -14,7 +14,13 @@
         <text class="line-date">{{item.date}}</text>
       </view>
     </view>
-    <view wx:if="{{lines.length===0}}" class="empty">还没有悄悄话，点下面的按钮让{{pet.name}}说一句</view>
+    <view wx:if="{{thinking}}" class="line">
+      <view class="line-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
+      <view class="line-bubble thinking">
+        <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+      </view>
+    </view>
+    <view wx:if="{{!thinking && lines.length===0}}" class="empty">还没有悄悄话，点下面的按钮让{{pet.name}}说一句</view>
   </view>
 
   <button class="btn-primary talk" bindtap="say" disabled="{{thinking}}">{{thinking ? '它正在想…' : '让' + pet.name + '说一句'}}</button>

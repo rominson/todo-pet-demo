@@ -20,6 +20,14 @@
 }
 .pet-name { font-size: 34rpx; font-weight: 700; }
 .pet-sub { font-size: 24rpx; color: var(--ink-soft); margin-top: 6rpx; }
+.pet-meta { flex: 1; min-width: 0; }
+.pet-go {
+  flex-shrink: 0;
+  font-size: 24rpx; color: var(--brand);
+  background: var(--brand-soft);
+  padding: 10rpx 20rpx; border-radius: 999rpx;
+}
+.pet-card:active { transform: scale(0.99); }
 .pet-bubble {
   position: absolute;
   top: -18rpx; right: 28rpx;

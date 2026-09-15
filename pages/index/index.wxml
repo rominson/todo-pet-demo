@@ -1,12 +1,13 @@
 <!-- pages/index/index.wxml —— 首页：宠物陪伴 + 待办清单 -->
 <view class="page">
   <!-- 宠物陪伴区 -->
-  <view class="pet-card">
+  <view class="pet-card" bindtap="openChat">
     <view class="pet-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
     <view class="pet-meta">
       <view class="pet-name">{{pet.name}}</view>
       <view class="pet-sub">一直在这儿陪着你</view>
     </view>
+    <view class="pet-go">陪我聊聊 ›</view>
     <view wx:if="{{greeting}}" class="pet-bubble">“{{greeting}}”</view>
   </view>
 

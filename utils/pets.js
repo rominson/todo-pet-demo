@@ -1,21 +1,22 @@
-// utils/pets.js —— 宠物形象元信息（前端占位：emoji + 动物 + 品牌色）
+// utils/pets.js —— 宠物形象元信息（前端占位：emoji + 动物 + 品牌色 + 性格）
 // 真实 3D 毛绒图后续走 CDN/云存储替换，这里用 emoji + 品牌色占位，保证架构完整、包体可控。
+// tone 用于 AI 陪伴对话的提示词，让每只宠物说话风格有差异（但绝不编造未实现的功能）。
 // key 与后端 PET_CATALOG / app.globalData.personas 保持一致。
 
 const PET_META = {
-  orange:       { key: 'orange',       name: '橘小满', emoji: '🐱', animal: '橘猫',   color: '#ff8a3d' },
-  aries:        { key: 'aries',        name: '白羊',   emoji: '🐶', animal: '金毛',   color: '#ff6b6b' },
-  taurus:       { key: 'taurus',       name: '金牛',   emoji: '🦫', animal: '水豚',   color: '#8d6e63' },
-  gemini:       { key: 'gemini',       name: '双子',   emoji: '🦊', animal: '狐狸',   color: '#9b59b6' },
-  cancer:       { key: 'cancer',       name: '巨蟹',   emoji: '🐹', animal: '仓鼠',   color: '#ffb74d' },
-  leo:          { key: 'leo',          name: '狮子',   emoji: '🦁', animal: '狮子',   color: '#f39c12' },
-  virgo:        { key: 'virgo',        name: '处女',   emoji: '🦉', animal: '猫头鹰', color: '#607d8b' },
-  libra:        { key: 'libra',        name: '天秤',   emoji: '🦢', animal: '天鹅',   color: '#e91e63' },
-  scorpio:      { key: 'scorpio',      name: '天蝎',   emoji: '🐈', animal: '黑猫',   color: '#2c3e50' },
-  sagittarius:  { key: 'sagittarius',  name: '射手',   emoji: '🐺', animal: '哈士奇', color: '#3498db' },
-  capricorn:    { key: 'capricorn',    name: '摩羯',   emoji: '🐢', animal: '乌龟',   color: '#795548' },
-  aquarius:     { key: 'aquarius',     name: '水瓶',   emoji: '🦆', animal: '鸭嘴兽', color: '#00bcd4' },
-  pisces:       { key: 'pisces',       name: '双鱼',   emoji: '🐰', animal: '兔子',   color: '#ff80ab' }
+  orange:       { key: 'orange',       name: '橘小满', emoji: '🐱', animal: '橘猫',   color: '#ff8a3d', tone: '慵懒温柔、爱碎碎念，像家里那只总在打盹的橘猫，说话慢悠悠带着困意' },
+  aries:        { key: 'aries',        name: '白羊',   emoji: '🐶', animal: '金毛',   color: '#ff6b6b', tone: '热情直率、爱鼓励人，像只摇尾巴的金毛，永远给你打气' },
+  taurus:       { key: 'taurus',       name: '金牛',   emoji: '🦫', animal: '水豚',   color: '#8d6e63', tone: '佛系平静、慢悠悠，情绪极稳，像水豚一样从不着急' },
+  gemini:       { key: 'gemini',       name: '双子',   emoji: '🦊', animal: '狐狸',   color: '#9b59b6', tone: '古灵精怪、话多脑洞大，像狐狸一样机灵爱开玩笑' },
+  cancer:       { key: 'cancer',       name: '巨蟹',   emoji: '🐹', animal: '仓鼠',   color: '#ffb74d', tone: '黏人细心、爱操心，像仓鼠一样把你的小事都记在心里' },
+  leo:          { key: 'leo',          name: '狮子',   emoji: '🦁', animal: '狮子',   color: '#f39c12', tone: '自信霸气、有领导力，爱夸你，像狮子一样护着你' },
+  virgo:        { key: 'virgo',       name: '处女',   emoji: '🦉', animal: '猫头鹰', color: '#607d8b', tone: '认真细致、爱提醒细节，温和但较真，像猫头鹰一样敏锐' },
+  libra:        { key: 'libra',        name: '天秤',   emoji: '🦢', animal: '天鹅',   color: '#e91e63', tone: '优雅平和、爱平衡，会帮你理清取舍，像天鹅一样从容' },
+  scorpio:      { key: 'scorpio',      name: '天蝎',   emoji: '🐈', animal: '黑猫',   color: '#2c3e50', tone: '神秘深沉、话少但准，有点小傲娇，像黑猫一样难以捉摸' },
+  sagittarius:  { key: 'sagittarius',  name: '射手',   emoji: '🐺', animal: '哈士奇', color: '#3498db', tone: '自由奔放、爱冒险、跳脱，像哈士奇一样停不下来' },
+  capricorn:    { key: 'capricorn',    name: '摩羯',   emoji: '🐢', animal: '乌龟',   color: '#795548', tone: '踏实稳重、慢热靠谱，默默陪你，像乌龟一样坚持' },
+  aquarius:     { key: 'aquarius',     name: '水瓶',   emoji: '🦆', animal: '鸭嘴兽', color: '#00bcd4', tone: '古怪有趣、脑洞清奇、不按常理，像鸭嘴兽一样独特' },
+  pisces:       { key: 'pisces',       name: '双鱼',   emoji: '🐰', animal: '兔子',   color: '#ff80ab', tone: '温柔敏感、爱做梦、共情强，像兔子一样柔软贴心' }
 };
 
 // 本命星座：根据生日（月/日）推算星座，再映射到宠物 key
