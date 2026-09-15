@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="JzjftPAhqGg4JIeIKOqn4n">
+<head data-page-node-id="pDpfbBdM0ZpisWv0PmJKXP">
+<meta charset="UTF-8" data-page-node-id="wJD4SOAran2O8cPNc1BYWW" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="JeOdd129oDxAp9phMH0jyb" />
+<title>毛茸清单 · 宠物 AI Demo</title>
+<style>
+  :root{
+    --bg:#FBF7F0; --card:#FFFFFF; --ink:#3A332B; --ink-soft:#8A8076;
+    --accent:#F5A623; --accent-soft:#FCEBCF; --line:#F0E7D9;
+    --pet:#FFE9CC; --user:#FFF3E0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink); display:flex; height:100vh; overflow:hidden;
+  }
+  /* ---------- 左侧任务面板 ---------- */
+  .side{
+    width:300px; min-width:300px; background:var(--card); border-right:1px solid var(--line);
+    padding:20px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:18px;
+  }
+  .brand{font-size:18px; font-weight:700; letter-spacing:.5px}
+  .brand small{display:block; font-weight:400; color:var(--ink-soft); font-size:12px; margin-top:2px}
+  .field label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; font-weight:600}
+  .pet-chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    font-size:12px; padding:5px 9px; border-radius:999px; border:1px solid var(--line);
+    background:#fff; cursor:pointer; transition:.15s; color:var(--ink);
+  }
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .task-add{display:flex; gap:6px}
+  .task-add input{
+    flex:1; border:1px solid var(--line); border-radius:10px; padding:8px 10px; font-size:13px; outline:none;
+  }
+  .task-add input:focus{border-color:var(--accent)}
+  .task-add button{
+    border:none; background:var(--accent); color:#fff; border-radius:10px; padding:0 12px;
+    cursor:pointer; font-size:13px; font-weight:600;
+  }
+  .task-list{list-style:none; display:flex; flex-direction:column; gap:6px}
+  .task-list li{
+    display:flex; align-items:center; gap:8px; font-size:13px; padding:7px 9px;
+    background:var(--bg); border-radius:9px;
+  }
+  .task-list li.done{opacity:.45; text-decoration:line-through}
+  .task-list .x{margin-left:auto; cursor:pointer; color:var(--ink-soft); font-size:14px}
+  textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:8px 10px;
+    font-size:13px; font-family:inherit; resize:vertical; outline:none; min-height:46px;
+  }
+  textarea:focus{border-color:var(--accent)}
+  .hint{font-size:11px; color:var(--ink-soft); line-height:1.5}
+  /* ---------- 右侧聊天 ---------- */
+  .main{flex:1; display:flex; flex-direction:column}
+  .topbar{
+    display:flex; align-items:center; gap:12px; padding:14px 22px; background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar img{width:44px; height:44px; border-radius:50%; object-fit:cover; background:var(--pet)}
+  .topbar .nm{font-weight:700; font-size:15px}
+  .topbar .st{font-size:12px; color:var(--ink-soft)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#bbb;display:inline-block;margin-right:5px}
+  .dot.ok{background:#4CAF50}.dot.bad{background:#E57373}
+  .chat{flex:1; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:16px}
+  .row{display:flex; gap:10px; max-width:78%}
+  .row.user{align-self:flex-end; flex-direction:row-reverse}
+  .row .av{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--pet);flex:none}
+  .bub{padding:11px 14px; border-radius:16px; font-size:14px; line-height:1.6; white-space:pre-wrap; word-break:break-word}
+  .row.pet .bub{background:var(--card); border:1px solid var(--line); border-top-left-radius:4px}
+  .row.user .bub{background:var(--user); border-top-right-radius:4px}
+  .typing::after{content:"▋"; animation:blink 1s steps(2) infinite; color:var(--accent)}
+  @keyframes blink{50%{opacity:0}}
+  .inputbar{display:flex; gap:10px; padding:14px 22px; background:var(--card); border-top:1px solid var(--line)}
+  .inputbar textarea{flex:1; min-height:44px; max-height:120px}
+  .inputbar button{
+    align-self:flex-end; border:none; background:var(--accent); color:#fff; font-weight:700;
+    padding:0 20px; border-radius:12px; cursor:pointer; font-size:14px;
+  }
+  .inputbar button:disabled{opacity:.5; cursor:not-allowed}
+  .banner{
+    background:var(--accent-soft); color:#9a6b00; padding:10px 22px; font-size:12.5px; line-height:1.6;
+    border-bottom:1px solid var(--line);
+  }
+  .banner b{color:#7a5200}
+  .setup-note{font-size:11px;color:var(--ink-soft);margin-top:4px}
+</style>
+</head>
+<body data-page-node-id="7Qc0fDUpET5EcwG8xGoVTH">
+  <!-- 左侧：任务上下文面板（喂给宠物的"记忆"） -->
+  <aside class="side" data-page-node-id="fmBFdSaV4FLar4c8Q87eX6">
+    <div class="brand" data-page-node-id="81C4QWHEEYEFh06HG2Bnhm">毛茸清单 <small data-page-node-id="piHsWN59OnHCihzHP9FSVq">宠物 AI · 真实对话 Demo</small></div>
+
+    <div class="field" data-page-node-id="W2Apw11aWOVo40dDQ30E2j">
+      <label data-page-node-id="GYtv4GuPKhUAKX58TMhBXi">选择你的伙伴</label>
+      <div class="pet-chips" id="petChips" data-page-node-id="ysfa2nGB5DTcT9Au0seIHP"></div>
+    </div>
+
+    <div class="field" data-page-node-id="J2xphpfvPU2HD01mYiwawa">
+      <label data-page-node-id="8O52pKQgxLI1zZypDEQvNA">今日待办（它会"记得"）</label>
+      <div class="task-add" data-page-node-id="dD2ajjO9T4P33SBXukQrCG">
+        <input id="taskInput" placeholder="写一件今天要做的事…" data-page-node-id="WHCY04n2sNsqRmO2nBIYoj" />
+        <button id="taskAdd" data-page-node-id="a1E1ZxfzRkQPWOCzmmMRje">加</button>
+      </div>
+      <ul class="task-list" id="taskList" style="margin-top:8px" data-page-node-id="GK93RNjJIYWh6Jt4SVW2rD"></ul>
+    </div>
+
+    <div class="field" data-page-node-id="EQYG3QDXRzXmK3zwqyAnku">
+      <label data-page-node-id="lSm9GEEUecIvuAbwWq9ZwA">近期节奏（可选）</label>
+      <textarea id="rhythm" placeholder="例：你周二下午通常很高效"></textarea>
+    </div>
+
+    <div class="field" data-page-node-id="UU9tpxJBNOzZs8sEK9htPw">
+      <label data-page-node-id="jPMZEmffXbSbKMHAr0sEcL">本周目标（可选）</label>
+      <textarea id="goal" placeholder="例：本周专注达到 20 小时"></textarea>
+    </div>
+
+    <div class="hint" data-page-node-id="qflsYpVBvGTRTIyPIcOI7f">
+      这些会作为上下文注入宠物的"记忆"，让它说出像真的留心过你的话。
+      数据存在本机浏览器（localStorage），后续可平滑迁到 CloudBase 数据库。
+    </div>
+  </aside>
+
+  <!-- 右侧：聊天 -->
+  <main class="main" data-page-node-id="bDxLRO7nqhZRrwiNANT8Z0">
+    <div class="topbar" data-page-node-id="JfsppJwA2OX9xrFkzLlVe6">
+      <img id="petAvatar" src="assets/橘小满.png" alt="pet" data-page-node-id="bHu11EAtFCDFBKYGCBPz1w" />
+      <div data-page-node-id="utOfHPPCFecFizsg3qUGBZ">
+        <div class="nm" id="petName" data-page-node-id="1jW8Pe8B4vkABl85rsb4iF">橘小满</div>
+        <div class="st" data-page-node-id="EmKD58k0u5SBB9BlK0qGEj"><span class="dot" id="statusDot" data-page-node-id="4Ske0BDUqy1uAgOOQnY1Dc"></span><span id="statusText" data-page-node-id="XsT0cAfULHm03l5QpbiHlH">连接中…</span></div>
+      </div>
+    </div>
+    <div class="banner" id="banner" style="display:none" data-page-node-id="oUWm24hFScjayLfk3IzUSk"></div>
+    <div class="chat" id="chat" data-page-node-id="dB7RT5CkuvwUFGCxWxEvsb"></div>
+    <div class="inputbar" data-page-node-id="atC2ZFNkjhr6dEtreE5smF">
+      <textarea id="msg" placeholder="和你的伙伴说点什么…（Enter 发送 / Shift+Enter 换行）"></textarea>
+      <button id="send" data-page-node-id="2fQMYY5oekf26FTZEFvQYx">发送</button>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import cloudbase from "https://cdn.jsdelivr.net/npm/@cloudbase/js-sdk@2/+esm";
+
+    // ---------------- 宠物人设（橘小满 + 12 星座本命动物） ----------------
+    const PERSONAS = {
+      juman:   { name:"橘小满", animal:"橘猫", zodiac:"默认伙伴", trait:"温暖的橘猫，像家人一样陪你",  voice:"温柔、有点俏皮，像真的宠物但不卖萌过度；说话简短自然", img:"assets/橘小满.png" },
+      白羊:   { name:"金毛",   animal:"金毛犬", zodiac:"白羊座", trait:"活力冲动", voice:"元气满满、爱鼓励人、说话带冲劲", img:"assets/金毛.png" },
+      金牛:   { name:"水豚",   animal:"水豚",   zodiac:"金牛座", trait:"稳重慢热", voice:"慢悠悠、靠谱、不催你，像定海神针", img:"assets/水豚.png" },
+      双子:   { name:"狐狸",   animal:"狐狸",   zodiac:"双子座", trait:"机灵多变", voice:"古灵精怪、点子多、说话跳脱有趣", img:"assets/狐狸.png" },
+      巨蟹:   { name:"仓鼠",   animal:"仓鼠",   zodiac:"巨蟹座", trait:"温柔敏感", voice:"细心体贴、会照顾人情绪、软软的", img:"assets/仓鼠.png" },
+      狮子:   { name:"狮子",   animal:"狮子",   zodiac:"狮子座", trait:"自信张扬", voice:"大方自信、给你撑场、带点王者范儿", img:"assets/狮子.png" },
+      处女:   { name:"猫头鹰", animal:"猫头鹰", zodiac:"处女座", trait:"挑剔细致", voice:"条理清晰、爱提醒细节、靠谱又较真", img:"assets/猫头鹰.png" },
+      天秤:   { name:"天鹅",   animal:"天鹅",   zodiac:"天秤座", trait:"优雅纠结", voice:"优雅、有点选择困难、说话绕但温柔", img:"assets/天鹅.png" },
+      天蝎:   { name:"黑猫",   animal:"黑猫",   zodiac:"天蝎座", trait:"神秘深沉", voice:"神秘、懂你没说出口的话、语气低柔", img:"assets/黑猫.png" },
+      射手:   { name:"哈士奇", animal:"哈士奇", zodiac:"射手座", trait:"自由冒险", voice:"爱玩、爱自由、说话像要去闯世界", img:"assets/哈士奇.png" },
+      摩羯:   { name:"乌龟",   animal:"乌龟",   zodiac:"摩羯座", trait:"坚韧务实", voice:"踏实、慢性子但靠谱、陪你慢慢来", img:"assets/乌龟.png" },
+      水瓶:   { name:"鸭嘴兽", animal:"鸭嘴兽", zodiac:"水瓶座", trait:"独特反叛", voice:"脑洞清奇、不按常理、有点酷", img:"assets/鸭嘴兽.png" },
+      双鱼:   { name:"兔子",   animal:"兔子",   zodiac:"双鱼座", trait:"梦幻感性", voice:"浪漫敏感、共情强、说话软绵绵", img:"assets/兔子.png" },
+    };
+
+    const MEMORY_RULES = `
+【你"记得"用户的事】（根据下面的【当前上下文】自然融入，不要生硬罗列、不要像在汇报）
+- 记得节奏：比如"你周二下午通常很高效，要不要把难的任务排到下午？"
+- 记得目标：比如"这周还差 4 小时就到专注目标了哦。"
+- 记得习惯：比如"我们好久没背单词了。"
+- 用户中断或没完成任务，你只安慰不指责，例如："中途停下来也没关系，我不会怪你。"
+- 用轻松、像你真的留心过的方式提及。`;
+
+    function buildSystem(p, ctx){
+      let block = "";
+      if(ctx.tasks.length) block += "【今日待办】\n" + ctx.tasks.map(t=>`- ${t.done?"✓ ":"○ "}${t.text}`).join("\n") + "\n";
+      if(ctx.rhythm.trim()) block += "【近期节奏】" + ctx.rhythm.trim() + "\n";
+      if(ctx.goal.trim()) block += "【本周目标】" + ctx.goal.trim() + "\n";
+      if(!block) block = "（用户还没填任何任务上下文）\n";
+      return `你是${p.name}，一只${p.animal}，是用户的 AI 陪伴伙伴，住在用户的任务清单小程序里，蹲在用户旁边陪 TA 完成任务。
+你的星座气质是「${p.trait}」，性格${p.voice}。
+
+【你的说话方式】
+- 像真的宠物伙伴，但不刻意卖萌；语气${p.voice}
+- 一次说一两句，自然简短，不输出长文，绝不说"作为 AI"这类词
+- 你懂用户的任务上下文，不是通用问答机器人
+
+${MEMORY_RULES}
+
+【当前上下文】
+${block}`;
+    }
+
+    // ---------------- 状态 ----------------
+    const C = window.PET_AI_CONFIG;
+    const LS = {
+      tasks:(p)=>`petai_tasks_${p}`, ctx:(p)=>`petai_ctx_${p}`,
+      hist:(p)=>`petai_hist_${p}`, persona:"petai_persona",
+    };
+    let app = null, currentKey = localStorage.getItem(LS.persona) || "juman";
+    let history = JSON.parse(localStorage.getItem(LS.hist(currentKey)) || "[]");
+
+    const $ = (s)=>document.querySelector(s);
+    const chatEl = $("#chat"), statusDot = $("#statusDot"), statusText = $("#statusText");
+
+    // ---------------- 渲染宠物选择 ----------------
+    const chips = $("#petChips");
+    Object.entries(PERSONAS).forEach(([k,p])=>{
+      const c = document.createElement("div");
+      c.className = "chip" + (k===currentKey?" on":"");
+      c.textContent = (k==="juman"?"橘小满":p.zodiac);
+      c.onclick = ()=>switchPersona(k);
+      chips.appendChild(c);
+    });
+
+    function loadCtx(){
+      const p = PERSONAS[currentKey];
+      const tasks = JSON.parse(localStorage.getItem(LS.tasks(currentKey)) || "[]");
+      const ctx = JSON.parse(localStorage.getItem(LS.ctx(currentKey)) || '{"rhythm":"","goal":""}');
+      $("#rhythm").value = ctx.rhythm || "";
+      $("#goal").value = ctx.goal || "";
+      renderTasks(tasks);
+      $("#petName").textContent = p.name;
+      $("#petAvatar").src = p.img;
+      return { tasks, rhythm:ctx.rhythm||"", goal:ctx.goal||"" };
+    }
+    function saveCtx(){
+      const ctx = { rhythm:$("#rhythm").value, goal:$("#goal").value };
+      localStorage.setItem(LS.ctx(currentKey), JSON.stringify(ctx));
+    }
+    function renderTasks(tasks){
+      const ul = $("#taskList"); ul.innerHTML="";
+      tasks.forEach((t,i)=>{
+        const li = document.createElement("li");
+        if(t.done) li.className="done";
+        li.innerHTML = `<span style="cursor:pointer" data-i="${i}">${t.done?"☑":"☐"}</span><span style="flex:1">${escapeHtml(t.text)}</span><span class="x" data-x="${i}">×</span>`;
+        ul.appendChild(li);
+      });
+      ul.querySelectorAll("[data-i]").forEach(el=>el.onclick=()=>{
+        tasks[+el.dataset.i].done=!tasks[+el.dataset.i].done;
+        localStorage.setItem(LS.tasks(currentKey),JSON.stringify(tasks)); renderTasks(tasks);
+      });
+      ul.querySelectorAll("[data-x]").forEach(el=>el.onclick=()=>{
+        tasks.splice(+el.dataset.x,1);
+        localStorage.setItem(LS.tasks(currentKey),JSON.stringify(tasks)); renderTasks(tasks);
+      });
+    }
+    function getTasks(){ return JSON.parse(localStorage.getItem(LS.tasks(currentKey)) || "[]"); }
+
+    function switchPersona(k){
+      currentKey = k; localStorage.setItem(LS.persona,k);
+      document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+      [...chips.children].find(c=>c.textContent===(k==="juman"?"橘小满":PERSONAS[k].zodiac))?.classList.add("on");
+      history = JSON.parse(localStorage.getItem(LS.hist(k)) || "[]");
+      chatEl.innerHTML="";
+      history.forEach(m=> m.role==="user"?addBubble("user",m.content):addBubble("pet",m.content,true));
+      loadCtx();
+    }
+
+    $("#taskAdd").onclick = ()=>{
+      const v = $("#taskInput").value.trim(); if(!v) return;
+      const tasks = getTasks(); tasks.push({text:v,done:false});
+      localStorage.setItem(LS.tasks(currentKey),JSON.stringify(tasks));
+      $("#taskInput").value=""; renderTasks(tasks);
+    };
+    $("#rhythm").oninput = saveCtx; $("#goal").oninput = saveCtx;
+
+    // ---------------- 聊天 ----------------
+    function addBubble(role, text, instant){
+      const row = document.createElement("div");
+      row.className = "row " + role;
+      const av = document.createElement("img");
+      av.className="av"; av.src = role==="pet"?PERSONAS[currentKey].img:"assets/橘小满.png";
+      const bub = document.createElement("div");
+      bub.className="bub"+(instant?"":" typing");
+      bub.textContent = text || "";
+      row.appendChild(av); row.appendChild(bub); chatEl.appendChild(row);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return bub;
+    }
+
+    async function send(){
+      const input = $("#msg"); const text = input.value.trim(); if(!text || !app) return;
+      addBubble("user", text);
+      history.push({role:"user",content:text});
+      input.value=""; $("#send").disabled=true;
+      const bub = addBubble("pet","");
+
+      const ctx = { tasks:getTasks(), rhythm:$("#rhythm").value, goal:$("#goal").value };
+      const sys = buildSystem(PERSONAS[currentKey], ctx);
+      const messages = [{role:"system",content:sys},
+        ...history.slice(0,-1).map(m=>({role:m.role,content:m.content}))];
+      try{
+        // AI 在云函数（服务端）内调用，合规消耗成长计划免费额度
+        const res = await app.callFunction({
+          name: C.CLOUD_FUNC,
+          data: { messages, provider: C.PROVIDER, model: C.MODEL },
+        });
+        const r = (res && res.result) || {};
+        if(!r.ok) throw new Error(r.error || "云函数返回异常");
+        bub.classList.remove("typing");
+        bub.textContent = r.text || "";
+        chatEl.scrollTop = chatEl.scrollHeight;
+        history.push({role:"assistant",content:r.text||""});
+        localStorage.setItem(LS.hist(currentKey), JSON.stringify(history.slice(-20)));
+      }catch(e){
+        bub.classList.remove("typing");
+        bub.textContent = "（连接出了点问题：" + (e.message||e) + "）\n请确认云函数 petChat 已部署、且环境开启了匿名登录。";
+      }finally{ $("#send").disabled=false; }
+    }
+    $("#send").onclick = send;
+    $("#msg").addEventListener("keydown",(e)=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); }});
+
+    function escapeHtml(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+    // ---------------- 初始化 CloudBase ----------------
+    function showBanner(html){ const b=$("#banner"); b.style.display="block"; b.innerHTML=html; }
+    async function init(){
+      if(!C.ACCESS_KEY || C.ACCESS_KEY.includes("在此粘贴")){
+        showBanner("<b>还没填 accessKey</b>：打开 config.js，把控制台里的 accessKey 粘贴进去，刷新即可。详见 README。");
+        statusDot.className="dot bad"; statusText.textContent="未配置"; return;
+      }
+      try{
+        app = cloudbase.init({ env:C.ENV_ID, accessKey:C.ACCESS_KEY });
+        await app.auth().signInAnonymously();
+        // AI 通过云函数（服务端）调用，这里只验证能连上环境
+        statusDot.className="dot ok"; statusText.textContent="已连上 · 真实 AI";
+        loadCtx();
+        addBubble("pet", `嗨，我是${PERSONAS[currentKey].name}～ 你今天有什么要一起搞定的事吗？`);
+      }catch(e){
+        statusDot.className="dot bad"; statusText.textContent="连接失败";
+        showBanner("<b>初始化失败：</b>"+(e.message||e)+"<br>常见原因：① accessKey 未填/填错 ② 环境未开启「匿名登录」 ③ 网络问题。详见 README。");
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

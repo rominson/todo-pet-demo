@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>橘小满 · 情感闭环验证原型</title>
+<style>
+  :root{
+    --bg:#FBF9F5; --ink:#2C2C2A; --muted:#8A857C; --line:#E7E2D8;
+    --warm:#E8A87C; --warm-deep:#C9774A; --green:#639922; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.6; padding:32px 20px 80px;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+  h1{font-family:Georgia,"Songti SC",serif; font-weight:500; font-size:24px; letter-spacing:.5px;}
+  .sub{color:var(--muted); font-size:13px; margin-top:6px; margin-bottom:28px;}
+  .stage{
+    display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:28px; margin-bottom:24px;
+  }
+  .pet{flex:0 0 160px; text-align:center;}
+  .pet svg{width:140px; height:140px;}
+  .pet .name{font-family:Georgia,serif; font-size:15px; margin-top:8px;}
+  .pet .lv{font-size:12px; color:var(--muted);}
+  .bubble{
+    flex:1; min-width:260px; position:relative;
+    background:#FFF6EF; border:1px solid #F0E2D4; border-radius:14px;
+    padding:18px 20px; font-size:15px; min-height:96px;
+  }
+  .bubble:before{
+    content:""; position:absolute; left:-9px; top:28px;
+    border:9px solid transparent; border-right-color:#FFF6EF;
+  }
+  .bubble .t{color:var(--muted); font-size:12px; display:block; margin-bottom:6px;}
+  .tasks{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; margin-bottom:24px;}
+  .tasks h2{font-family:Georgia,serif; font-weight:500; font-size:17px; margin-bottom:14px;}
+  .add{display:flex; gap:10px; margin-bottom:16px;}
+  .add input{
+    flex:1; border:1px solid var(--line); border-radius:10px; padding:11px 14px;
+    font-size:14px; background:#FCFBF8; color:var(--ink); outline:none;
+  }
+  .add input:focus{border-color:var(--warm);}
+  .add button{
+    border:none; background:var(--warm); color:#fff; border-radius:10px;
+    padding:0 18px; font-size:14px; cursor:pointer;
+  }
+  .add button:hover{background:var(--warm-deep);}
+  ul.list{list-style:none;}
+  li{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line);}
+  li:last-child{border-bottom:none;}
+  li .cb{
+    width:20px; height:20px; border:1.5px solid var(--warm); border-radius:6px;
+    cursor:pointer; flex:0 0 20px; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:13px;
+  }
+  li.done .cb{background:var(--warm);}
+  li.done .txt{color:var(--muted); text-decoration:line-through;}
+  .txt{flex:1; font-size:14px;}
+  .del{color:var(--muted); cursor:pointer; font-size:13px; padding:2px 6px;}
+  .del:hover{color:#A32D2D;}
+  .memory{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; margin-bottom:24px;}
+  .memory h2{font-family:Georgia,serif; font-weight:500; font-size:17px; margin-bottom:14px;}
+  .mem-item{display:flex; gap:10px; padding:9px 0; font-size:14px; border-bottom:1px dashed var(--line);}
+  .mem-item:last-child{border-bottom:none;}
+  .mem-item .dot{color:var(--warm); flex:0 0 8px; margin-top:8px;}
+  .review{
+    width:100%; border:1px solid var(--warm); background:#FFF6EF; color:var(--warm-deep);
+    border-radius:12px; padding:13px; font-size:14px; cursor:pointer;
+  }
+  .review:hover{background:#FCEDE1;}
+  .meta{text-align:center; color:var(--muted); font-size:12px; margin-top:18px;}
+  .note{font-size:12px; color:var(--muted); margin-top:10px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>橘小满 · 情感闭环验证</h1>
+  <div class="sub">最小可感知版本：你的真实数据 → 宠物说话 / 庆祝 / 记住你 → 跨会话长大。先感受，再决定要不要为它付 9.9。</div>
+
+  <div class="stage">
+    <div class="pet">
+      <svg viewBox="0 0 140 140" aria-label="橘小满">
+        <ellipse cx="70" cy="120" rx="40" ry="10" fill="#F0E2D4"/>
+        <path d="M40 55 L34 30 L58 46 Z" fill="#E8A87C"/>
+        <path d="M100 55 L106 30 L82 46 Z" fill="#E8A87C"/>
+        <circle cx="70" cy="72" r="38" fill="#E8A87C"/>
+        <circle cx="58" cy="68" r="4.5" fill="#2C2C2A" class="eye"/>
+        <circle cx="82" cy="68" r="4.5" fill="#2C2C2A" class="eye"/>
+        <path d="M64 84 Q70 90 76 84" stroke="#C9774A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="52" cy="80" r="4" fill="#F4B9A0" opacity=".6"/>
+        <circle cx="88" cy="80" r="4" fill="#F4B9A0" opacity=".6"/>
+      </svg>
+      <div class="name">橘小满</div>
+      <div class="lv" id="lv">好感度 0 · Lv.1</div>
+    </div>
+    <div class="bubble" id="bubble">
+      <span class="t">橘小满说</span>
+      <span id="msg">嗨，我是橘小满。把今天要做的事告诉我吧，我陪你一件一件来。</span>
+    </div>
+  </div>
+
+  <div class="tasks">
+    <h2>今日待办</h2>
+    <div class="add">
+      <input id="taskInput" placeholder="写一件今天想做的事，回车添加…" />
+      <button id="addBtn">添加</button>
+    </div>
+    <ul class="list" id="list"></ul>
+    <div class="note">提示：勾选完成会触发橘小满的反应；刷新页面它依然记得你（数据存在本地）。</div>
+  </div>
+
+  <div class="memory">
+    <h2>橘小满记得的</h2>
+    <div id="memory"></div>
+    <button class="review" id="reviewBtn" style="margin-top:16px;">看看今天的回顾</button>
+  </div>
+
+  <div class="meta">本原型为「情感闭环」最低成本验证，未接入真 LLM；AI 话术由真实数据驱动的模板生成，验证后可一键替换为云端模型。</div>
+</div>
+
+<script>
+// ---------- 状态 ----------
+const KEY = "maorong-v1-validate";
+const state = load() || {
+  tasks: [],
+  stats: { totalDone:0, affinity:0, streak:0, lastActive:null, createdAt:Date.now(), firstTask:null },
+  memories: [],      // 宠物记住的关于你的事实
+  history: {}        // {YYYY-MM-DD: doneCount}
+};
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// ---------- 宠物话术引擎（验证用模板；真实 LLM 是同一函数签名）----------
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+function petSay(text){
+  document.querySelector("#msg").textContent = text;
+}
+
+// 事件触发：add / done / undone / empty
+function generate(event, data){
+  const s = state.stats;
+  if(event === "add"){
+    const lines = [
+      `「${data.text}」记下了。一件一件来，不急。`,
+      `好嘞，「${data.text}」我已经帮你盯着了。`,
+      `收到「${data.text}」。今天的目标又清晰了一点。`
+    ];
+    return pick(lines);
+  }
+  if(event === "done"){
+    const todayDone = (state.history[today()]||0);
+    const lines = [
+      `你刚刚完成了「${data.text}」！今天已经搞定 ${todayDone} 件了，我为你高兴。`,
+      `「${data.text}」完成 ✓ 看你一件件划掉，我也很有成就感。`,
+      `太好了，「${data.text}」做完了。今天第 ${todayDone} 件，稳稳的。`
+    ];
+    if(todayDone >= 3) lines.push(`今天已经完成 ${todayDone} 件，你今天状态不错，橘小满看在眼里。`);
+    return pick(lines);
+  }
+  if(event === "undone"){
+    return pick([`「${data.text}」先放回去啦，没关系，随时再来。`, `没事，「${data.text}」晚点再做也行，不催你。`]);
+  }
+  if(event === "empty"){
+    return pick([`现在一件待办都没有，轻松一下也好。`, `清单空了，今天想加点什么吗？`]);
+  }
+  return `我在。`;
+}
+
+// ---------- 记忆系统 ----------
+function remember(fact){
+  if(!state.memories.includes(fact)){ state.memories.unshift(fact); if(state.memories.length>8) state.memories.pop(); }
+}
+function refreshMemoryUI(){
+  const box = document.querySelector("#memory");
+  if(state.memories.length === 0){
+    box.innerHTML = `<div class="mem-item"><span class="dot">·</span><span>还没记住什么。多做几件事，我就开始懂你了。</span></div>`;
+    return;
+  }
+  box.innerHTML = state.memories.map(m=>`<div class="mem-item"><span class="dot">·</span><span>${m}</span></div>`).join("");
+}
+
+// ---------- 渲染 ----------
+function render(){
+  const list = document.querySelector("#list");
+  list.innerHTML = "";
+  if(state.tasks.length === 0){
+    list.innerHTML = `<li style="color:var(--muted);border:none;">还没有待办，加一件试试。</li>`;
+  }
+  state.tasks.forEach((t, i)=>{
+    const li = document.createElement("li");
+    if(t.done) li.className = "done";
+    li.innerHTML = `<div class="cb">${t.done?"✓":""}</div><div class="txt">${t.text}</div><div class="del">删</div>`;
+    li.querySelector(".cb").onclick = ()=> toggle(i);
+    li.querySelector(".del").onclick = ()=> remove(i);
+    list.appendChild(li);
+  });
+  document.querySelector("#lv").textContent = `好感度 ${state.stats.affinity} · Lv.${Math.floor(state.stats.affinity/20)+1}`;
+}
+
+// ---------- 操作 ----------
+function addTask(){
+  const inp = document.querySelector("#taskInput");
+  const text = inp.value.trim();
+  if(!text) return;
+  if(!state.stats.firstTask) state.stats.firstTask = text;
+  state.tasks.push({text, done:false});
+  inp.value = "";
+  save(); render();
+  petSay(generate("add", {text}));
+}
+function toggle(i){
+  const t = state.tasks[i];
+  t.done = !t.done;
+  if(t.done){
+    state.stats.totalDone++;
+    state.stats.affinity += 3;
+    state.history[today()] = (state.history[today()]||0) + 1;
+    remember(`你做过「${t.text}」。`);
+    if(state.stats.affinity % 20 === 0) remember(`我们的好感度升到了 Lv.${Math.floor(state.stats.affinity/20)+1}。`);
+    petSay(generate("done", {text:t.text}));
+  }else{
+    state.stats.totalDone = Math.max(0, state.stats.totalDone-1);
+    state.stats.affinity = Math.max(0, state.stats.affinity-3);
+    state.history[today()] = Math.max(0, (state.history[today()]||0)-1);
+    petSay(generate("undone", {text:t.text}));
+  }
+  save(); render(); refreshMemoryUI();
+}
+function remove(i){
+  state.tasks.splice(i,1);
+  save(); render();
+  if(state.tasks.length===0) petSay(generate("empty"));
+}
+function dailyReview(){
+  const s = state.stats;
+  const doneToday = state.history[today()]||0;
+  const days = Object.keys(state.history).length;
+  const lines = [];
+  lines.push(`今天你完成了 ${doneToday} 件事。`);
+  if(doneToday >= 3) lines.push(`效率很高，这样的节奏我很喜欢。`);
+  else if(doneToday > 0) lines.push(`推进了一点，也是进步。`);
+  else lines.push(`今天还没开始？没关系，明天我还在。`);
+  lines.push(`从我们认识到现在，你一共完成过 ${s.totalDone} 件事，陪你度过了 ${days} 天。`);
+  if(s.firstTask) lines.push(`我还记得你最早跟我说的那件是「${s.firstTask}」。`);
+  petSay(lines.join(" "));
+}
+
+// ---------- 绑定 ----------
+document.querySelector("#addBtn").onclick = addTask;
+document.querySelector("#taskInput").addEventListener("keydown", e=>{ if(e.key==="Enter") addTask(); });
+document.querySelector("#reviewBtn").onclick = dailyReview;
+
+// 眼睛偶尔眨一下，增加“活着”的感觉
+setInterval(()=>{
+  document.querySelectorAll(".eye").forEach(e=>{
+    e.style.transition = "transform .08s";
+    e.style.transform = "scaleY(.1)";
+    setTimeout(()=> e.style.transform = "scaleY(1)", 120);
+  });
+}, 4200);
+
+// 首次进入的记忆
+if(state.stats.createdAt === Date.now()) remember("今天是我们认识的第一天。");
+if(state.memories.length===0) refreshMemoryUI();
+render();
+</script>
+</body>
+</html>

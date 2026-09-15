@@ -1,0 +1,9 @@
+{
+  "name": "petChat",
+  "version": "1.0.0",
+  "description": "毛茸清单宠物 AI 云函数（服务端调用，合规消耗成长计划免费额度）",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.16.0"
+  }
+}

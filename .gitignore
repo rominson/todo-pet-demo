@@ -4,9 +4,15 @@
 # 系统文件
 .DS_Store
 
+# 依赖（云函数等运行时安装，不入库）
+node_modules/
+
 # 误生成的文件（终端宽度输出残留）
 --width
 
 # 素材与参考图（index.html 已内联所需资源，运行时无需这些文件）
 prototype/assets/
 design-concepts/
+
+# 含真实密钥（CloudBase accessKey），禁止入库；用户按 README 自行粘贴
+pet-ai-demo/config.js
