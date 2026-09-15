@@ -1,0 +1,6 @@
+.page { padding: 24rpx; }
+.modes { display: flex; gap: 16rpx; }
+.mode { flex: 1; text-align: center; padding: 36rpx 0; }
+.mode-emoji { font-size: 56rpx; margin-bottom: 8rpx; }
+.timer { margin-top: 32rpx; padding: 64rpx 32rpx; }
+.time { font-size: 80rpx; font-weight: 700; margin-bottom: 32rpx; }

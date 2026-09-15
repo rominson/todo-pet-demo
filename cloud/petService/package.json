@@ -1,0 +1,9 @@
+{
+  "name": "petService",
+  "version": "1.0.0",
+  "description": "毛茸清单 - 宠物目录与拥有/解锁/切换云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

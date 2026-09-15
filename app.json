@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/pets/pets",
+    "pages/focus/focus",
+    "pages/mine/mine",
+    "pages/chat/chat"
+  ],
+  "window": {
+    "navigationBarTitleText": "毛茸清单",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f5f2",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#9b9b9b",
+    "selectedColor": "#ff8a3d",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/pets/pets", "text": "宠物" },
+      { "pagePath": "pages/focus/focus", "text": "专注" },
+      { "pagePath": "pages/mine/mine", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

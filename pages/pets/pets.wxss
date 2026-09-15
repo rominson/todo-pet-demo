@@ -1,0 +1,8 @@
+.page { padding: 24rpx; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20rpx; }
+.pet-card { text-align: center; padding: 28rpx 12rpx; }
+.pet-emoji { font-size: 56rpx; }
+.pet-name { margin: 8rpx 0; font-weight: 600; }
+.pet-tag { font-size: 22rpx; color: var(--ink-soft); }
+.pet-tag.free { color: var(--brand); }
+.pet-tag.locked { color: #b08968; }

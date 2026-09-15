@@ -1,0 +1,17 @@
+<!-- 我的：足迹 / 回忆 / 统计 / 设置 / 分享 -->
+<view class="page">
+  <view class="profile card">
+    <view class="avatar">🐱</view>
+    <view>
+      <view class="name">我的毛茸伙伴</view>
+      <view class="muted">连续陪伴 {{streak}} 天</view>
+    </view>
+  </view>
+
+  <view class="menu card">
+    <view class="menu-item" bindtap="go" data-to="footprint">🐾 足迹 / 回忆</view>
+    <view class="menu-item" bindtap="go" data-to="stats">📊 统计</view>
+    <view class="menu-item" bindtap="go" data-to="share">🔗 分享</view>
+    <view class="menu-item" bindtap="go" data-to="settings">⚙️ 设置</view>
+  </view>
+</view>

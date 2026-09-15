@@ -1,0 +1,16 @@
+{
+  "miniprogramRoot": "./",
+  "cloudfunctionRoot": "cloud/",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true
+  },
+  "appid": "wx538ee0892e9e7b2f",
+  "projectname": "maorong-qingdan",
+  "description": "毛茸清单 - 虚拟宠物陪伴 + 任务清单小程序（原生）",
+  "compileType": "miniprogram"
+}

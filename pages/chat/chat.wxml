@@ -1,0 +1,14 @@
+<!-- 陪伴对话：宠物读取待办/足迹做陪伴式互动（AI 在阶段3 接通） -->
+<view class="page chat">
+  <scroll-view scroll-y class="msgs" scroll-into-view="{{scrollTo}}">
+    <view wx:for="{{messages}}" wx:key="idx" id="m{{idx}}"
+          class="msg {{item.role === 'user' ? 'me' : 'pet'}}">
+      <view class="bubble">{{item.content}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="input" value="{{draft}}" bindinput="onInput" placeholder="和 {{petName}} 说点什么…" />
+    <view class="send btn-primary" bindtap="send">发送</view>
+  </view>
+</view>

@@ -1,0 +1,19 @@
+<!-- 专注：番茄 / 冥想 / 白噪音 -->
+<view class="page">
+  <view class="modes">
+    <view class="mode card" bindtap="startMode" data-mode="pomodoro">
+      <view class="mode-emoji">🍅</view><view>番茄钟</view>
+    </view>
+    <view class="mode card" bindtap="startMode" data-mode="meditation">
+      <view class="mode-emoji">🧘</view><view>冥想</view>
+    </view>
+    <view class="mode card" bindtap="startMode" data-mode="whitenoise">
+      <view class="mode-emoji">🌿</view><view>白噪音</view>
+    </view>
+  </view>
+
+  <view class="timer card center" wx:if="{{running}}">
+    <view class="time">{{display}}</view>
+    <view class="btn-primary" bindtap="stop">结束</view>
+  </view>
+</view>

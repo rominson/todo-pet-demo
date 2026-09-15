@@ -1,0 +1,9 @@
+{
+  "name": "payService",
+  "version": "1.0.0",
+  "description": "毛茸清单 - 微信虚拟支付（解锁星座形象）订单云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

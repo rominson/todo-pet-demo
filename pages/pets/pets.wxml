@@ -1,0 +1,13 @@
+<!-- 宠物：橘小满(免费) + 12 星座(付费解锁) -->
+<view class="page">
+  <view class="grid">
+    <view class="pet-card card" wx:for="{{personas}}" wx:key="key"
+          bindtap="onTap" data-key="{{item.key}}">
+      <view class="pet-emoji">{{item.free ? '🐱' : '⭐'}}</view>
+      <view class="pet-name">{{item.name}}</view>
+      <view class="pet-tag {{item.free ? 'free' : 'locked'}}">
+        {{item.free ? '免费' : (owned[item.key] ? '已拥有' : '解锁')}}
+      </view>
+    </view>
+  </view>
+</view>

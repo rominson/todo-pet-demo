@@ -1,0 +1,21 @@
+<!-- 首页：陪伴播报 + 今日待办 -->
+<view class="page">
+  <view class="hero card">
+    <view class="hero-pet">{{petName}} 陪着你</view>
+    <view class="broadcast muted">{{broadcast || '今天也要照顾好自己呀～'}}</view>
+  </view>
+
+  <view class="section-title">今日待办</view>
+  <view class="card todo-list" wx:if="{{todos.length}}">
+    <view class="todo-item" wx:for="{{todos}}" wx:key="id">
+      <text>{{item.text}}</text>
+    </view>
+  </view>
+  <view class="card muted center" wx:else>还没有待办，去添加一件小事吧</view>
+
+  <view class="quick">
+    <view class="quick-btn" bindtap="goPets">🐾 宠物</view>
+    <view class="quick-btn" bindtap="goChat">💬 聊聊天</view>
+    <view class="quick-btn" bindtap="goFocus">🍅 专注</view>
+  </view>
+</view>

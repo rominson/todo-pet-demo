@@ -1,0 +1,6 @@
+.page { padding: 24rpx; }
+.profile { display: flex; align-items: center; gap: 24rpx; margin-bottom: 24rpx; }
+.avatar { font-size: 72rpx; }
+.name { font-weight: 700; font-size: 32rpx; }
+.menu-item { padding: 28rpx 8rpx; border-bottom: 1rpx solid #f0f0f0; }
+.menu-item:last-child { border-bottom: none; }

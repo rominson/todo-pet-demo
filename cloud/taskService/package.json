@@ -1,0 +1,9 @@
+{
+  "name": "taskService",
+  "version": "1.0.0",
+  "description": "毛茸清单 - 待办清单 CRUD 云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
