@@ -55,9 +55,9 @@ const petService = {
 };
 
 const payService = {
-  createOrder: (petKey) => call('payService', { action: 'createOrder', petKey }),
-  confirmPay: (orderId) => call('payService', { action: 'confirmPay', orderId }),
-  queryOrder: (orderId) => call('payService', { action: 'queryOrder', orderId })
+  createOrder: (petKey, code) => call('payService', { action: 'createOrder', petKey, code }),
+  confirmPay: (orderId, wxOrderId) => call('payService', { action: 'confirmPay', orderId, wxOrderId }),
+  queryOrder: (orderId) => call('payService', { action: 'query', orderId })
 };
 
 // AI 对话：传入 messages 数组（[{role, content}]），返回 { ok, text }

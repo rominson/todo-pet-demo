@@ -70,22 +70,30 @@ Page({
 
   async doUnlock(e) {
     const key = e.currentTarget.dataset.key;
-    wx.showLoading({ title: '解锁中' });
+    if (DEV_DEMO) {
+      wx.showLoading({ title: '解锁中' });
+      try {
+        await cloud.petService.unlock(key);
+        await this.load();
+        getApp().globalData.currentPet = key;
+        this.setData({ detail: null });
+        wx.showToast({ title: '已演示解锁', icon: 'none' });
+      } catch (err) {} finally { wx.hideLoading(); }
+      return;
+    }
+    wx.showLoading({ title: '下单中' });
     try {
-      if (DEV_DEMO) {
+      const { code } = await this.wxLogin();
+      const order = await cloud.payService.createOrder(key, code);
+      if (order.alreadyOwned) {
         await cloud.petService.unlock(key);
       } else {
-        const order = await cloud.payService.createOrder(key);
-        if (order.alreadyOwned) {
-          await cloud.petService.unlock(key);
-        } else {
-          await this.realPay(order, key);
-        }
+        await this.realPay(order, key);
       }
       await this.load();
       getApp().globalData.currentPet = key;
       this.setData({ detail: null });
-      wx.showToast({ title: DEV_DEMO ? '已演示解锁' : '解锁成功', icon: 'none' });
+      wx.showToast({ title: '解锁成功', icon: 'none' });
     } catch (err) {
       // cloud 封装已 toast
     } finally {
@@ -93,10 +101,35 @@ Page({
     }
   },
 
+  // 取 login code（用于服务端生成用户态签名 signature）
+  wxLogin() {
+    return new Promise((resolve, reject) => {
+      wx.login({ success: (r) => (r.code ? resolve(r) : reject(new Error('wx.login 失败'))), fail: reject });
+    });
+  },
+
+  // iOS 需微信客户端 ≥ 8.0.68（文档 5.3）
+  checkIosVersion() {
+    const sys = wx.getSystemInfoSync();
+    if (sys.platform !== 'ios') return true;
+    const cur = (sys.version || '').split('.').map(Number);
+    const base = [8, 0, 68];
+    for (let i = 0; i < 3; i++) {
+      if ((cur[i] || 0) > base[i]) return true;
+      if ((cur[i] || 0) < base[i]) {
+        wx.showModal({ title: '提示', content: '请将微信更新至最新版后再进行支付', showCancel: false });
+        return false;
+      }
+    }
+    return true;
+  },
+
   realPay(order, key) {
     return new Promise((resolve, reject) => {
+      if (!this.checkIosVersion()) { reject(new Error('iOS 版本过低')); return; }
+      const payData = order.payData || {};
       wx.requestVirtualPayment({
-        // 真机需由云函数生成签名：signature / nonceStr / timeStamp / paySig（P4 接入）
+        ...payData,
         success: async () => {
           try {
             await cloud.payService.confirmPay(order.orderId);

@@ -1,0 +1,9 @@
+{
+  "name": "payNotify",
+  "version": "1.0.0",
+  "description": "毛茸清单虚拟支付发货推送接收（HTTP 云函数）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
