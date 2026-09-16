@@ -9,10 +9,14 @@
 #   3) 在项目根目录执行： bash scripts/deploy-cloud-functions.sh
 #
 # 说明：
-#   - 每个函数部署前会清理本地 node_modules，改用「云端自动安装依赖」
-#     （--install-dependency true），避免 macOS 本地包被上传、也更省体积。
-#   - payNotify 是 HTTP 函数，额外带 --httpFn --path /payNotify。
-#   - petChat 超时 60s（AI 生成需要），其余 20s，配置取自根目录 cloudbaserc.json。
+#   - 在【项目根目录】用 `tcb fn deploy --all` 读取根 cloudbaserc.json
+#     （functionRoot=cloud + 7 函数配置）一次性部署，不再逐个弹选择框。
+#   - 云端自动安装依赖（--install-dependency true），不传本地 node_modules。
+#   - payNotify 额外单独挂 HTTP 访问路径（--path /payNotify，不加 --httpFn，
+#     保持普通 Event 函数，代码按 event 入参返回 {statusCode,headers,body}）；
+#     微信支付回调需要它能被外网访问。注意：--httpFn 会部署成 Web 函数，
+#     需要 scf_bootstrap 启动文件，本项目的 payNotify 不适用。
+#   - petChat 超时 60s（AI 生成需要），其余 20s，均取自根 cloudbaserc.json。
 #   - dev 演示模式无需任何密钥即可跑通；真机支付需先完成「虚拟支付 3 步配置」。
 # ------------------------------------------------------------------
 
@@ -43,32 +47,19 @@ if ! $TCB fn list >/dev/null 2>&1; then
   exit 1
 fi
 
-# ---- 部署单个函数 ----
-deploy_one() {
-  local name="$1"
-  local extra="${2:-}"
-  echo ""
-  echo "=================================================="
-  echo ">> 部署 $name"
-  echo "=================================================="
-  (
-    cd "cloud/$name"
-    rm -rf node_modules package-lock.json
-    if [ ! -f package.json ]; then
-      echo "  ✗ $name 缺少 package.json，跳过"
-      return 1
-    fi
-    $TCB fn deploy "$name" --envId "$ENV_ID" --runtime Nodejs20.19 --install-dependency true --force $extra
-  )
-}
+# ---- 1) 批量部署 7 个函数（非交互，读取根 cloudbaserc.json）----
+echo ""
+echo "=================================================="
+echo ">> 批量部署 7 个云函数（--all，非交互）"
+echo "=================================================="
+$TCB fn deploy --all --install-dependency true
 
-# ---- 6 个 Event 函数 ----
-for fn in auth taskService sessionService petService payService petChat; do
-  deploy_one "$fn"
-done
-
-# ---- payNotify：HTTP 函数 ----
-deploy_one "payNotify" "--httpFn --path /payNotify"
+# ---- 2) payNotify 单独挂 HTTP 访问路径（微信支付回调需要外网可访问）----
+echo ""
+echo "=================================================="
+echo ">> 为 payNotify 创建 HTTP 访问路径（--path /payNotify，不加 --httpFn）"
+echo "=================================================="
+$TCB fn deploy payNotify --path /payNotify --force --install-dependency true
 
 echo ""
 echo "=================================================="
