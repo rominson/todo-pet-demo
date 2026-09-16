@@ -100,8 +100,9 @@ exports.main = async (event) => {
       if (!target || target.free) return { ok: false, error: '宠物不可用或已免费' };
 
       const productId = cfg.productMap[petKey];
-      if (!productId || productId.startsWith('zodiac_') || productId === 'PRODUCT_ID_PLACEHOLDER') {
-        return { ok: false, error: '未配置该宠物的虚拟支付道具ID，请先在 MP 后台【道具管理】创建并发布道具，并把 cloud/payService/config.js 中的占位替换为真实道具ID' };
+      // 放行真实道具 ID（如 zodiac_aries，与 MP 后台【道具管理】一致）；仅拦截尚未替换的占位符
+      if (!productId || productId.startsWith('PRODUCT_ID_') || productId.startsWith('YOUR_') || productId === 'PRODUCT_ID_PLACEHOLDER') {
+        return { ok: false, error: '未配置该宠物的虚拟支付道具ID，请先在 MP 后台【道具管理】创建并发布道具（道具ID 需与 cloud/payService/config.js 的 productMap 对应）' };
       }
 
       // 已拥有则直接返回，避免重复下单
