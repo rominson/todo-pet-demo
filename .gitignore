@@ -19,3 +19,4 @@ pet-ai-demo/config.js
 
 # 微信虚拟支付密钥（AppSecret/OfferID/AppKey），禁止入库；用 config.example.js 作模板
 cloud/payService/config.js
+cloud/payNotify/token.json

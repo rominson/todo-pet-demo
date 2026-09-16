@@ -2,8 +2,24 @@
 // MP 后台【消息推送】把虚拟支付事件指向本函数（云开发 HTTP 触发）。
 // 文档 5.4.1：解析 xpay_goods_deliver_notify → 按 outTradeNo 幂等发货 → 返回 XML<ErrCode>0</ErrCode>
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
 cloud.init({ env: 'cloud1-d4gck1kjyb8ca2456' });
 const db = cloud.database();
+
+// MP 后台「消息推送」配置的 Token（token.json 本地文件，不入仓库；也可用环境变量 MP_TOKEN）
+let MP_TOKEN = process.env.MP_TOKEN || '';
+try { MP_TOKEN = MP_TOKEN || require('./token.json').MP_TOKEN; } catch (e) { /* 未配置 */ }
+
+// 微信「启用消息推送」时的 URL 验证：sha1(sort(token,timestamp,nonce)) === signature → 原样返回 echostr
+function verifyEchostr(qs) {
+  if (!qs) return null;
+  const { signature, timestamp, nonce, echostr } = qs;
+  if (!signature || !timestamp || !nonce || !echostr || !MP_TOKEN) return null;
+  const sha1 = crypto.createHash('sha1')
+    .update([MP_TOKEN, timestamp, nonce].sort().join(''))
+    .digest('hex');
+  return sha1 === signature ? echostr : null;
+}
 
 function xmlVal(xml, tag) {
   if (!xml) return '';
@@ -25,6 +41,18 @@ function xmlResp(code) {
 }
 
 exports.main = async (event) => {
+  // ---- GET：微信消息推送「启用」时的 URL 验证握手 ----
+  const qs = (event && (event.queryStringParameters || event.queryString)) || {};
+  const isGet = (event && (event.httpMethod || '').toUpperCase() === 'GET') || (qs.echostr && !(event && event.body));
+  if (isGet && qs.echostr) {
+    const echo = verifyEchostr(qs);
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'text/plain' },
+      body: echo || 'fail'
+    };
+  }
+  // ---- POST：虚拟支付发货推送（XML） ----
   const raw = typeof event === 'string' ? event : (event && event.body) || '';
   const outTradeNo = xmlVal(raw, 'OutTradeNo');
 
