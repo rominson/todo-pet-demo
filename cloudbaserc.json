@@ -9,6 +9,7 @@
     { "name": "petService",     "runtime": "Nodejs20.19", "timeout": 20, "memorySize": 256, "handler": "index.main" },
     { "name": "payService",     "runtime": "Nodejs20.19", "timeout": 20, "memorySize": 256, "handler": "index.main" },
     { "name": "petChat",        "runtime": "Nodejs20.19", "timeout": 60, "memorySize": 256, "handler": "index.main" },
-    { "name": "payNotify",      "runtime": "Nodejs20.19", "timeout": 20, "memorySize": 256, "handler": "index.main" }
+    { "name": "payNotify",      "runtime": "Nodejs20.19", "timeout": 20, "memorySize": 256, "handler": "index.main" },
+    { "name": "propImages",     "runtime": "Nodejs20.19", "timeout": 5,  "memorySize": 128, "handler": "index.main" }
   ]
 }
