@@ -14,6 +14,7 @@
           class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}"
           bindtap="onTap" data-key="{{item.key}}">
       <view wx:if="{{!item.owned}}" class="lock-ico">🔒</view>
+      <view wx:if="{{item.owned}}" class="owned-badge">已拥有</view>
       <view class="a-emoji">
         <image class="a-img" src="{{item.scene}}" mode="aspectFit" />
       </view>

@@ -62,11 +62,16 @@
   height: 168rpx;
   position: relative;
   z-index: 1;
-  animation: pet-float 1.4s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+  /* 明显的呼吸 + 上下浮动 + 轻微挤压拉伸，让静态 PNG 看起来“活”起来 */
+  animation: pet-breathe 2.6s ease-in-out infinite;
+  will-change: transform;
 }
-@keyframes pet-float {
-  from { transform: translateY(0); }
-  to { transform: translateY(-16rpx); }
+@keyframes pet-breathe {
+  0%, 100% { transform: translateY(2rpx) scale(1, 1); }
+  25%      { transform: translateY(-12rpx) scale(1.05, 0.96); }
+  50%      { transform: translateY(-22rpx) scale(1.08, 1.04); }
+  75%      { transform: translateY(-12rpx) scale(1.05, 0.96); }
 }
 
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */

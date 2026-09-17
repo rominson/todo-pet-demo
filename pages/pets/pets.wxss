@@ -20,7 +20,7 @@
 .animal-card {
   flex: 0 0 74%;
   max-width: 560rpx;
-  height: 720rpx;
+  height: 800rpx;
   scroll-snap-align: center;
   background: #fff;
   border-radius: 52rpx;
@@ -29,8 +29,16 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 轮播中相邻卡片微微缩小+褪色（对齐原型 .animal-card 默认态） */
+  opacity: 0.82;
+  transform: scale(0.96);
+  transition: transform 0.35s cubic-bezier(.2,0,0,1), opacity 0.35s, box-shadow 0.35s;
 }
-.animal-card.is-active { box-shadow: 0 16rpx 34rpx rgba(126, 111, 214, 0.22); }
+.animal-card.is-active {
+  opacity: 1;
+  transform: scale(1);
+  box-shadow: 0 16rpx 34rpx rgba(126, 111, 214, 0.22);
+}
 
 .lock-ico {
   position: absolute; top: 22rpx; right: 22rpx; z-index: 3;
@@ -38,19 +46,33 @@
   background: rgba(255, 255, 255, 0.7); color: var(--ink-2);
   display: flex; align-items: center; justify-content: center; font-size: 24rpx;
 }
+.owned-badge {
+  position: absolute; top: 22rpx; right: 22rpx; z-index: 3;
+  font-size: 21rpx; font-weight: 700; color: var(--accent-d);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 6rpx 18rpx; border-radius: 999rpx;
+}
 
 .a-emoji {
   flex: 1;
   position: relative;
   display: flex; align-items: flex-end; justify-content: center;
-  padding: 0 36rpx 32rpx;
-  background: radial-gradient(120% 82% at 50% 10%, rgba(255, 255, 255, 0.92) 0%, rgba(246, 244, 239, 0.6) 70%);
+  padding: 40rpx 36rpx 44rpx;
+  /* 对齐原型：上方柔光 + 底部米白→白的渐变 */
+  background: radial-gradient(120% 82% at 50% 10%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 46%),
+              linear-gradient(to bottom, #EDE6D8 0%, #F6F1E8 68%, #FFFFFF 100%);
 }
 .a-emoji::after {
-  content: ''; position: absolute; left: 50%; bottom: 28rpx; transform: translateX(-50%);
+  content: ''; position: absolute; left: 50%; bottom: 40rpx; transform: translateX(-50%);
   width: 54%; height: 14rpx; background: rgba(40, 30, 20, 0.16); border-radius: 50%; filter: blur(7px); z-index: 0;
 }
-.a-img { position: relative; z-index: 1; width: auto; height: 86%; max-width: 92%; object-fit: contain; filter: drop-shadow(0 6rpx 12rpx rgba(0,0,0,.10)); }
+/* 关键修复：微信 <image> 不支持 width:auto，会塌成 0 宽导致图片不显示。
+   改为显式宽高 + mode="aspectFit"（wxml 上已设），保证图片一定渲染。 */
+.a-img {
+  position: relative; z-index: 1;
+  width: 320rpx; height: 320rpx;
+  filter: drop-shadow(0 6rpx 12rpx rgba(0,0,0,.10));
+}
 
 .a-meta { position: relative; padding: 28rpx 32rpx 32rpx; background: #fff; }
 .a-name { font-family: var(--serif); font-size: 42rpx; font-weight: 800; color: var(--ink); line-height: 1.15; }

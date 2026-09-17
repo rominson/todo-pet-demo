@@ -78,7 +78,9 @@ Page({
     try {
       await cloud.petService.setCurrent(key);
       getApp().globalData.currentPet = key;
-      this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, detail: null });
+      // 同步更新 pets 数组里各卡片的 isCurrent，使高亮跟随切换后的当前伙伴
+      const pets = this.data.pets.map((p) => ({ ...p, isCurrent: p.key === key }));
+      this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, pets, detail: null });
       wx.showToast({ title: '已切换', icon: 'none' });
     } catch (err) {}
   },
