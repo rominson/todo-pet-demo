@@ -26,7 +26,7 @@ Page({
   onShow() {
     const key = (getApp().globalData.currentPet) || 'orange';
     const pet = getPet(key);
-    this.setData({ pet: { name: pet.name, emoji: pet.emoji, read: pet.read, color: pet.color } });
+    this.setData({ pet: { name: pet.name, emoji: pet.emoji, read: pet.anim || pet.read, color: pet.color } });
   },
 
   // —— 计时逻辑 ——
