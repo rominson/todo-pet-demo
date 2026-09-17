@@ -22,3 +22,6 @@ pet-ai-demo/config.js
 # config.js 现在只含非敏感的 appid/productMap + 读环境变量，可正常入库与部署。
 # payNotify 的 MP_TOKEN 同理走环境变量（见 cloud/payNotify/index.js）。
 cloud/payNotify/token.json
+
+# 微信开发者工具私有配置（含本地路径、上次构建信息，不入库）
+project.private.config.json
