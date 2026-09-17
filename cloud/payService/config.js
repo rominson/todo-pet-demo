@@ -1,11 +1,11 @@
-// 微信小程序个人虚拟支付配置（模板，已提交到仓库，不含任何密钥）
-// ⚠️ 三个密钥已迁移到云函数「环境变量」，不在代码/仓库中：
+// 微信小程序个人虚拟支付配置
+// ⚠️ 三个密钥已迁移到云函数「环境变量」（不在代码/仓库中，重部署也不丢）：
 //   PAY_APP_SECRET / PAY_OFFER_ID / PAY_APP_KEY
-//   设置方式：CloudBase 控制台 → 云函数 payService → 配置 → 环境变量
-//            （或 cloudbasrc.json 的 functions[].envVariables 部署时注入）
-//   - AppSecret：MP 后台(mp.weixin.qq.com) → 开发管理 → 开发设置 → AppSecret
-//   - OfferID / 现网 AppKey：MP 后台 → 虚拟支付 → 基本配置
-// 注意：config.js 现在只读取环境变量，不再写死密钥，可安全入库与部署。
+//   设置方式二选一：
+//   ① CloudBase 控制台 → 云函数 payService → 配置 → 环境变量
+//   ② cloudbaserc.json 的 functions[].envVariables 部署时注入
+//   本地调试若无环境变量，fallback 为占位符，支付时因校验失败被拦截（不会泄露）。
+// 非密钥项（appid / productMap）保留在代码中，非敏感。
 module.exports = {
   appid: 'wx538ee0892e9e7b2f',
   appSecret: process.env.PAY_APP_SECRET || 'YOUR_APP_SECRET_HERE',
