@@ -53,6 +53,23 @@ function zodiacOf(m, d) {
   return { name: '摩羯座', key: 'capricorn' };
 }
 
+// —— 今日页「贴边偏移」——
+// 动图素材四周带白边，且每只宠物的本体在画布里的横向位置都不同（留白 20%~36%）。
+// 今日页要让宠物尽量贴住卡片边缘、把另一侧整块留给对话气泡，
+// 所以按展示框 540×330rpx + aspectFit 反算出「把左侧白边推出画框」所需的位移量。
+// 算法：scale=min(540/W,330/H)；图中留白=pictureLeft + bboxLeft*scale；位移=留白-10rpx（留 10rpx 呼吸）。
+// 数值由 scripts/regen_gif.py 同款 bbox 扫描实测得出，换素材后需重测。
+const PET_SHIFT = {
+  orange: 119, aries: 137, taurus: 179, gemini: 164, cancer: 171, leo: 167,
+  virgo: 152, libra: 117, scorpio: 160, sagittarius: 140, capricorn: 148,
+  aquarius: 144, pisces: 179
+};
+// face='right'（宠物朝右）→ 宠物贴左边；face='left' → 宠物贴右边
+function petEdgeStyle(key, face) {
+  const n = PET_SHIFT[key] || 140;
+  return face === 'left' ? `right:-${n}rpx` : `left:-${n}rpx`;
+}
+
 function getPet(key) {
   return PET_META[key] || PET_META.orange;
 }
@@ -86,4 +103,4 @@ function petAnims(key) {
   return anims;
 }
 
-module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet, getPetByName, petAnims };
+module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet, getPetByName, petAnims, petEdgeStyle };

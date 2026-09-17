@@ -12,27 +12,32 @@
 }
 .fm.on { background: #fff; color: var(--ink); box-shadow: 0 2rpx 8rpx rgba(0,0,0,.06); }
 
-/* 主卡（原型：margin-top:26px; padding:28px 16px; 居中） */
+/* 主卡（原型：margin-top:26px; padding:28px 16px; 居中）
+   宠物场景图放大成 280×170 后卡变高，上下内边距相应收一点，保证按钮不顶出屏 */
 .focus-card {
-  margin-top: 52rpx;
-  padding: 56rpx 32rpx;
+  margin-top: 44rpx;
+  padding: 44rpx 32rpx;
   background: var(--card);
   border-radius: 36rpx;
   box-shadow: var(--shadow);
   text-align: center;
 }
 
-/* 宠物角落小图：日常 56px(看书)；专注/冥想进行中放大成 280×170 场景动画（原型实测值）
+/* 宠物场景图：日常看书 / 专注敲键盘 / 冥想看日落 / 完成喝咖啡 统一 280×170 原型尺寸，
+   不再把日常态缩成角落小图——看书姿势素材四周留白多，缩小后会明显比敲键盘小一截。
    专注→敲键盘 / 冥想→看日落 / 完成后→咖啡庆祝6秒，见 focus.js 的 sceneSrc 逻辑 */
 .focus-stage { text-align: center; }
 .pet-corner {
-  width: 112rpx; height: 112rpx;
+  width: 540rpx;
+  height: 330rpx;
   margin: 0 auto 12rpx;
   display: block;
   transition: width 0.35s ease, height 0.35s ease;
 }
+/* live 只作状态标记，尺寸与日常态一致 */
 .pet-corner.live {
-  width: 540rpx; height: 330rpx;
+  width: 540rpx;
+  height: 330rpx;
   animation: none;
 }
 .timer-sub { font-size: 26rpx; color: var(--ink-2); min-height: 40rpx; line-height: 1.5; }

@@ -1,6 +1,6 @@
 // pages/index/index.js —— 今日：问候 + 宠物陪伴 + 进度 + 待办清单
 const cloud = require('../../utils/cloud.js');
-const { getPet } = require('../../utils/pets.js');
+const { getPet, petEdgeStyle } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
 const bc = require('../../utils/broadcast.js');
 

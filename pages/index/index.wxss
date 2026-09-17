@@ -37,33 +37,34 @@
 }
 .date { color: var(--ink-2); font-size: 26rpx; line-height: 1.1; }
 
-/* 宠物卡：按脸朝向决定左右（原型 pet-card.face-right/left） */
+/* 宠物卡：整块高度固定，宠物尽量贴住卡片边缘，另一侧留给对话气泡。
+   用左右负 margin 抵掉卡片的 40rpx 内边距，让宠物能真正贴到卡片边。 */
 .pet-card {
   position: relative;
-  display: flex;
-  align-items: center;
-  padding: 12rpx 16rpx;
-  margin: 16rpx 0 20rpx;
+  height: 330rpx;
+  padding: 0;
+  margin: 16rpx -40rpx 20rpx;
 }
-.hero.face-right .pet-card { justify-content: flex-start; }
-.hero.face-left .pet-card { justify-content: flex-end; }
+/* 裁剪盒：宠物大图外扩出的白边在这里被裁掉，
+   否则溢出到米白色页底会露出一块白（背景色不一致的旧问题）。 */
+.pet-clip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
 /* 宠物展示位：原型运行时是 280×170 的大动画（pet-video-wrap 实测值），
    不是 CSS 里那个 88px 小 stage——大图才有 HTML 原型的视觉比例。 */
-.pet-stage {
-  width: 540rpx;
-  height: 330rpx;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  position: relative;
-  flex-shrink: 0;
-}
 .pet-img {
+  position: absolute;
+  top: 0;
   width: 540rpx;
   height: 330rpx;
-  position: relative;
   z-index: 1;
 }
+/* 具体贴左还是贴右、推多少，由 utils/pets.js 的 petEdgeStyle 按素材白边算出（内联 style） */
 /* 今日页宠物用真·动图素材（APNG 转的 GIF 循环播放）。 */
 
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */
@@ -82,7 +83,9 @@
   max-width: 420rpx;
 }
 .pet-bubble.br {
-  left: 192rpx;
+  left: auto;
+  right: 40rpx;
+  max-width: 350rpx;
   transform: translateY(-50%);
 }
 .pet-bubble.br::after {
@@ -98,8 +101,8 @@
   border-right: 14rpx solid #fff;
 }
 .pet-bubble.bl {
-  left: 16rpx;
-  max-width: 300rpx;
+  left: 40rpx;
+  max-width: 350rpx;
   transform: translateY(-50%);
 }
 .pet-bubble.bl::after {
