@@ -6,7 +6,8 @@ const crypto = require('crypto');
 cloud.init({ env: 'cloud1-d4gck1kjyb8ca2456' });
 const db = cloud.database();
 
-// MP 后台「消息推送」配置的 Token（token.json 本地文件，不入仓库；也可用环境变量 MP_TOKEN）
+// MP 后台「消息推送」配置的 Token。优先读云函数环境变量 MP_TOKEN（已迁移，密钥不落代码/仓库）；
+// 本地调试可放 token.json 兜底，但生产以环境变量为准。
 let MP_TOKEN = process.env.MP_TOKEN || '';
 try { MP_TOKEN = MP_TOKEN || require('./token.json').MP_TOKEN; } catch (e) { /* 未配置 */ }
 
