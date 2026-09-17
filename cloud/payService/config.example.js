@@ -13,6 +13,10 @@ module.exports = {
   offerId: process.env.PAY_OFFER_ID || 'YOUR_OFFER_ID_HERE',
   appKey: process.env.PAY_APP_KEY || 'YOUR_APP_KEY_HERE', // 用「现网 AppKey」，不要用沙箱密钥
 
+  // 沙箱测试用（可选）：PAY_USE_SANDBOX=1 时切到 env=1 + 沙箱 AppKey，仅开发者工具模拟器可免费用测
+  sandboxAppKey: process.env.PAY_SANDBOX_APP_KEY || '',
+  useSandbox: process.env.PAY_USE_SANDBOX === '1',
+
   // 宠物 key → 虚拟支付「道具」ID。
   // 建议 12 个星座道具的 productId 命名为 zodiac_aries / zodiac_taurus ...（与这里一致即可，名字随意）
   // 每个星座宠物在后台建一个道具，价格 ¥6（= 600 分，与 pets.js 中 price 一致）。

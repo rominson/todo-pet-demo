@@ -13,6 +13,11 @@ const https = require('https');
 const { PET_CATALOG } = require('./pets');
 const cfg = require('./config');
 
+// 沙箱开关：env=1 + 沙箱 AppKey 仅用于开发者工具模拟器免费用测；现网(env=0)用现网 AppKey
+const USE_SANDBOX = !!cfg.useSandbox;
+const PAY_ENV = USE_SANDBOX ? 1 : 0;
+const SIGN_KEY = USE_SANDBOX && cfg.sandboxAppKey ? cfg.sandboxAppKey : cfg.appKey;
+
 // wx.requestVirtualPayment 对应的签名 URI（文档 5.5）
 const URI = 'requestVirtualPayment';
 
@@ -128,7 +133,7 @@ exports.main = async (event) => {
         outTradeNo,
         attach
       });
-      const paySig = hmacSha256(cfg.appKey, URI + '&' + signData);
+      const paySig = hmacSha256(SIGN_KEY, URI + '&' + signData);
       const signature = hmacSha256(sessionKey, signData);
 
       await db.collection('orders').add({
@@ -180,9 +185,9 @@ exports.main = async (event) => {
       if (!ord.data.length) return { ok: false, error: '订单不存在' };
       const o = ord.data[0];
 
-      const bodyObj = { openid: OPENID, env: 0, order_id: orderId };
+      const bodyObj = { openid: OPENID, env: PAY_ENV, order_id: orderId };
       const body = JSON.stringify(bodyObj);
-      const pay_sig = hmacSha256(cfg.appKey, '/xpay/query_order&' + body);
+      const pay_sig = hmacSha256(SIGN_KEY, '/xpay/query_order&' + body);
       let resp;
       try { resp = await httpsPostJson('https://api.weixin.qq.com/xpay/query_order', body, pay_sig); }
       catch (e) { return { ok: true, paid: false, order: o }; }

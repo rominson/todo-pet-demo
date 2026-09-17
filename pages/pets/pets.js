@@ -2,9 +2,9 @@
 const cloud = require('../../utils/cloud.js');
 const { PET_META, zodiacOf } = require('../../utils/pets.js');
 
-// 开发还原期：尚无微信虚拟支付资质配置，先用 petService.unlock 走通「解锁→切换→足迹跟随」闭环。
-// 真机接入时把 DEV_DEMO 设为 false，并在 realPay 内补全 wx.requestVirtualPayment 的签名参数（由云函数下发）。
-const DEV_DEMO = true;
+// 已接入真实虚拟支付：设为 false 走 createOrder → wx.requestVirtualPayment → payNotify 发货。
+// 云函数侧通过 PAY_USE_SANDBOX=1 可切到沙箱(env=1)免费用开发者工具模拟器跑通。
+const DEV_DEMO = false;
 
 Page({
   data: {
