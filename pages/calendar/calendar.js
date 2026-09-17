@@ -1,4 +1,4 @@
-// pages/calendar/calendar.js —— 日历 · 我的坚持之墙（爪印月历）
+// pages/calendar/calendar.js —— 日历 · 我的坚持之墙（对齐原型 screen-footprint）
 const cloud = require('../../utils/cloud.js');
 const { getPet } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
@@ -10,10 +10,12 @@ Page({
     month: 1,
     cells: [],
     monthCount: 0,
-    canGoNext: false
+    canGoNext: false,
+    dayLabel: '',
+    dayDetail: []
   },
 
-  onShow() { this.load(); },
+  onShow() { this._offset = 0; this.load(0); },
 
   async load(offsetMonth = 0) {
     try {
@@ -33,7 +35,7 @@ Page({
       const map = {};
       fpsList.forEach((f) => {
         const d = agg.toDateStr(f.created_at);
-        (map[d] = map[d] || []).push(f.type);
+        (map[d] = map[d] || []).push(f);
       });
 
       let monthCount = 0;
@@ -41,18 +43,12 @@ Page({
       for (let i = 0; i < first; i++) cells.push({ empty: true });
       for (let d = 1; d <= days; d++) {
         const ds = `${y}-${agg.pad(m + 1)}-${agg.pad(d)}`;
-        const types = map[ds] || [];
-        if (types.length) monthCount++;
-        cells.push({
-          day: d,
-          has: types.length > 0,
-          milestone: types.indexOf('milestone') > -1,
-          img: pet.img,
-          color: pet.color
-        });
+        const list = map[ds] || [];
+        if (list.length) monthCount++;
+        const isToday = d === now.getDate() && m === now.getMonth() && y === now.getFullYear();
+        cells.push({ day: d, empty: false, has: list.length > 0, today: isToday, sel: false, detail: list });
       }
 
-      // 未来月份不允许前进
       const isFuture = y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth());
       this.setData({
         pet: { name: pet.name, emoji: pet.emoji, img: pet.img, color: pet.color },
@@ -62,13 +58,39 @@ Page({
         monthCount,
         canGoNext: offsetMonth > 0 && !isFuture
       });
+      // 默认选中今天
+      const tIdx = cells.findIndex((c) => c.today);
+      this.selectDay(tIdx >= 0 ? tIdx : cells.findIndex((c) => !c.empty));
     } catch (e) {}
   },
 
   prev() { this._offset = (this._offset || 0) - 1; this.load(this._offset); },
+
+  goMeet() { wx.switchTab({ url: '/pages/pets/pets' }); },
   next() {
     if (!this.data.canGoNext) return;
     this._offset = (this._offset || 0) + 1;
     this.load(this._offset);
+  },
+
+  selectCell(e) {
+    const d = e.currentTarget.dataset.d;
+    const idx = this.data.cells.findIndex((c) => !c.empty && c.day === d);
+    if (idx < 0) return;
+    this.selectDay(idx);
+  },
+
+  selectDay(idx) {
+    if (idx < 0) return;
+    const cells = this.data.cells.map((c, i) => Object.assign({}, c, { sel: i === idx }));
+    const c = cells[idx];
+    const dayDetail = (c.detail || []).map((f) =>
+      (f.content || '').replace(/^(专注|冥想)\s*/, '$1 ') || (f.type === 'focus' ? '专注' : '冥想')
+    );
+    this.setData({
+      cells,
+      dayLabel: `${this.data.month}月${c.day}日`,
+      dayDetail
+    });
   }
 });

@@ -1,38 +1,32 @@
-/* pages/calendar/calendar.wxss */
-.page { padding: 24rpx 28rpx 60rpx; }
-.title { font-family: var(--serif); font-size: 44rpx; font-weight: 600; margin: 8rpx 8rpx 24rpx; }
+/* pages/calendar/calendar.wxss —— 对齐原型 screen-footprint */
+.page { padding: 28rpx 36rpx 80rpx; box-sizing: border-box; }
+.title { font-family: var(--serif); font-size: 40rpx; font-weight: 800; color: var(--ink); margin: 8rpx 8rpx 24rpx; }
 
-.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-.month { font-size: 30rpx; font-weight: 600; }
+.cal { padding: 28rpx 24rpx; margin-bottom: 24rpx; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin: 4rpx 4rpx 20rpx; }
+.cal-head .month { font-family: var(--serif); font-size: 36rpx; font-weight: 800; color: var(--ink); }
 .nav {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: var(--bg);
-  color: var(--ink-2);
-  font-size: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 64rpx; height: 64rpx; border-radius: 20rpx; background: var(--card); box-shadow: var(--shadow);
+  color: var(--ink-2); display: flex; align-items: center; justify-content: center; font-size: 40rpx;
 }
-.nav.off { color: var(--ink-3); }
+.nav.off { opacity: .35; }
 
-.cal-week { display: flex; margin-bottom: 8rpx; }
-.cal-week text { flex: 1; text-align: center; color: var(--ink-2); font-size: 24rpx; }
-.cal-grid { display: flex; flex-wrap: wrap; }
+.cal-week { display: grid; grid-template-columns: repeat(7,1fr); gap: 8rpx; font-size: 22rpx; color: var(--ink-3); font-weight: 700; text-align: center; margin: 8rpx 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 8rpx; }
 .cal-cell {
-  width: calc(100% / 7);
-  height: 88rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  aspect-ratio: 1; border-radius: 12rpx; background: var(--card); box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center; position: relative;
+  font-size: 26rpx; color: var(--ink-2);
 }
-.cal-day { font-size: 24rpx; color: var(--ink-2); }
-.cal-paw { width: 44rpx; height: 44rpx; }
-.cal-cell.milestone {
-  background: var(--accent-soft);
-  border-radius: 20rpx;
-}
-.cal-legend { text-align: center; color: var(--ink-2); font-size: 24rpx; margin-top: 20rpx; }
+.cal-cell.empty { background: transparent; box-shadow: none; }
+.cal-cell.today, .cal-cell.selected { outline: 3rpx solid var(--accent); outline-offset: -3rpx; }
+.cdot { position: absolute; bottom: 10rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--accent); }
+
+.detail { padding: 28rpx 28rpx 32rpx; margin-bottom: 24rpx; }
+.dd-title { font-weight: 700; color: var(--ink); margin-bottom: 12rpx; font-size: 28rpx; }
+.dd-row { padding: 12rpx 0; color: var(--ink-2); font-size: 26rpx; border-top: 1rpx dashed var(--line); }
+.dd-empty { color: var(--ink-3); font-size: 26rpx; }
+
+.partners { display: flex; align-items: center; padding: 28rpx; }
+.p-title { font-family: var(--serif); font-size: 30rpx; font-weight: 800; color: var(--ink); }
+.p-sub { font-size: 24rpx; color: var(--ink-2); margin-top: 6rpx; }

@@ -20,6 +20,14 @@ const PET_META = {
   pisces:       { key: 'pisces',       name: '双鱼',   emoji: '🐰', img: '/assets/pets/pisces.png',       read: '/assets/pets/pisces-read.png',       scene: '/assets/pets/pisces-scene.png',       animal: '兔子',   color: '#ff80ab', tone: '温柔敏感、爱做梦、共情强，像兔子一样柔软贴心' }
 };
 
+// 星座性格标签（对齐原型 screen-store 的 a-zodiac 文案：白羊座 · 活力 · 冲动）
+const ZODIAC_TRAITS = {
+  aries: '活力 · 冲动', taurus: '稳重 · 慢热', gemini: '机灵 · 多变', cancer: '温柔 · 敏感',
+  leo: '自信 · 张扬', virgo: '挑剔 · 细致', libra: '优雅 · 纠结', scorpio: '神秘 · 深沉',
+  sagittarius: '自由 · 冒险', capricorn: '沉稳 · 长寿', aquarius: '独特 · 反叛', pisces: '梦幻 · 感性',
+  orange: '慵懒 · 陪伴'
+};
+
 // 本命星座：根据生日（月/日）推算星座，再映射到宠物 key
 function zodiacOf(m, d) {
   const md = m * 100 + d;
@@ -42,4 +50,4 @@ function getPet(key) {
   return PET_META[key] || PET_META.orange;
 }
 
-module.exports = { PET_META, zodiacOf, getPet };
+module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet };

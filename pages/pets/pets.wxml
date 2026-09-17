@@ -1,40 +1,40 @@
-<!-- pages/pets/pets.wxml —— 遇见：伙伴目录 / 解锁 / 切换 -->
+<!-- pages/pets/pets.wxml —— 星座伙伴（对齐原型 screen-store：横向滑动大卡片轮播） -->
 <view class="page">
-  <view class="title">遇见</view>
-  <view class="card hero">
-    <image class="hero-img" src="{{currentPet.img}}" mode="aspectFit" />
-    <view class="hero-name">当前陪伴：{{currentPet.name}}</view>
-    <view class="hero-sub">点下面的伙伴，可以切换或解锁它</view>
-  </view>
+  <view class="group-title">星座伙伴</view>
 
-  <view wx:if="{{birthZodiac}}" class="birth-tip">
-    <text wx:if="{{birthZodiac.owned}}">你的本命「{{birthZodiac.name}}」已解锁 🎉</text>
-    <text wx:else>你的本命是「{{birthZodiac.name}}」——解锁它，让它成为真正属于你的那只</text>
-  </view>
-
-  <view class="grid">
-    <view wx:for="{{pets}}" wx:key="key"
-          class="pet-cell {{item.owned?'owned':''}} {{item.key===currentKey?'active':''}} {{item.key===birthKey?'isbirth':''}}"
-          catchtap="onTap" data-key="{{item.key}}">
-      <view wx:if="{{item.key===birthKey}}" class="birth-flag">本命</view>
-      <image class="cell-img" src="{{item.img}}" mode="aspectFit" />
-      <view class="cell-name">{{item.name}}</view>
-      <view wx:if="{{item.owned}}" class="cell-tag">已拥有</view>
-      <view wx:elif="{{item.free}}" class="cell-tag free">免费</view>
-      <view wx:else class="cell-tag price">¥{{item.price}}</view>
+  <view class="store-banner card">
+    <view class="sb-text">
+      <view class="t">12 个星座伙伴</view>
+      <view class="s">单个 ¥6 解锁 · 已拥有 {{ownedCount}}/12</view>
     </view>
   </view>
+
+  <scroll-view scroll-x class="store-grid" enhanced show-scrollbar="{{false}}">
+    <view wx:for="{{pets}}" wx:key="key"
+          class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}"
+          bindtap="onTap" data-key="{{item.key}}">
+      <view wx:if="{{!item.owned}}" class="lock-ico">🔒</view>
+      <view class="a-emoji">
+        <image class="a-img" src="{{item.scene}}" mode="aspectFit" />
+      </view>
+      <view class="a-meta">
+        <view class="a-name">{{item.animal}}</view>
+        <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
+        <view class="a-price">{{item.owned ? '已拥有' : '¥6 解锁'}}</view>
+      </view>
+    </view>
+  </scroll-view>
 
   <!-- 详情弹层 -->
   <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">
     <view class="modal" catchtap="noop">
-      <image class="d-img" src="{{detail.scene}}" mode="aspectFill" />
-      <view class="d-name">{{detail.name}}{{detail.key===birthKey?' · 你的本命':''}}</view>
-      <view class="d-desc">{{detail.desc}}</view>
-      <button wx:if="{{detail.owned}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">切换为当前伙伴</button>
-      <button wx:elif="{{detail.free}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">设为当前（免费）</button>
-      <button wx:else class="btn-primary" catchtap="doUnlock" data-key="{{detail.key}}">解锁 ¥{{detail.price}}</button>
-      <button class="btn-ghost" catchtap="closeDetail">关闭</button>
+      <view class="grab"></view>
+      <image class="d-img" src="{{detail.scene}}" mode="aspectFit" />
+      <view class="d-name">{{detail.animal}}</view>
+      <view class="d-zodiac">{{detail.zodiacName}} · {{detail.traits}}</view>
+      <button wx:if="{{!detail.owned}}" class="btn-primary" bindtap="doUnlock" data-key="{{detail.key}}">¥6 解锁</button>
+      <button wx:elif="{{!detail.isCurrent}}" class="btn-primary" bindtap="doSetCurrent" data-key="{{detail.key}}">切换为当前伙伴</button>
+      <view wx:else class="d-current">当前陪伴中</view>
     </view>
   </view>
 </view>

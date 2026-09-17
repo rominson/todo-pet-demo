@@ -1,6 +1,6 @@
-// pages/pets/pets.js —— 宠物商店：目录 / 解锁 / 切换
+// pages/pets/pets.js —— 星座伙伴：目录 / 解锁 / 切换（对齐原型 screen-store）
 const cloud = require('../../utils/cloud.js');
-const { PET_META, zodiacOf } = require('../../utils/pets.js');
+const { PET_META, ZODIAC_TRAITS, zodiacOf } = require('../../utils/pets.js');
 
 // 已接入真实虚拟支付：设为 false 走 createOrder → wx.requestVirtualPayment → payNotify 发货。
 // 云函数侧通过 PAY_USE_SANDBOX=1 可切到沙箱(env=1)免费用开发者工具模拟器跑通。
@@ -9,6 +9,7 @@ const DEV_DEMO = false;
 Page({
   data: {
     pets: [],
+    ownedCount: 0,
     currentKey: 'orange',
     currentPet: { emoji: '🐱', name: '橘小满', color: '#ff8a3d' },
     birthKey: '',
@@ -28,7 +29,20 @@ Page({
       const current = mine.current || 'orange';
       const pets = (cat.catalog || []).map((p) => {
         const meta = PET_META[p.key] || {};
-        return { ...p, emoji: meta.emoji, img: meta.img, scene: meta.scene, color: meta.color, animal: meta.animal, owned: ownedSet.has(p.key) };
+        const owned = ownedSet.has(p.key);
+        return {
+          key: p.key,
+          price: p.price,
+          emoji: meta.emoji,
+          scene: meta.scene,
+          color: meta.color,
+          animal: meta.animal,
+          name: p.name,                              // 星座名（白羊）
+          zodiacName: (p.name || '') + '座',         // 白羊座
+          traits: ZODIAC_TRAITS[p.key] || '',        // 活力 · 冲动
+          owned,
+          isCurrent: p.key === current
+        };
       });
 
       let birthKey = '';
@@ -42,6 +56,7 @@ Page({
 
       this.setData({
         pets,
+        ownedCount: pets.filter((x) => x.owned).length,
         currentKey: current,
         currentPet: PET_META[current] || PET_META.orange,
         birthKey,

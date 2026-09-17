@@ -1,20 +1,26 @@
-/* app.wxss —— 全局样式（对齐原型：米白底 / 白卡片 / 紫色主色 / 暖棕文字） */
+/* app.wxss —— 全局样式（精确对齐 prototype/index.html 设计 token） */
 page {
-  /* 设计 token（提取自 prototype/index.html） */
-  --bg: #f1ede5;          /* 米白页面底 */
-  --bg-soft: #faf8f4;     /* 更浅面板 */
-  --card: #ffffff;        /* 白卡片 */
-  --ink: #3a2e10;         /* 暖棕主文字 */
-  --ink-2: #8a847b;       /* 次级文字 */
-  --ink-3: #c9c2b6;       /* 弱化文字/描边 */
-  --accent: #7e6fd6;      /* 紫色主色 */
-  --accent-soft: #ece8fd; /* 浅紫底 */
-  --accent-2: #a898fa;    /* 亮紫 */
-  --warm: #e8892f;        /* 暖橙（逾期/价格点缀） */
-  --warm-soft: #fce7d3;   /* 浅橙底 */
-  --track: #efebe3;       /* 进度条轨道 */
-  --ok: #7fb77e;          /* 完成绿 */
-  --serif: Georgia, "Times New Roman", "STSongti-SC", "SimSun", serif;
+  /* 设计 token（提取自 prototype/index.html :root，1:1 对齐） */
+  --bg: #F6F4EF;           /* 米白页面底 */
+  --bg-soft: #FBF9F4;      /* 更浅面板（弹层用） */
+  --card: #FFFFFF;         /* 白卡片 */
+  --ink: #2D2A26;          /* 主文字（近黑） */
+  --ink-2: #8A847B;        /* 次级文字 */
+  --ink-3: #B8B2A8;        /* 弱化文字/描边 */
+  --accent: #A898FA;       /* 浅紫：按钮/选中（原型 --accent） */
+  --accent-d: #7E6FD6;     /* 深紫：文字/边框（原型 --accent-d） */
+  --accent-soft: #ECE8FD;  /* 浅紫底（原型 --accent-l） */
+  --accent-2: #A898FA;     /* 亮紫（兼容旧引用） */
+  --gold: #E8B54C;         /* 金色：价格药丸（原型 --gold） */
+  --gold-l: #FBF0D6;       /* 浅金底 */
+  --warm: #E8892F;         /* 暖橙（逾期点缀） */
+  --warm-soft: #FCE7D3;    /* 浅橙底 */
+  --track: #EFEBE3;        /* 进度条轨道 / 模式条底 */
+  --ok: #7FB77E;           /* 完成绿 */
+  --line: #EEE9E1;         /* 分隔线 */
+  --radius: 36rpx;         /* 18px 卡片圆角 */
+  --shadow: 0 4rpx 24rpx rgba(60, 50, 40, 0.05);
+  --serif: "Songti SC", "Noto Serif SC", "STSong", serif;
 
   background: var(--bg);
   color: var(--ink);
@@ -25,9 +31,9 @@ page {
 
 .card {
   background: var(--card);
-  border-radius: 44rpx;
+  border-radius: var(--radius);
   padding: 40rpx;
-  box-shadow: 0 10rpx 30rpx rgba(58, 46, 16, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .block-title {
@@ -62,7 +68,7 @@ page {
 .modal-mask {
   position: fixed;
   inset: 0;
-  background: rgba(58, 46, 16, 0.4);
+  background: rgba(45, 42, 38, 0.4);
   z-index: 100;
   display: flex;
   align-items: flex-end;
