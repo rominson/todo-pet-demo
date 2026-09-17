@@ -1,6 +1,6 @@
 // pages/calendar/calendar.js —— 日历 · 我的坚持之墙（对齐原型 screen-footprint）
 const cloud = require('../../utils/cloud.js');
-const { getPet } = require('../../utils/pets.js');
+const { getPet, getPetByName } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
 
 Page({
@@ -44,9 +44,20 @@ Page({
       for (let d = 1; d <= days; d++) {
         const ds = `${y}-${agg.pad(m + 1)}-${agg.pad(d)}`;
         const list = map[ds] || [];
-        if (list.length) monthCount++;
+        // 「坚持之墙」只统计专注/冥想次数（勾选待办的 done / milestone 不计入）
+        const stamps = list.filter((f) => f.type === 'focus' || f.type === 'meditate');
+        if (stamps.length) monthCount++;
         const isToday = d === now.getDate() && m === now.getMonth() && y === now.getFullYear();
-        cells.push({ day: d, empty: false, has: list.length > 0, today: isToday, sel: false, detail: list });
+        // 每完成一次 = 一个宠物头像，最多展示 3 个
+        const pets = stamps.slice(0, 3).map((f, i) => ({
+          k: i,
+          img: (getPetByName(f.pet) || pet).img
+        }));
+        const size = pets.length <= 1 ? 's1' : (pets.length === 2 ? 's2' : 's3');
+        cells.push({
+          day: d, empty: false, has: stamps.length > 0, count: stamps.length,
+          pets, size, today: isToday, sel: false, detail: list
+        });
       }
 
       const isFuture = y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth());

@@ -7,6 +7,8 @@ Page({
   data: {
     filter: 'all', // all / undone
     total: 0,
+    showAdd: false,
+    form: { title: '', tag: '', due: '', type: 'normal', important: false },
     quads: [
       { key: 'iu', title: '重要 · 紧急', sub: '马上做', items: [] },
       { key: 'in', title: '重要 · 不紧急', sub: '计划做', items: [] },
@@ -110,5 +112,34 @@ Page({
         }
       }
     });
+  },
+
+  // —— 新建任务（与今日页弹层一致）——
+  showAdd() { this.setData({ showAdd: true }); },
+  hideAdd() { this.setData({ showAdd: false }); },
+  noop() {},
+  onTitle(e) { this.setData({ 'form.title': e.detail.value }); },
+  onTag(e) { this.setData({ 'form.tag': e.detail.value }); },
+  onDue(e) { this.setData({ 'form.due': e.detail.value }); },
+  setType(e) { this.setData({ 'form.type': e.currentTarget.dataset.t }); },
+  onImportant(e) { this.setData({ 'form.important': e.detail.value }); },
+
+  async onCreate() {
+    const title = this.data.form.title.trim();
+    if (!title) { wx.showToast({ title: '写点什么吧', icon: 'none' }); return; }
+    try {
+      await cloud.taskService.create({
+        title,
+        tag: this.data.form.tag,
+        due: this.data.form.due,
+        type: this.data.form.type,
+        important: this.data.form.important
+      });
+      this.setData({
+        showAdd: false,
+        form: { title: '', tag: '', due: '', type: 'normal', important: false }
+      });
+      this.load();
+    } catch (e) {}
   }
 });

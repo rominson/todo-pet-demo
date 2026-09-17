@@ -57,6 +57,14 @@ function getPet(key) {
   return PET_META[key] || PET_META.orange;
 }
 
+// 按中文名反查宠物（足迹里存的是名字，日历需还原成头像图）
+const NAME_TO_KEY = {};
+Object.keys(PET_META).forEach((k) => { NAME_TO_KEY[PET_META[k].name] = k; });
+function getPetByName(name) {
+  if (!name) return null;
+  return PET_META[NAME_TO_KEY[name]] || null;
+}
+
 // —— 场景动画组（对齐原型 SCENE_BY_MODE = { focus:'keyboard', meditate:'sunset', coffee:'coffee', '':'read' }）——
 // read=看书(日常/今日页)  keyboard=敲键盘(专注中)  sunset=看日落画框(冥想中)  coffee=咖啡(完成后庆祝6秒)
 // 橘小满的 read 用本地 GIF（首屏零延迟），其余场景走 CDN；12 星座全部走 CDN。
@@ -78,4 +86,4 @@ function petAnims(key) {
   return anims;
 }
 
-module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet, petAnims };
+module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet, getPetByName, petAnims };

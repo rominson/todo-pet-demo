@@ -28,3 +28,32 @@
     </view>
   </view>
 </view>
+
+<!-- 悬浮新建按钮（与今日页一致） -->
+<view class="fab" bindtap="showAdd">＋</view>
+
+<!-- 新建任务弹层 -->
+<view wx:if="{{showAdd}}" class="modal-mask" bindtap="hideAdd">
+  <view class="modal" catchtap="noop">
+    <view class="modal-title">新建任务</view>
+    <view class="modal-sub">一件事，做完打勾就好</view>
+    <input class="input" placeholder="任务名称" value="{{form.title}}" bindinput="onTitle" />
+    <input class="input" placeholder="标签（可选）" value="{{form.tag}}" bindinput="onTag" />
+    <picker mode="date" value="{{form.due}}" bindchange="onDue">
+      <view class="input picker">{{form.due || '提醒日期（可选）'}} ›</view>
+    </picker>
+    <view class="opt-row">
+      <view class="opt-lbl">
+        <view>标为重要</view>
+        <view class="opt-sub">会进四象限「重要」区</view>
+      </view>
+      <switch checked="{{form.important}}" bindchange="onImportant" color="#7e6fd6" />
+    </view>
+    <view class="type-row">
+      <view class="type-opt {{form.type==='normal'?'on':''}}" bindtap="setType" data-t="normal">勾选完成</view>
+      <view class="type-opt {{form.type==='focus'?'on':''}}" bindtap="setType" data-t="focus">计时专注</view>
+    </view>
+    <button class="btn-primary" bindtap="onCreate">添加任务</button>
+    <button class="btn-ghost" bindtap="hideAdd">取消</button>
+  </view>
+</view>

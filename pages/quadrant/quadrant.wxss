@@ -40,3 +40,47 @@
 .q-flag.overdue { color: #fff; background: var(--warm); }
 .q-flag.done { color: var(--ok); background: rgba(127, 183, 126, 0.15); }
 .q-empty { color: var(--ink-3); font-size: 24rpx; text-align: center; margin-top: 60rpx; }
+
+/* 悬浮新建按钮（与今日页一致） */
+.fab {
+  position: fixed;
+  right: 44rpx;
+  bottom: 60rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 30rpx rgba(126, 111, 214, 0.4);
+  z-index: 50;
+}
+
+/* 新建弹层补充样式（mask/modal/input/btn 在 app.wxss 公共） */
+.modal-sub { text-align: center; color: var(--ink-2); font-size: 24rpx; margin-top: -16rpx; margin-bottom: 24rpx; }
+.picker { color: var(--ink); }
+.opt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  border-radius: 24rpx;
+  padding: 22rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+.opt-lbl { font-size: 28rpx; }
+.opt-sub { font-size: 22rpx; color: var(--ink-2); margin-top: 2rpx; }
+.type-row { display: flex; gap: 20rpx; margin-bottom: 28rpx; }
+.type-opt {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 26rpx;
+}
+.type-opt.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }

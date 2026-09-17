@@ -15,8 +15,10 @@
       <view wx:for="{{cells}}" wx:key="index" wx:for-index="index"
             class="cal-cell {{item.empty?'empty':''}} {{item.today&&!item.sel?'today':''}} {{item.sel?'selected':''}}"
             bindtap="selectCell" data-d="{{item.day}}">
-        <text wx:if="{{!item.empty}}" class="cal-day">{{item.day}}</text>
-        <view wx:if="{{item.has}}" class="cdot"></view>
+        <text wx:if="{{!item.empty}}" class="cal-day {{item.has?'mini':''}}">{{item.day}}</text>
+        <view wx:if="{{item.has}}" class="cal-pets">
+          <image wx:for="{{item.pets}}" wx:for-item="p" wx:key="k" class="cal-pet {{item.size}}" src="{{p.img}}" mode="aspectFit"/>
+        </view>
       </view>
     </view>
   </view>

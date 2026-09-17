@@ -4,7 +4,16 @@
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function toDateStr(d) {
-  const x = d ? new Date(d) : new Date();
+  // 兼容三种来源：ISO 字符串 / 时间戳数字 / CloudBase 扩展 JSON 的 {$date: ms} 对象
+  let x;
+  if (d && typeof d === 'object' && d.$date != null) {
+    const v = d.$date;
+    const ms = (v && typeof v === 'object' && v.$numberLong != null) ? Number(v.$numberLong) : Number(v);
+    x = new Date(ms);
+  } else {
+    x = d ? new Date(d) : new Date();
+  }
+  if (isNaN(x.getTime())) x = new Date(); // 解析失败兜底为今天，避免落到 NaN 键
   return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
 }
 
