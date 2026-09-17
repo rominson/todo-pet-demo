@@ -126,7 +126,7 @@ exports.main = async (event) => {
       const signData = buildSignData({
         offerId: cfg.offerId,
         buyQuantity: 1,
-        env: 0,
+        env: PAY_ENV,
         currencyType: 'CNY',
         productId,
         goodsPrice: amount,
