@@ -1,20 +1,22 @@
-<!-- pages/focus/focus.wxml —— 专注模式 / 冥想模式 -->
+<!-- pages/focus/focus.wxml —— 专注模式 / 冥想模式（对齐原型：模式切换在顶部，宠物看书图在卡内） -->
 <view class="page">
-  <view class="title">专注</view>
+  <view class="mode-switch {{running?'locked':''}}">
+    <view class="mode {{mode==='focus'?'on':''}}" data-mode="focus" bindtap="switchMode">
+      <text class="mode-ico">⏱</text> 专注 25′
+    </view>
+    <view class="mode {{mode==='meditate'?'on':''}}" data-mode="meditate" bindtap="switchMode">
+      <text class="mode-ico">☯</text> 冥想 15′
+    </view>
+  </view>
 
   <view class="card stage">
-    <image class="pet-img {{running?'anim':''}}" src="{{pet.img}}" mode="aspectFit" />
+    <image class="pet-img {{running?'anim':''}}" src="{{pet.read}}" mode="aspectFit" />
     <view wx:if="{{taskTitle}}" class="ctx">为「{{taskTitle}}」专注</view>
-    <view class="timer {{running?'running':''}}">{{timeText}}</view>
     <view class="sub">{{sub}}</view>
+    <view class="timer {{running?'running':''}}">{{timeText}}</view>
+    <button class="btn-primary big stage-btn" bindtap="start">{{running ? '结束' : '开始' + (mode==='focus'?'专注':'冥想')}}</button>
   </view>
 
-  <view class="mode-switch {{running?'locked':''}}">
-    <view class="mode {{mode==='focus'?'on':''}}" data-mode="focus" bindtap="switchMode">专注 25′</view>
-    <view class="mode {{mode==='meditate'?'on':''}}" data-mode="meditate" bindtap="switchMode">冥想 15′</view>
-  </view>
-
-  <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始' + (mode==='focus'?'专注':'冥想')}}</button>
   <view wx:if="{{showCancel}}" class="cancel" bindtap="cancel">中断也没关系</view>
 
   <view wx:if="{{bubbleText}}" class="bubble">{{bubbleText}}</view>

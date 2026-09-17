@@ -1,37 +1,40 @@
 /* pages/focus/focus.wxss */
 .page { padding: 24rpx 28rpx 60rpx; display: flex; flex-direction: column; }
-.title { font-family: var(--serif); font-size: 44rpx; font-weight: 600; margin: 8rpx 8rpx 24rpx; }
 
-.stage { display: flex; flex-direction: column; align-items: center; padding: 60rpx 40rpx 50rpx; }
-.pet-img { width: 260rpx; height: 220rpx; }
+.stage { display: flex; flex-direction: column; align-items: center; padding: 56rpx 40rpx 50rpx; }
+.pet-img { width: 300rpx; height: 240rpx; }
 .pet-img.anim { animation: breathe 3.2s ease-in-out infinite; }
 @keyframes breathe { 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.05);} }
 
 .ctx {
-  margin-top: 20rpx; font-size: 24rpx; color: var(--accent);
+  margin-top: 24rpx; font-size: 24rpx; color: var(--accent);
   background: var(--accent-soft); padding: 6rpx 20rpx; border-radius: 999rpx;
 }
 .timer {
   font-family: var(--serif);
   font-size: 120rpx; font-weight: 700; letter-spacing: 4rpx;
-  margin-top: 36rpx; font-variant-numeric: tabular-nums;
+  margin-top: 32rpx; font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 .timer.running { color: var(--accent); }
 .sub { font-size: 26rpx; color: var(--ink-2); margin-top: 12rpx; text-align: center; }
+.stage-btn { margin-top: 40rpx; }
 
+/* 模式切换：对齐原型——顶部胶囊组，选中项为白底浮起 */
 .mode-switch {
-  display: flex; background: var(--card); border-radius: 999rpx;
-  padding: 6rpx; margin: 36rpx 0;
+  display: flex; background: #eae5d9; border-radius: 999rpx;
+  padding: 8rpx; margin: 8rpx 0 28rpx;
 }
 .mode {
-  padding: 18rpx 56rpx; border-radius: 999rpx;
+  flex: 1; text-align: center;
+  padding: 18rpx 0; border-radius: 999rpx;
   font-size: 28rpx; color: var(--ink-2);
 }
-.mode.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.mode-ico { margin-right: 8rpx; }
+.mode.on { background: #fff; color: var(--ink); font-weight: 700; box-shadow: 0 4rpx 14rpx rgba(58,46,16,0.08); }
 .mode-switch.locked { opacity: 0.5; pointer-events: none; }
 
-.btn-primary.big { width: 100%; padding: 30rpx 0; font-size: 32rpx; margin-top: 8rpx; }
+.btn-primary.big { width: 100%; padding: 30rpx 0; font-size: 32rpx; margin-top: 40rpx; }
 .cancel { margin-top: 24rpx; font-size: 26rpx; color: var(--ink-2); text-align: center; }
 
 .bubble {

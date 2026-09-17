@@ -19,7 +19,7 @@
   width: calc((100% - 40rpx) / 3);
   box-sizing: border-box;
   background: var(--card); border-radius: 32rpx;
-  padding: 26rpx 0 22rpx; text-align: center;
+  padding: 20rpx 16rpx 22rpx; text-align: center;
   box-shadow: 0 8rpx 24rpx rgba(58, 46, 16, 0.05);
   border: 3rpx solid transparent;
 }
@@ -50,7 +50,7 @@
   background: var(--bg-soft); width: 78%; border-radius: 40rpx;
   padding: 48rpx 40rpx 36rpx; text-align: center;
 }
-.d-img { width: 220rpx; height: 190rpx; }
+.d-img { width: 100%; height: 400rpx; border-radius: 24rpx; }
 .d-name { font-size: 34rpx; font-weight: 700; margin-top: 16rpx; }
 .d-desc { font-size: 26rpx; color: var(--ink-2); margin: 18rpx 0 30rpx; line-height: 1.6; }
 .btn-ghost { margin-top: 14rpx; background: transparent; color: var(--ink-2); border-radius: 999rpx; font-size: 28rpx; border: 2rpx solid var(--ink-3); }

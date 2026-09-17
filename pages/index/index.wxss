@@ -25,8 +25,8 @@
   color: var(--ink);
 }
 .date { color: var(--ink-2); font-size: 26rpx; margin-top: 8rpx; }
-.hero-pet { width: 200rpx; height: 170rpx; display: flex; align-items: center; justify-content: center; }
-.pet-img { width: 200rpx; height: 170rpx; }
+.hero-pet { width: 240rpx; height: 180rpx; display: flex; align-items: flex-end; justify-content: center; }
+.pet-img { width: 240rpx; height: 180rpx; }
 
 .pet-bubble {
   margin-top: 16rpx;

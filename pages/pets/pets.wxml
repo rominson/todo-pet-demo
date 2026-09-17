@@ -28,7 +28,7 @@
   <!-- 详情弹层 -->
   <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">
     <view class="modal" catchtap="noop">
-      <image class="d-img" src="{{detail.img}}" mode="aspectFit" />
+      <image class="d-img" src="{{detail.scene}}" mode="aspectFill" />
       <view class="d-name">{{detail.name}}{{detail.key===birthKey?' · 你的本命':''}}</view>
       <view class="d-desc">{{detail.desc}}</view>
       <button wx:if="{{detail.owned}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">切换为当前伙伴</button>

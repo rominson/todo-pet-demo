@@ -9,7 +9,7 @@
         <view class="date">{{todayText}}</view>
       </view>
       <view class="hero-pet" bindtap="openChat">
-        <image class="pet-img" src="{{pet.img}}" mode="aspectFit" />
+        <image class="pet-img" src="{{pet.read}}" mode="aspectFit" />
       </view>
     </view>
 

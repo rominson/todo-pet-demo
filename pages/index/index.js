@@ -86,7 +86,7 @@ Page({
       );
 
       this.setData({
-        pet: { name: pet.name, emoji: pet.emoji, img: pet.img, color: pet.color },
+        pet: { name: pet.name, emoji: pet.emoji, img: pet.img, read: pet.read, color: pet.color },
         todayText: this.buildTodayText(),
         tasks,
         doneToday,
