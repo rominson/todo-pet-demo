@@ -23,7 +23,8 @@ function greetingWord() {
 
 Page({
   data: {
-    pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', color: '#ff8a3d' },
+    pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', read: '/assets/pets/orange-read.png', color: '#ff8a3d' },
+    petFace: 'right',
     greetWord: greetingWord(),
     todayText: '',
     tasks: [],
@@ -87,6 +88,7 @@ Page({
 
       this.setData({
         pet: { name: pet.name, emoji: pet.emoji, img: pet.img, read: pet.read, color: pet.color },
+        petFace: pet.face || 'right',
         todayText: this.buildTodayText(),
         tasks,
         doneToday,

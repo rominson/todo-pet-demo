@@ -5,7 +5,7 @@
   <view class="card cal">
     <view class="cal-head">
       <view class="nav" bindtap="prev">‹</view>
-      <view class="month">{{year}}年{{month}}月 · {{monthCount}}天有足迹</view>
+      <view class="month">{{year}}年{{month}}月</view>
       <view class="nav {{canGoNext?'':'off'}}" bindtap="next">›</view>
     </view>
     <view class="cal-week">
@@ -27,12 +27,5 @@
       <view wx:for="{{dayDetail}}" wx:key="i" class="dd-row">{{item}}</view>
     </block>
     <view wx:else class="dd-empty">这一天还没有记录</view>
-  </view>
-
-  <view class="card partners" bindtap="goMeet">
-    <view class="p-info">
-      <view class="p-title">星座伙伴</view>
-      <view class="p-sub">{{pet.name}} 在陪你 —— 去遇见更多伙伴 ›</view>
-    </view>
   </view>
 </view>

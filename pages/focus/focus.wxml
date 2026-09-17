@@ -1,47 +1,21 @@
-<!-- pages/focus/focus.wxml —— 对齐原型 screen-focus -->
+<!-- pages/focus/focus.wxml —— 对齐原型 screen-focus（无日历，宠物角落小图） -->
 <scroll-view scroll-y class="page" enhanced show-scrollbar="{{false}}">
   <!-- 模式切换：内联药丸 -->
   <view class="focus-mode-switch">
     <view class="fm {{mode==='focus'?'on':''}}" bindtap="switchMode" data-mode="focus">专注 25'</view>
     <view class="fm {{mode==='meditate'?'on':''}}" bindtap="switchMode" data-mode="meditate">冥想 15'</view>
   </view>
-  <view class="sub">{{sub}}</view>
 
-  <!-- 宠物（看书姿势图） -->
-  <view class="focus-stage">
-    <image class="pet-scene" src="{{pet.read}}" mode="aspectFit" />
+  <!-- 主卡：宠物小图 + 状态文案 + 计时器 + 按钮 -->
+  <view class="focus-card">
+    <view class="focus-stage">
+      <image class="pet-corner" src="{{pet.read}}" mode="aspectFit" />
+      <view class="timer-sub">{{sub}}</view>
+    </view>
+    <view class="timer {{running?'running':''}}">{{timeText}}</view>
+    <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始专注'}}</button>
+    <button wx:if="{{running}}" class="btn-ghost fast" bindtap="fastForward">快进（演示）</button>
   </view>
 
-  <view class="timer {{running?'running':''}}">{{timeText}}</view>
-  <view class="timer-sub">{{running ? '进行中…' : '准备好了就开始'}}</view>
-
-  <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始专注'}}</button>
-  <view class="fast" bindtap="fastForward" wx:if="{{running}}">快进（演示）</view>
-
-  <view class="reassure">中途停下来也没关系——{{pet.name}}不会怪你，下次想专注了，它随时都在。</view>
-
-  <!-- 我的坚持之墙（内嵌月历） -->
-  <view class="wall card">
-    <view class="wall-head">日历 · 我的坚持之墙</view>
-    <view class="cal-grid cal-week">
-      <text>一</text><text>二</text><text>三</text><text>四</text><text>五</text><text>六</text><text>日</text>
-    </view>
-    <view class="cal-grid">
-      <view wx:for="{{wall.cells}}" wx:key="idx" wx:for-index="idx"
-            class="cal-cell {{item.empty?'empty':''}} {{item.today&&!item.sel?'today':''}} {{item.sel?'selected':''}}"
-            bindtap="onPickDay" data-d="{{item.day}}">
-        <text class="cd">{{item.empty?'':item.day}}</text>
-        <view wx:if="{{item.has}}" class="cdot"></view>
-      </view>
-    </view>
-    <view class="day-detail">
-      <view class="dd-title">{{wall.dayLabel || '今天'}}</view>
-      <block wx:if="{{wall.dayDetail.length}}">
-        <view wx:for="{{wall.dayDetail}}" wx:key="i" class="dd-row">{{item}}</view>
-      </block>
-      <view wx:else class="dd-empty">这一天还没有记录</view>
-    </view>
-  </view>
-
-  <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
+  <view class="focus-hint">中途停下来也没关系——{{pet.name}}不会怪你，下次想专注了，它随时都在。</view>
 </scroll-view>

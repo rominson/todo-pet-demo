@@ -1,19 +1,18 @@
 <!-- pages/index/index.wxml —— 今日：问候 + 宠物陪伴 + 进度 + 待办 -->
 <view class="page">
-  <!-- 主卡：问候 / 宠物 / 进度 / 统计 -->
-  <view class="card hero">
+  <!-- 主卡：问候 / 宠物 / 进度 / 统计（对齐原型 companion-card） -->
+  <view class="card hero face-{{petFace}}">
     <view class="gear" bindtap="goProfile">⚙︎</view>
-    <view class="hero-top">
-      <view class="hero-left">
-        <view class="greet">{{greetWord}}</view>
-        <view class="date">{{todayText}}</view>
-      </view>
-      <view class="hero-pet" bindtap="openChat">
+    <view class="greet-block">
+      <view class="greet">{{greetWord}}</view>
+      <view class="date">{{todayText}}</view>
+    </view>
+    <view class="pet-card" bindtap="openChat">
+      <view class="pet-stage">
         <image class="pet-img" src="{{pet.read}}" mode="aspectFit" />
       </view>
+      <view wx:if="{{greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{greeting}}</view>
     </view>
-
-    <view wx:if="{{greeting}}" class="pet-bubble" bindtap="openChat">{{greeting}}</view>
 
     <view class="progress-row">
       <text class="progress-lbl">今日进度</text>
