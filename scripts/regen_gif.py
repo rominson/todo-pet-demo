@@ -30,6 +30,24 @@ def is_apng(b):
         i += 12 + ln
     return False
 
+# 53 段星座/橘小满场景动图：原型 data URI 序号 -> 素材名
+# （序号来自 prototype/index.html 内嵌 png 的顺序，43-95 段为星座宠物场景动画）
+BATCH_MAP = {
+  43: "orange-laptop", 44: "orange-frame", 45: "orange-beach", 46: "orange-read", 47: "orange-coffee",
+  48: "cancer-laptop", 49: "cancer-frame", 50: "cancer-read", 51: "cancer-coffee",
+  52: "scorpio-laptop", 53: "scorpio-frame", 54: "scorpio-read", 55: "scorpio-coffee",
+  56: "sagittarius-laptop", 57: "sagittarius-frame", 58: "sagittarius-stand", 59: "sagittarius-coffee",
+  60: "gemini-laptop", 61: "gemini-frame", 62: "gemini-read", 63: "gemini-coffee",
+  64: "taurus-laptop", 65: "taurus-frame", 66: "taurus-read", 67: "taurus-coffee",
+  68: "aquarius-laptop", 69: "aquarius-frame", 70: "aquarius-read", 71: "aquarius-coffee",
+  72: "aries-laptop", 73: "aries-frame", 74: "aries-read",
+  75: "leo-laptop", 76: "leo-laptop2", 77: "leo-frame", 78: "leo-read", 79: "leo-coffee",
+  80: "virgo-laptop", 81: "virgo-frame", 82: "virgo-read", 83: "virgo-coffee",
+  84: "pisces-laptop", 85: "pisces-frame", 86: "pisces-stand", 87: "pisces-coffee",
+  88: "libra-laptop", 89: "libra-frame", 90: "libra-read", 91: "libra-coffee",
+  92: "capricorn-laptop", 93: "capricorn-frame", 94: "capricorn-read", 95: "capricorn-coffee",
+}
+
 def hex2rgb(h):
     h = h.lstrip('#'); return tuple(int(h[k:k+2], 16) for k in (0, 2, 4))
 
@@ -50,14 +68,12 @@ def _nearest_palette_frame(frame_rgb, palette, n_colors):
     pim.putpalette(palette)
     return pim
 
-def main():
-    idx = int(sys.argv[1])
-    out = sys.argv[2]
-    bg = hex2rgb(sys.argv[3]) if len(sys.argv) > 3 else (0xF6, 0xF4, 0xEF)
-    uris = load_uris()
-    raw = base64.b64decode(uris[idx])
+def convert_idx(uri, out, bg):
+    """把单个 data URI（APNG）转成白/指定底色的高质量 GIF，返回 (帧数, 尺寸, 字节数)。"""
+    import os
+    raw = base64.b64decode(uri)
     if not is_apng(raw):
-        print(f"[跳过] index {idx} 不是 APNG"); sys.exit(2)
+        return None
     im = Image.open(io.BytesIO(raw))
     frames = []
     durations = []
@@ -89,14 +105,44 @@ def main():
         # 这里用 NumPy 逐像素精确最近邻映射：同一颜色跨帧必然同索引，天然无抖动。
         _nearest_palette_frame(f, palette, n_colors) for f in frames
     ]
-    # disposal=2 每帧前先清屏；optimize=False 保留全局调色板不被二次压缩
     qframes[0].save(
         out, save_all=True, append_images=qframes[1:],
         duration=durations, loop=0, disposal=2, optimize=False,
     )
+    return (len(frames), frames[0].size, os.path.getsize(out))
+
+def main():
+    import os
+    arg1 = sys.argv[1]
+    bg = hex2rgb(sys.argv[3]) if len(sys.argv) > 3 else (0xF6, 0xF4, 0xEF)
+    uris = load_uris()
+
+    # 批量模式：python3 regen_gif.py all <outdir> [bg_hex]
+    if arg1 == 'all':
+        outdir = sys.argv[2]
+        os.makedirs(outdir, exist_ok=True)
+        total = 0
+        for idx, name in sorted(BATCH_MAP.items()):
+            out = os.path.join(outdir, name + '.gif')
+            r = convert_idx(uris[idx], out, bg)
+            if not r:
+                print(f"[跳过] {idx} {name} 不是 APNG"); continue
+            n, size, sz = r
+            total += sz
+            print(f"{name:22s} 帧={n:3d} {size[0]}x{size[1]} {sz//1024:4d}KB", flush=True)
+        print(f"TOTAL {total/1024/1024:.1f}MB  files={len(BATCH_MAP)}")
+        return
+
+    # 单张模式：python3 regen_gif.py <index> <out.gif> [bg_hex]
+    idx = int(arg1)
+    out = sys.argv[2]
+    r = convert_idx(uris[idx], out, bg)
+    if not r:
+        print(f"[跳过] index {idx} 不是 APNG"); sys.exit(2)
+    n, size, sz = r
     print(f"[完成] index {idx} -> {out}")
-    print(f"  帧数={len(frames)} 尺寸={frames[0].size} 背景=#{''.join(f'{c:02X}' for c in bg)}")
-    print(f"  首帧时长={durations[0]}ms 平均={(sum(durations)/len(durations)):.0f}ms 输出={__import__('os').path.getsize(out)//1024}KB")
+    print(f"  帧数={n} 尺寸={size} 背景=#{''.join(f'{c:02X}' for c in bg)}")
+    print(f"  输出={sz//1024}KB")
 
 if __name__ == '__main__':
     main()
