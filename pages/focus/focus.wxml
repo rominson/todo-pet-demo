@@ -13,7 +13,7 @@
   </view>
 
   <view class="timer {{running?'running':''}}">{{timeText}}</view>
-  <view class="timer-sub">{{running ? '进行中…' : ' }}</view>
+  <view class="timer-sub">{{running ? '进行中…' : '准备好了就开始'}}</view>
 
   <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始专注'}}</button>
   <view class="fast" bindtap="fastForward" wx:if="{{running}}">快进（演示）</view>
