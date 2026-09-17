@@ -2,9 +2,16 @@
 const cloud = require('../../utils/cloud.js');
 const { PET_META, ZODIAC_TRAITS, zodiacOf } = require('../../utils/pets.js');
 
-// 已接入真实虚拟支付：设为 false 走 createOrder → wx.requestVirtualPayment → payNotify 发货。
-// 云函数侧通过 PAY_USE_SANDBOX=1 可切到沙箱(env=1)免费用开发者工具模拟器跑通。
-const DEV_DEMO = false;
+// 是否「正式版」：正式版(envVersion==='release')强制走真实支付，开发/体验版允许免费解锁演示。
+// 这样提审发布后自动变真实扣款，不怕忘记手动改开关。
+const IS_RELEASE = (() => {
+  try { return wx.getAccountInfoSync().miniProgram.envVersion === 'release'; } catch (e) { return false; }
+})();
+// ⚠️ 开发/体验版：点「¥6 解锁」直接调 petService.unlock 本地标记已拥有，不调 wx.requestVirtualPayment、不扣钱（测 UI 用）。
+//    正式版 IS_RELEASE 为 true → 强制走真实支付（真扣 ¥6）。
+//    如需在开发/体验版临时强制真实支付，可在 devtools 执行 wx.setStorageSync('FORCE_REAL_PAY', true)。
+const DEV_DEMO = !IS_RELEASE && !wx.getStorageSync('FORCE_REAL_PAY');
+// 真实支付链路（DEV_DEMO=false）：createOrder → wx.requestVirtualPayment → payNotify 发货（云函数侧 PAY_USE_SANDBOX=1 可在开发者工具模拟器走沙箱免费用测）。
 
 Page({
   data: {
