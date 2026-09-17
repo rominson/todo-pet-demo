@@ -22,17 +22,18 @@
   text-align: center;
 }
 
-/* 宠物角落小图（原型 pet-in-corner：56px 居中）+ 轻浮动 */
+/* 宠物角落小图：日常 56px(看书)；专注/冥想进行中放大成 280×170 场景动画（原型实测值）
+   专注→敲键盘 / 冥想→看日落 / 完成后→咖啡庆祝6秒，见 focus.js 的 sceneSrc 逻辑 */
 .focus-stage { text-align: center; }
 .pet-corner {
   width: 112rpx; height: 112rpx;
   margin: 0 auto 12rpx;
   display: block;
-  animation: pet-float 1.4s ease-in-out infinite alternate;
+  transition: width 0.35s ease, height 0.35s ease;
 }
-@keyframes pet-float {
-  from { transform: translateY(0); }
-  to { transform: translateY(-12rpx); }
+.pet-corner.live {
+  width: 540rpx; height: 330rpx;
+  animation: none;
 }
 .timer-sub { font-size: 26rpx; color: var(--ink-2); min-height: 40rpx; line-height: 1.5; }
 

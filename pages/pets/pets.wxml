@@ -5,26 +5,37 @@
   <view class="store-banner card">
     <view class="sb-text">
       <view class="t">12 个星座伙伴</view>
-      <view class="s">单个 ¥6 解锁 · 已拥有 {{ownedCount}}/12</view>
+      <view class="s">单个 ¥6 解锁</view>
     </view>
+    <view class="store-progress {{ownedCount>=12?'done':''}}">已拥有 {{ownedCount}}/12</view>
   </view>
 
-  <scroll-view scroll-x class="store-grid" enhanced show-scrollbar="{{false}}">
-    <view wx:for="{{pets}}" wx:key="key"
-          class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}"
-          bindtap="onTap" data-key="{{item.key}}">
-      <view wx:if="{{!item.owned}}" class="lock-ico">🔒</view>
-      <view wx:if="{{item.owned}}" class="owned-badge">已拥有</view>
-      <view class="a-emoji">
-        <image class="a-img" src="{{item.scene}}" mode="aspectFit" />
-      </view>
-      <view class="a-meta">
-        <view class="a-name">{{item.animal}}</view>
-        <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
-        <view class="a-price">{{item.owned ? '已拥有' : '¥6 解锁'}}</view>
+  <scroll-view scroll-x class="store-grid" enhanced show-scrollbar="{{false}}"
+               scroll-with-animation bindscroll="onTrackScroll" scroll-left="{{scrollLeft}}">
+    <view class="store-track">
+      <view wx:for="{{pets}}" wx:key="key"
+            class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}"
+            bindtap="onTap" data-key="{{item.key}}">
+        <view wx:if="{{!item.owned}}" class="lock-ico">🔒</view>
+        <view wx:if="{{item.owned}}" class="owned-badge">已拥有</view>
+        <view class="a-emoji">
+          <image class="a-img" src="{{item.scene}}" mode="aspectFit" />
+        </view>
+        <view class="a-meta">
+          <view class="a-name">{{item.animal}}</view>
+          <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
+          <view class="a-price">{{item.owned ? '已拥有' : '¥6 解锁'}}</view>
+        </view>
       </view>
     </view>
   </scroll-view>
+
+  <!-- 轮播圆点指示器（对齐原型 meet-dots） -->
+  <view class="meet-dots">
+    <view wx:for="{{pets}}" wx:key="key"
+          class="dot {{index===activeIdx?'on':''}}"
+          catchtap="goDot" data-idx="{{index}}"></view>
+  </view>
 
   <!-- 详情弹层 -->
   <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">

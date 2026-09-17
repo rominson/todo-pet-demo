@@ -57,4 +57,25 @@ function getPet(key) {
   return PET_META[key] || PET_META.orange;
 }
 
-module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet };
+// —— 场景动画组（对齐原型 SCENE_BY_MODE = { focus:'keyboard', meditate:'sunset', coffee:'coffee', '':'read' }）——
+// read=看书(日常/今日页)  keyboard=敲键盘(专注中)  sunset=看日落画框(冥想中)  coffee=咖啡(完成后庆祝6秒)
+// 橘小满的 read 用本地 GIF（首屏零延迟），其余场景走 CDN；12 星座全部走 CDN。
+// 个别宠物缺某段动图时用现有姿势兜底：金毛无咖啡段(看书兜底)、射手/双鱼无读书段(站立兜底，已在 anim 字段)。
+const ANIM_FALLBACK = { aries: { coffee: 'read' } };
+const animsCache = {};
+function petAnims(key) {
+  if (animsCache[key]) return animsCache[key];
+  const p = PET_META[key];
+  if (!p) return null;
+  const fb = ANIM_FALLBACK[key] || {};
+  const anims = {
+    read: p.anim,
+    keyboard: ANIM_CDN + key + '-' + (fb.keyboard || 'laptop') + '.gif',
+    sunset: ANIM_CDN + key + '-' + (fb.sunset || 'frame') + '.gif',
+    coffee: ANIM_CDN + key + '-' + (fb.coffee || 'coffee') + '.gif'
+  };
+  animsCache[key] = anims;
+  return anims;
+}
+
+module.exports = { PET_META, ZODIAC_TRAITS, zodiacOf, getPet, petAnims };

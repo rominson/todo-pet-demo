@@ -3,34 +3,44 @@
 
 .group-title { font-size: 30rpx; font-weight: 700; color: var(--ink-2); margin: 8rpx 36rpx 16rpx; }
 
-/* 顶部白卡横幅 */
+/* 顶部白卡横幅（对齐原型：左标题+副文案，右侧金色进度角标） */
 .store-banner { margin: 0 36rpx 20rpx; padding: 28rpx 32rpx; display: flex; align-items: center; }
-.sb-text .t { font-family: var(--serif); font-size: 32rpx; font-weight: 800; color: var(--ink); line-height: 1.4; }
-.sb-text .s { font-size: 24rpx; color: var(--ink-2); margin-top: 6rpx; }
+.sb-text .t { font-family: var(--serif); font-size: 28rpx; font-weight: 700; color: var(--ink); line-height: 1.4; }
+.sb-text .s { font-size: 22rpx; color: var(--ink-2); margin-top: 6rpx; }
+.store-progress {
+  margin-left: auto; flex-shrink: 0; white-space: nowrap;
+  font-size: 22rpx; font-weight: 700; color: #b98a2e;
+  background: var(--gold-l, #f7ecd4); padding: 16rpx 24rpx; border-radius: 24rpx;
+}
+.store-progress.done { background: var(--gold); color: #3a2e10; }
 
-/* 横向滚动卡片 */
+/* 横向滚动轮播：scroll-view 本身不认 flex，卡片横向排列靠内部 .store-track */
 .store-grid {
-  display: flex;
+  width: 100%;
   white-space: nowrap;
-  scroll-snap-type: x mandatory;
-  gap: 28rpx;
-  padding: 28rpx 72rpx 60rpx;
+}
+.store-track {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 30rpx;
+  padding: 50rpx 70rpx 100rpx;
   box-sizing: border-box;
 }
 .animal-card {
   flex: 0 0 74%;
   max-width: 560rpx;
-  height: 800rpx;
+  height: 56vh;
+  max-height: 830rpx;
   scroll-snap-align: center;
   background: #fff;
-  border-radius: 52rpx;
+  border-radius: 50rpx;
   box-shadow: 0 8rpx 20rpx rgba(40, 30, 20, 0.10);
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   /* 轮播中相邻卡片微微缩小+褪色（对齐原型 .animal-card 默认态） */
-  opacity: 0.82;
+  opacity: 0.78;
   transform: scale(0.96);
   transition: transform 0.35s cubic-bezier(.2,0,0,1), opacity 0.35s, box-shadow 0.35s;
 }
@@ -67,20 +77,31 @@
   width: 54%; height: 14rpx; background: rgba(40, 30, 20, 0.16); border-radius: 50%; filter: blur(7px); z-index: 0;
 }
 /* 关键修复：微信 <image> 不支持 width:auto，会塌成 0 宽导致图片不显示。
-   改为显式宽高 + mode="aspectFit"（wxml 上已设），保证图片一定渲染。 */
+   对齐原型 .a-img{height:84%;max-width:92%}：显式高 84%、宽 92% + aspectFit，底部对齐。 */
 .a-img {
   position: relative; z-index: 1;
-  width: 320rpx; height: 320rpx;
+  width: 92%; height: 84%;
   filter: drop-shadow(0 6rpx 12rpx rgba(0,0,0,.10));
 }
 
-.a-meta { position: relative; padding: 28rpx 32rpx 32rpx; background: #fff; }
-.a-name { font-family: var(--serif); font-size: 42rpx; font-weight: 800; color: var(--ink); line-height: 1.15; }
-.a-zodiac { font-size: 24rpx; color: var(--ink-2); margin-top: 6rpx; }
+.a-meta { position: relative; padding: 28rpx 34rpx 34rpx; background: #fff; }
+.a-name { font-family: var(--serif); font-size: 40rpx; font-weight: 800; color: var(--ink); line-height: 1.15; }
+.a-zodiac { font-size: 23rpx; color: var(--ink-2); margin-top: 6rpx; }
 .a-price {
-  display: inline-block; margin-top: 20rpx; font-size: 24rpx; font-weight: 700;
-  color: #3A2E10; background: var(--gold); padding: 12rpx 28rpx; border-radius: 999rpx;
+  display: inline-block; margin-top: 22rpx; font-size: 23rpx; font-weight: 700;
+  color: #3A2E10; background: var(--gold); padding: 12rpx 27rpx; border-radius: 999rpx;
 }
+
+/* 轮播圆点指示器（对齐原型 meet-dots：当前点拉长成紫色胶囊） */
+.meet-dots {
+  display: flex; justify-content: center; align-items: center;
+  gap: 14rpx; margin-top: -60rpx; position: relative; z-index: 2;
+}
+.meet-dots .dot {
+  width: 14rpx; height: 14rpx; border-radius: 50%;
+  background: var(--line, #e5ddcf); transition: all 0.25s;
+}
+.meet-dots .dot.on { width: 40rpx; border-radius: 999rpx; background: var(--accent, #7e6fd6); }
 
 /* 详情弹层 */
 .modal .grab { width: 80rpx; height: 8rpx; border-radius: 4rpx; background: var(--line); margin: 0 auto 28rpx; }

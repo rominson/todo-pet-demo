@@ -47,10 +47,11 @@
 }
 .hero.face-right .pet-card { justify-content: flex-start; }
 .hero.face-left .pet-card { justify-content: flex-end; }
+/* 宠物展示位：原型运行时是 280×170 的大动画（pet-video-wrap 实测值），
+   不是 CSS 里那个 88px 小 stage——大图才有 HTML 原型的视觉比例。 */
 .pet-stage {
-  width: 176rpx;
-  height: 200rpx;
-  padding-top: 24rpx;
+  width: 540rpx;
+  height: 330rpx;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -58,13 +59,12 @@
   flex-shrink: 0;
 }
 .pet-img {
-  width: 168rpx;
-  height: 168rpx;
+  width: 540rpx;
+  height: 330rpx;
   position: relative;
   z-index: 1;
 }
-/* 今日页宠物用真·动图素材（APNG 转的 GIF，31 帧循环），不再用 CSS 假扭动。
-   暂无动图素材的宠物兜底用 read 静态图（pets.js 的 anim 字段控制）。 */
+/* 今日页宠物用真·动图素材（APNG 转的 GIF 循环播放）。 */
 
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */
 .pet-bubble {

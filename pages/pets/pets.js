@@ -21,7 +21,9 @@ Page({
     currentPet: { emoji: '🐱', name: '橘小满', color: '#ff8a3d' },
     birthKey: '',
     birthZodiac: null,
-    detail: null
+    detail: null,
+    activeIdx: 0,
+    scrollLeft: 0
   },
 
   onShow() { this.load(); },
@@ -69,7 +71,36 @@ Page({
         birthKey,
         birthZodiac
       });
+      // 卡片间距测量（用于滚动同步圆点 / 点圆点定位），等布局完成后测
+      wx.nextTick(() => this.measurePitch());
     } catch (e) {}
+  },
+
+  // —— 轮播同步（对齐原型：滚动时高亮卡片+圆点跟随）——
+  measurePitch() {
+    wx.createSelectorQuery().in(this)
+      .selectAll('.animal-card')
+      .boundingClientRect()
+      .exec((res) => {
+        const rects = res && res[0];
+        if (rects && rects.length > 1) {
+          this.cardW = rects[0].width;
+          this.pitch = rects[1].left - rects[0].left; // 卡宽 + 间距
+        }
+      });
+  },
+
+  onTrackScroll(e) {
+    if (!this.pitch) return;
+    const n = this.data.pets.length;
+    const idx = Math.max(0, Math.min(n - 1, Math.round(e.detail.scrollLeft / this.pitch)));
+    if (idx !== this.data.activeIdx) this.setData({ activeIdx: idx });
+  },
+
+  goDot(e) {
+    const idx = e.currentTarget.dataset.idx;
+    if (!this.pitch) return;
+    this.setData({ scrollLeft: idx * this.pitch, activeIdx: idx });
   },
 
   onTap(e) {

@@ -9,7 +9,7 @@
   <!-- 主卡：宠物小图 + 状态文案 + 计时器 + 按钮 -->
   <view class="focus-card">
     <view class="focus-stage">
-      <image class="pet-corner" src="{{pet.read}}" mode="aspectFit" />
+      <image class="pet-corner {{sceneLive ? 'live' : ''}}" src="{{sceneSrc}}" mode="aspectFit" />
       <view class="timer-sub">{{sub}}</view>
     </view>
     <view class="timer {{running?'running':''}}">{{timeText}}</view>
