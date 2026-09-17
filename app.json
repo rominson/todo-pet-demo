@@ -1,28 +1,31 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/pets/pets",
     "pages/focus/focus",
+    "pages/quadrant/quadrant",
+    "pages/calendar/calendar",
+    "pages/pets/pets",
     "pages/mine/mine",
     "pages/chat/chat"
   ],
   "window": {
     "navigationBarTitleText": "毛茸清单",
-    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#f1ede5",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f7f5f2",
+    "backgroundColor": "#f1ede5",
     "enablePullDownRefresh": false
   },
   "tabBar": {
-    "color": "#9b9b9b",
-    "selectedColor": "#ff8a3d",
-    "backgroundColor": "#ffffff",
+    "color": "#8a847b",
+    "selectedColor": "#7e6fd6",
+    "backgroundColor": "#faf8f4",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/pets/pets", "text": "宠物" },
-      { "pagePath": "pages/focus/focus", "text": "专注" },
-      { "pagePath": "pages/mine/mine", "text": "我的" }
+      { "pagePath": "pages/index/index", "text": "今日", "iconPath": "assets/tab/today.png", "selectedIconPath": "assets/tab/today-active.png" },
+      { "pagePath": "pages/focus/focus", "text": "专注", "iconPath": "assets/tab/focus.png", "selectedIconPath": "assets/tab/focus-active.png" },
+      { "pagePath": "pages/quadrant/quadrant", "text": "象限", "iconPath": "assets/tab/quad.png", "selectedIconPath": "assets/tab/quad-active.png" },
+      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "assets/tab/calendar.png", "selectedIconPath": "assets/tab/calendar-active.png" },
+      { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "assets/tab/meet.png", "selectedIconPath": "assets/tab/meet-active.png" }
     ]
   },
   "style": "v2",

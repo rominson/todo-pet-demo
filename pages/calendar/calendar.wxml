@@ -1,0 +1,22 @@
+<!-- pages/calendar/calendar.wxml —— 日历 · 我的坚持之墙 -->
+<view class="page">
+  <view class="title">日历 · 我的坚持之墙</view>
+
+  <view class="card cal">
+    <view class="cal-head">
+      <view class="nav" bindtap="prev">‹</view>
+      <view class="month">{{year}}年{{month}}月 · {{monthCount}}天有足迹</view>
+      <view class="nav {{canGoNext?'':'off'}}" bindtap="next">›</view>
+    </view>
+    <view class="cal-week">
+      <text>日</text><text>一</text><text>二</text><text>三</text><text>四</text><text>五</text><text>六</text>
+    </view>
+    <view class="cal-grid">
+      <view wx:for="{{cells}}" wx:key="index" class="cal-cell {{item.empty?'empty':''}} {{item.milestone?'milestone':''}}">
+        <text wx:if="{{!item.empty}}" class="cal-day">{{item.day}}</text>
+        <image wx:if="{{item.has}}" class="cal-paw" src="{{item.img}}" mode="aspectFit" />
+      </view>
+    </view>
+    <view class="cal-legend">有足迹的日子，会留下 {{pet.name}} 的爪印</view>
+  </view>
+</view>

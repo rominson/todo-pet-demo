@@ -1,0 +1,30 @@
+<!-- pages/quadrant/quadrant.wxml —— 四象限 -->
+<view class="page">
+  <view class="head">
+    <view class="title">四象限</view>
+    <view class="filters">
+      <view class="chip {{filter==='all'?'on':''}}" bindtap="setFilter" data-f="all">全部</view>
+      <view class="chip {{filter==='undone'?'on':''}}" bindtap="setFilter" data-f="undone">未完成</view>
+    </view>
+  </view>
+  <view class="total">{{total}} 项</view>
+
+  <view class="grid">
+    <view wx:for="{{quads}}" wx:key="key" class="quad {{item.key}}">
+      <view class="q-head">
+        <view class="q-title">{{item.title}}</view>
+        <view class="q-sub">{{item.sub}} · {{item.items.length}}</view>
+      </view>
+      <view wx:for="{{item.items}}" wx:for-item="t" wx:key="_id"
+            class="q-task {{t.done?'done':''}}" bindtap="onItem" data-id="{{t._id}}">
+        <view class="q-task-title">{{t.title}}</view>
+        <view class="q-task-meta">
+          <text wx:if="{{t.due}}" class="q-due">{{t.due}}</text>
+          <text wx:if="{{t.overdue}}" class="q-flag overdue">已过期</text>
+          <text wx:if="{{t.done}}" class="q-flag done">已完成</text>
+        </view>
+      </view>
+      <view wx:if="{{item.items.length===0}}" class="q-empty">空</view>
+    </view>
+  </view>
+</view>

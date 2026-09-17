@@ -42,7 +42,6 @@ Page({
       const fpsList = fps.list || [];
       const doneTotal = agg.totalDone(tasks);
       const streak = agg.computeStreak(tasks);
-      const cal = this.buildCalendar(fpsList, pet);
       const memories = fpsList
         .slice()
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -61,9 +60,6 @@ Page({
         companionDays: this.getCompanionDays(),
         doneTotal,
         streak,
-        year: cal.year,
-        month: cal.month,
-        cells: cal.cells,
         memories,
         birthday: b ? (b.m + '-' + b.d) : '',
         birthZodiacName,
@@ -71,33 +67,6 @@ Page({
         summaryText: this.buildSummary(pet, doneTotal, streak)
       });
     } catch (e) {}
-  },
-
-  buildCalendar(fpsList, pet) {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth();
-    const first = new Date(y, m, 1).getDay();
-    const days = new Date(y, m + 1, 0).getDate();
-    const map = {};
-    fpsList.forEach((f) => {
-      const d = agg.toDateStr(f.created_at);
-      (map[d] = map[d] || []).push(f.type);
-    });
-    const cells = [];
-    for (let i = 0; i < first; i++) cells.push({ empty: true });
-    for (let d = 1; d <= days; d++) {
-      const ds = `${y}-${agg.pad(m + 1)}-${agg.pad(d)}`;
-      const types = map[ds] || [];
-      cells.push({
-        day: d,
-        has: types.length > 0,
-        milestone: types.indexOf('milestone') > -1,
-        emoji: pet.emoji,
-        color: pet.color
-      });
-    }
-    return { year: y, month: m + 1, cells };
   },
 
   buildSummary(pet, doneTotal, streak) {

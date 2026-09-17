@@ -28,7 +28,7 @@ Page({
       const current = mine.current || 'orange';
       const pets = (cat.catalog || []).map((p) => {
         const meta = PET_META[p.key] || {};
-        return { ...p, emoji: meta.emoji, color: meta.color, animal: meta.animal, owned: ownedSet.has(p.key) };
+        return { ...p, emoji: meta.emoji, img: meta.img, color: meta.color, animal: meta.animal, owned: ownedSet.has(p.key) };
       });
 
       let birthKey = '';

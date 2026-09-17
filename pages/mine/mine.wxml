@@ -1,8 +1,8 @@
-<!-- pages/mine/mine.wxml —— 我的：羁绊 / 足迹日历 / 回忆册 / 设置 / 分享 -->
+<!-- pages/mine/mine.wxml —— 档案：羁绊 / 回忆册 / 设置 / 分享 -->
 <view class="page">
   <!-- 羁绊卡 -->
-  <view class="bond">
-    <view class="bond-ava" style="background:{{pet.color}}">{{pet.emoji}}</view>
+  <view class="card bond">
+    <image class="bond-img" src="{{pet.img}}" mode="aspectFit" />
     <view class="bond-name">{{pet.name}} 一直陪着你</view>
     <view class="bond-stats">
       <view class="b-item"><text class="b-num">{{companionDays}}</text><text class="b-lbl">陪伴天数</text></view>
@@ -11,34 +11,21 @@
     </view>
   </view>
 
-  <!-- 足迹日历 -->
-  <view class="block-title">足迹日历 · {{year}}年{{month}}月</view>
-  <view class="cal">
-    <view class="cal-week">
-      <text>日</text><text>一</text><text>二</text><text>三</text><text>四</text><text>五</text><text>六</text>
-    </view>
-    <view class="cal-grid">
-      <view wx:for="{{cells}}" wx:key="index" class="cal-cell {{item.empty?'empty':''}} {{item.milestone?'milestone':''}}">
-        <text wx:if="{{!item.empty}}" class="cal-day">{{item.day}}</text>
-        <view wx:if="{{item.has}}" class="cal-paw" style="background:{{item.color}}">{{item.emoji}}</view>
-      </view>
-    </view>
-    <view class="cal-legend">有足迹的日子，会留下 {{pet.name}} 的爪印</view>
-  </view>
-
   <!-- 回忆册 -->
   <view class="block-title">回忆册</view>
-  <view class="mem-list">
-    <view wx:for="{{memories}}" wx:key="id" class="mem {{item.milestone?'ms':''}}">
-      <text class="mem-date">{{item.date}}</text>
-      <text class="mem-text">{{item.content}}</text>
+  <view class="card mem-card">
+    <view class="mem-list">
+      <view wx:for="{{memories}}" wx:key="id" class="mem {{item.milestone?'ms':''}}">
+        <text class="mem-date">{{item.date}}</text>
+        <text class="mem-text">{{item.content}}</text>
+      </view>
+      <view wx:if="{{memories.length===0}}" class="empty">还没有回忆，去完成一件待办或专注一次吧</view>
     </view>
-    <view wx:if="{{memories.length===0}}" class="empty">还没有回忆，去完成一件待办或专注一次吧</view>
   </view>
 
   <!-- 设置 -->
   <view class="block-title">设置</view>
-  <view class="set">
+  <view class="card set">
     <view class="set-row">
       <text>我的生日（算本命）</text>
       <picker mode="date" value="2026-01-01" bindchange="onBirth">
@@ -47,7 +34,7 @@
     </view>
     <view class="set-row">
       <text>重要节点提醒</text>
-      <switch checked="{{remind}}" bindchange="onRemind" color="#ff8a3d" />
+      <switch checked="{{remind}}" bindchange="onRemind" color="#7e6fd6" />
     </view>
   </view>
 

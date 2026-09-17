@@ -11,7 +11,7 @@ function fmt(s) {
 
 Page({
   data: {
-    pet: { name: '橘小满', emoji: '🐱', color: '#ff8a3d' },
+    pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', color: '#ff8a3d' },
     mode: 'focus', // focus / meditate
     running: false,
     left: 25 * 60,

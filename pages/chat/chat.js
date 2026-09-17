@@ -10,7 +10,7 @@ function fmt(d) {
 
 Page({
   data: {
-    pet: { key: 'orange', name: '橘小满', emoji: '🐱', color: '#ff8a3d', tone: '' },
+    pet: { key: 'orange', name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', color: '#ff8a3d', tone: '' },
     lines: [],
     thinking: false
   },

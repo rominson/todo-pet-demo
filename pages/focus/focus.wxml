@@ -1,7 +1,9 @@
 <!-- pages/focus/focus.wxml —— 专注模式 / 冥想模式 -->
 <view class="page">
-  <view class="stage">
-    <view class="pet-ava {{running?'anim':''}}" style="background:{{pet.color}}">{{petFace}}</view>
+  <view class="title">专注</view>
+
+  <view class="card stage">
+    <image class="pet-img {{running?'anim':''}}" src="{{pet.img}}" mode="aspectFit" />
     <view wx:if="{{taskTitle}}" class="ctx">为「{{taskTitle}}」专注</view>
     <view class="timer {{running?'running':''}}">{{timeText}}</view>
     <view class="sub">{{sub}}</view>

@@ -1,8 +1,10 @@
-// pages/index/index.js —— 首页：宠物陪伴 + 待办清单
+// pages/index/index.js —— 今日：问候 + 宠物陪伴 + 进度 + 待办清单
 const cloud = require('../../utils/cloud.js');
 const { getPet } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
 const bc = require('../../utils/broadcast.js');
+
+const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 
 function hashId(s) {
   let n = 0;
@@ -10,17 +12,32 @@ function hashId(s) {
   return n;
 }
 
+function greetingWord() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return '早上好';
+  if (h >= 11 && h < 13) return '中午好';
+  if (h >= 13 && h < 18) return '下午好';
+  if (h >= 18 && h < 23) return '晚上好';
+  return '夜深了';
+}
+
 Page({
   data: {
-    pet: { name: '橘小满', emoji: '🐱', color: '#ff8a3d' },
+    pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', color: '#ff8a3d' },
+    greetWord: greetingWord(),
+    todayText: '',
     tasks: [],
     greeting: '',
     bubble: '',
+    doneToday: 0,
+    totalToday: 0,
+    progress: 0,
     doneTotal: 0,
     streak: 0,
     companionDays: 1,
+    focusMinutes: 0,
     showAdd: false,
-    form: { title: '', tag: '', due: '', type: 'normal' }
+    form: { title: '', tag: '', due: '', type: 'normal', important: false }
   },
 
   onShow() { this.loadAll(); },
@@ -34,24 +51,51 @@ Page({
     return Math.max(1, days);
   },
 
+  buildTodayText() {
+    const d = new Date();
+    return `${d.getMonth() + 1}月${d.getDate()}日 星期${WEEK[d.getDay()]}`;
+  },
+
   async loadAll() {
     wx.showLoading({ title: '加载中' });
     try {
-      const [mineRes, listRes] = await Promise.all([
+      const [mineRes, listRes, fpsRes] = await Promise.all([
         cloud.petService.getMine(),
-        cloud.taskService.list()
+        cloud.taskService.list(),
+        cloud.sessionService.getFootprints(200).catch(() => ({ list: [] }))
       ]);
       const pet = getPet(mineRes.current || 'orange');
       const tasks = listRes.list || [];
+      const fps = fpsRes.list || [];
       const streak = agg.computeStreak(tasks);
       const yDone = agg.yesterdayDone(tasks);
       const overdue = agg.overdueTasks(tasks);
+
+      // 今日 n/n：未完成 + 今天完成的
+      const today = agg.todayStr();
+      const doneToday = tasks.filter(
+        (t) => t.done && t.done_at && agg.toDateStr(t.done_at) === today
+      ).length;
+      const totalToday = doneToday + tasks.filter((t) => !t.done).length;
+      const progress = totalToday ? Math.round((doneToday / totalToday) * 100) : 0;
+
+      // 专注分钟：由专注/冥想足迹累计（专注 25 / 冥想 15）
+      const focusMinutes = fps.reduce(
+        (sum, f) => sum + (f.type === 'focus' ? 25 : f.type === 'meditate' ? 15 : 0),
+        0
+      );
+
       this.setData({
-        pet: { name: pet.name, emoji: pet.emoji, color: pet.color },
+        pet: { name: pet.name, emoji: pet.emoji, img: pet.img, color: pet.color },
+        todayText: this.buildTodayText(),
         tasks,
+        doneToday,
+        totalToday,
+        progress,
         doneTotal: agg.totalDone(tasks),
         streak,
-        companionDays: this.getCompanionDays()
+        companionDays: this.getCompanionDays(),
+        focusMinutes
       });
       this.maybeGreet(streak, yDone, overdue);
     } catch (e) {
@@ -91,9 +135,27 @@ Page({
       const tasks = this.data.tasks.map((t) =>
         t._id === id ? { ...t, done: nowDone, done_at: nowDone ? new Date() : null } : t
       );
-      this.setData({ tasks, doneTotal: agg.totalDone(tasks), streak: agg.computeStreak(tasks) });
+      this.setData({
+        tasks,
+        doneTotal: agg.totalDone(tasks),
+        streak: agg.computeStreak(tasks)
+      });
+      this.refreshToday(tasks);
       if (nowDone && !wasDone) this.onComplete(before, tasks);
     } catch (e) {}
+  },
+
+  refreshToday(tasks) {
+    const today = agg.todayStr();
+    const doneToday = tasks.filter(
+      (t) => t.done && t.done_at && agg.toDateStr(t.done_at) === today
+    ).length;
+    const totalToday = doneToday + tasks.filter((t) => !t.done).length;
+    this.setData({
+      doneToday,
+      totalToday,
+      progress: totalToday ? Math.round((doneToday / totalToday) * 100) : 0
+    });
   },
 
   onComplete(task, tasks) {
@@ -147,6 +209,7 @@ Page({
   onTag(e) { this.setData({ 'form.tag': e.detail.value }); },
   onDue(e) { this.setData({ 'form.due': e.detail.value }); },
   setType(e) { this.setData({ 'form.type': e.currentTarget.dataset.t }); },
+  onImportant(e) { this.setData({ 'form.important': e.detail.value }); },
 
   async onCreate() {
     const title = this.data.form.title.trim();
@@ -156,9 +219,13 @@ Page({
         title,
         tag: this.data.form.tag,
         due: this.data.form.due,
-        type: this.data.form.type
+        type: this.data.form.type,
+        important: this.data.form.important
       });
-      this.setData({ showAdd: false, form: { title: '', tag: '', due: '', type: 'normal' } });
+      this.setData({
+        showAdd: false,
+        form: { title: '', tag: '', due: '', type: 'normal', important: false }
+      });
       this.loadAll();
     } catch (e) {}
   },
@@ -171,6 +238,10 @@ Page({
 
   openChat() {
     wx.navigateTo({ url: '/pages/chat/chat' });
+  },
+
+  goProfile() {
+    wx.navigateTo({ url: '/pages/mine/mine' });
   },
 
   onRemove(e) {

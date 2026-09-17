@@ -1,7 +1,8 @@
-<!-- pages/pets/pets.wxml —— 宠物商店：目录 / 解锁 / 切换 -->
+<!-- pages/pets/pets.wxml —— 遇见：伙伴目录 / 解锁 / 切换 -->
 <view class="page">
-  <view class="hero">
-    <view class="hero-ava" style="background:{{currentPet.color}}">{{currentPet.emoji}}</view>
+  <view class="title">遇见</view>
+  <view class="card hero">
+    <image class="hero-img" src="{{currentPet.img}}" mode="aspectFit" />
     <view class="hero-name">当前陪伴：{{currentPet.name}}</view>
     <view class="hero-sub">点下面的伙伴，可以切换或解锁它</view>
   </view>
@@ -16,7 +17,7 @@
           class="pet-cell {{item.owned?'owned':''}} {{item.key===currentKey?'active':''}} {{item.key===birthKey?'isbirth':''}}"
           catchtap="onTap" data-key="{{item.key}}">
       <view wx:if="{{item.key===birthKey}}" class="birth-flag">本命</view>
-      <view class="cell-ava" style="background:{{item.color}}">{{item.emoji}}</view>
+      <image class="cell-img" src="{{item.img}}" mode="aspectFit" />
       <view class="cell-name">{{item.name}}</view>
       <view wx:if="{{item.owned}}" class="cell-tag">已拥有</view>
       <view wx:elif="{{item.free}}" class="cell-tag free">免费</view>
@@ -27,7 +28,7 @@
   <!-- 详情弹层 -->
   <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">
     <view class="modal" catchtap="noop">
-      <view class="d-ava" style="background:{{detail.color}}">{{detail.emoji}}</view>
+      <image class="d-img" src="{{detail.img}}" mode="aspectFit" />
       <view class="d-name">{{detail.name}}{{detail.key===birthKey?' · 你的本命':''}}</view>
       <view class="d-desc">{{detail.desc}}</view>
       <button wx:if="{{detail.owned}}" class="btn-primary" catchtap="doSetCurrent" data-key="{{detail.key}}">切换为当前伙伴</button>
