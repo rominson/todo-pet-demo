@@ -9,7 +9,7 @@
     </view>
     <view class="pet-card" bindtap="openChat">
       <view class="pet-stage">
-        <image class="pet-img" src="{{pet.read}}" mode="aspectFit" />
+        <image class="pet-img" src="{{pet.anim || pet.read}}" mode="aspectFit" />
       </view>
       <view wx:if="{{greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{greeting}}</view>
     </view>

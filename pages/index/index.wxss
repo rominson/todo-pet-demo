@@ -62,17 +62,9 @@
   height: 168rpx;
   position: relative;
   z-index: 1;
-  transform-origin: 50% 100%;
-  /* 明显的呼吸 + 上下浮动 + 轻微挤压拉伸，让静态 PNG 看起来“活”起来 */
-  animation: pet-breathe 2.6s ease-in-out infinite;
-  will-change: transform;
 }
-@keyframes pet-breathe {
-  0%, 100% { transform: translateY(2rpx) scale(1, 1); }
-  25%      { transform: translateY(-12rpx) scale(1.05, 0.96); }
-  50%      { transform: translateY(-22rpx) scale(1.08, 1.04); }
-  75%      { transform: translateY(-12rpx) scale(1.05, 0.96); }
-}
+/* 今日页宠物用真·动图素材（APNG 转的 GIF，31 帧循环），不再用 CSS 假扭动。
+   暂无动图素材的宠物兜底用 read 静态图（pets.js 的 anim 字段控制）。 */
 
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */
 .pet-bubble {

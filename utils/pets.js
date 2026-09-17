@@ -1,11 +1,14 @@
-// utils/pets.js —— 宠物形象元信息（emoji + 动物 + 品牌色 + 性格 + 三套图）
+// utils/pets.js —— 宠物形象元信息（emoji + 动物 + 品牌色 + 性格 + 图组）
 // img=透明大头图(聊天头像等小尺寸)  read=看书/生活姿势图(今日页/专注页大图)  scene=带背景方形场景图(遇见页卡片)
+// anim=APNG/GIF 真动图（原型 pet-img 用的就是它，浏览器/微信 image 原生播放）。
+//      目前只有橘小满有（原型今日页只给橘猫配了 31 帧 APNG，见 assets/pets/orange-anim.gif）；
+//      其余宠物暂用 read 静态图兜底，后续可从原型 #43-95 的动图段补充。
 // 素材提取自 prototype/index.html 的 3D 毛绒渲染图。橘小满无原生场景图，为合成米色底版。
 // tone 用于 AI 陪伴对话的提示词，让每只宠物说话风格有差异（但绝不编造未实现的功能）。
 // key 与后端 PET_CATALOG / app.globalData.personas 保持一致。
 
 const PET_META = {
-  orange:       { face: 'right', key: 'orange',       name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png',       read: '/assets/pets/orange-read.png',       scene: '/assets/pets/orange-scene.png',       animal: '橘猫',   color: '#ff8a3d', tone: '慵懒温柔、爱碎碎念，像家里那只总在打盹的橘猫，说话慢悠悠带着困意' },
+  orange:       { face: 'right', key: 'orange',       name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png',       read: '/assets/pets/orange-read.png',       scene: '/assets/pets/orange-scene.png',       anim: '/assets/pets/orange-anim.gif', animal: '橘猫',   color: '#ff8a3d', tone: '慵懒温柔、爱碎碎念，像家里那只总在打盹的橘猫，说话慢悠悠带着困意' },
   aries:        { face: 'right', key: 'aries',        name: '白羊',   emoji: '🐶', img: '/assets/pets/aries.png',        read: '/assets/pets/aries-read.png',        scene: '/assets/pets/aries-scene.png',        animal: '金毛',   color: '#ff6b6b', tone: '热情直率、爱鼓励人，像只摇尾巴的金毛，永远给你打气' },
   taurus:       { face: 'left', key: 'taurus',       name: '金牛',   emoji: '🦫', img: '/assets/pets/taurus.png',       read: '/assets/pets/taurus-read.png',       scene: '/assets/pets/taurus-scene.png',       animal: '水豚',   color: '#8d6e63', tone: '佛系平静、慢悠悠，情绪极稳，像水豚一样从不着急' },
   gemini:       { face: 'left', key: 'gemini',       name: '双子',   emoji: '🦊', img: '/assets/pets/gemini.png',       read: '/assets/pets/gemini-read.png',       scene: '/assets/pets/gemini-scene.png',       animal: '狐狸',   color: '#9b59b6', tone: '古灵精怪、话多脑洞大，像狐狸一样机灵爱开玩笑' },
