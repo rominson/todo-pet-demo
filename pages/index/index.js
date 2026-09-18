@@ -25,6 +25,7 @@ Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', read: '/assets/pets/orange-read.png', color: '#ff8a3d' },
     petFace: 'right',
+    petStyle: 'left:-119rpx',
     greetWord: greetingWord(),
     todayText: '',
     tasks: [],
@@ -89,6 +90,8 @@ Page({
       this.setData({
         pet: { name: pet.name, emoji: pet.emoji, img: pet.img, read: pet.read, anim: pet.anim, color: pet.color },
         petFace: pet.face || 'right',
+        // 宠物贴住卡片边缘（脸朝右贴左、脸朝左贴右），另一侧整块留给对话气泡
+        petStyle: petEdgeStyle(mineRes.current || 'orange', pet.face || 'right'),
         todayText: this.buildTodayText(),
         tasks,
         doneToday,

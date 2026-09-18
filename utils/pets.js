@@ -60,14 +60,17 @@ function zodiacOf(m, d) {
 // 算法：scale=min(540/W,330/H)；图中留白=pictureLeft + bboxLeft*scale；位移=留白-10rpx（留 10rpx 呼吸）。
 // 数值由 scripts/regen_gif.py 同款 bbox 扫描实测得出，换素材后需重测。
 const PET_SHIFT = {
-  orange: 119, aries: 137, taurus: 179, gemini: 164, cancer: 171, leo: 167,
-  virgo: 152, libra: 117, scorpio: 160, sagittarius: 140, capricorn: 148,
-  aquarius: 144, pisces: 179
+  orange: { l: 119, r: 141 }, aries: { l: 137, r: 145 }, taurus: { l: 179, r: 199 },
+  gemini: { l: 164, r: 114 }, cancer: { l: 171, r: 118 }, leo: { l: 167, r: 180 },
+  virgo: { l: 152, r: 168 }, libra: { l: 117, r: 153 }, scorpio: { l: 160, r: 110 },
+  sagittarius: { l: 140, r: 133 }, capricorn: { l: 148, r: 164 }, aquarius: { l: 144, r: 184 },
+  pisces: { l: 179, r: 207 }
 };
-// face='right'（宠物朝右）→ 宠物贴左边；face='left' → 宠物贴右边
+// face='right'（宠物朝右）→ 宠物贴左边；face='left' → 宠物贴右边。
+// 素材左右留白不对称，贴左/贴右是两个不同的位移量（l / r），不能混用。
 function petEdgeStyle(key, face) {
-  const n = PET_SHIFT[key] || 140;
-  return face === 'left' ? `right:-${n}rpx` : `left:-${n}rpx`;
+  const s = PET_SHIFT[key] || { l: 140, r: 140 };
+  return face === 'left' ? `right:-${s.r}rpx` : `left:-${s.l}rpx`;
 }
 
 function getPet(key) {
