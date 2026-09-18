@@ -107,8 +107,8 @@ Page({
     } catch (e) {}
   },
 
-  // 关掉档案（原型 closeSheet('sheet-profile') → 回到今日页）
-  closeArchive() {
+  // 左上角返回（原「关掉档案」；按钮从右上角挪到左上角，避开微信胶囊）
+  goBack() {
     if (getCurrentPages().length > 1) wx.navigateBack();
     else wx.switchTab({ url: '/pages/index/index' });
   },

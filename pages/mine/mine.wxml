@@ -3,9 +3,9 @@
      原型里没有「设置」（我的生日 / 重要节点提醒），也没有分享按钮，故不在此页出现。 -->
 <view class="page" style="padding-top:{{pageTop}}px">
 
-  <!-- 右上角关闭叉（对齐原型 .sheet-x，本页等同于原型那张白色底部浮层） -->
+  <!-- 左上角返回（原先右上角的叉会被微信胶囊按钮挡住，改到左上角） -->
   <view class="topbar" style="padding-top:{{statusBarHeight}}px">
-    <view class="sheet-x" bindtap="closeArchive">✕</view>
+    <view class="nav-back" bindtap="goBack"><view class="chev"></view></view>
   </view>
 
   <!-- 头像：对应当前宠物的「看书」动图（原型 renderPets：#pet-profile-avatar 用 SCENES[cur].read） -->

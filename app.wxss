@@ -83,9 +83,16 @@ page {
   font-size: 26rpx;
   font-weight: 700;
   z-index: 1;
+  /* 关键：没左滑时必须彻底不可见。
+     行在完成态/未来态上有 opacity（原型 .task-item.done{opacity:.55}、.q-task.future{opacity:.75}），
+     若按钮只是「被行盖住」，半透明的行会把红色按钮透出来 —— 所以显隐只能由 .open 控制。 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
 }
 .swipe-btn.del { background: #D95B5B; }
 .swipe-btn.skip { background: #8BA3C7; }
+.task-swipe.open .swipe-btn { opacity: 1; pointer-events: auto; }
 
 /* ============ 完成勾选：几何对勾 ============
    不用「✓」字体符号（字重与整体风格不搭、偏俏皮），改用描边画出的正规对勾。 */
