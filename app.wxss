@@ -135,10 +135,24 @@ page {
 /* 弹层提交按钮：与上方表单拉开距离（原来贴着表单太近） */
 .modal .btn-primary { margin-top: 32rpx; }
 
-/* 通用底部弹层 */
+/* 弹层里的「已在使用」按钮（遇见页「陪伴中」）：淡紫不可点。
+   用 view + 类名而不是 button[disabled]，避免被小程序内置 disabled 样式盖掉。 */
+.btn-primary.is-disabled {
+  background: #CFC8E8;
+  color: #fff;
+  pointer-events: none;
+}
+
+/* 通用底部弹层
+   注意：自定义 tabBar（custom:true）的层级由框架控制，高于页面内任何 z-index，
+   弹层压不住它。所以遮罩主动让出 tabBar 那条高度（100rpx + 安全区），
+   弹层整体落在 tabBar 之上，内容不会被切掉。 */
 .modal-mask {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
   background: rgba(45, 42, 38, 0.4);
   z-index: 100;
   display: flex;
@@ -148,8 +162,8 @@ page {
   width: 100%;
   position: relative; /* 右上角关闭叉 .sheet-x 的绝对定位基准 */
   background: var(--bg-soft);
-  border-radius: 48rpx 48rpx 0 0;
-  padding: 44rpx 40rpx calc(44rpx + env(safe-area-inset-bottom));
+  border-radius: 48rpx;
+  padding: 44rpx 40rpx 44rpx;
   box-sizing: border-box;
 }
 .modal-title {

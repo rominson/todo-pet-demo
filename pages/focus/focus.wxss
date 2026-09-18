@@ -58,14 +58,3 @@
 .timer.running { color: var(--accent-d); }
 
 .btn-primary.big { width: 100%; padding: 30rpx 0; font-size: 32rpx; margin-top: 32rpx; }
-.fast { margin-top: 20rpx; font-size: 26rpx; }
-
-/* 底部安抚文案（原型 focus-hint：透明卡、弱化文字） */
-.focus-hint {
-  margin-top: 36rpx;
-  padding: 0 24rpx;
-  font-size: 25rpx;
-  color: var(--ink-3);
-  line-height: 1.7;
-  text-align: center;
-}

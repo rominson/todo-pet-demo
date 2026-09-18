@@ -13,6 +13,14 @@ const IS_RELEASE = (() => {
 const DEV_DEMO = !IS_RELEASE && !wx.getStorageSync('FORCE_REAL_PAY');
 // 真实支付链路（DEV_DEMO=false）：createOrder → wx.requestVirtualPayment → payNotify 发货（云函数侧 PAY_USE_SANDBOX=1 可在开发者工具模拟器走沙箱免费用测）。
 
+// 卡片左下角 pill / 弹层按钮的三态文案（对齐原型 renderStore 的 .a-price 与 openAnimal 的 #animal-buy-btn）：
+//   未拥有 → 「¥6 解锁」   已拥有但没在用 → 「让它陪我」   正在陪 → 「陪伴中」
+// 注：原型这里写的是「使用中」，用户指定用「陪伴中」，故偏离原型一处。
+function pillOf(owned, isCurrent) {
+  if (!owned) return '¥6 解锁';
+  return isCurrent ? '陪伴中' : '让它陪我';
+}
+
 Page({
   data: {
     pets: [],
@@ -49,6 +57,7 @@ Page({
       const pets = (cat.catalog || []).map((p) => {
         const meta = PET_META[p.key] || {};
         const owned = ownedSet.has(p.key);
+        const isCurrent = p.key === current;
         return {
           key: p.key,
           price: p.price,
@@ -60,9 +69,13 @@ Page({
           zodiacName: (p.name || '') + '座',         // 白羊座
           traits: ZODIAC_TRAITS[p.key] || '',        // 活力 · 冲动
           owned,
-          isCurrent: p.key === current
+          isCurrent,
+          pillText: pillOf(owned, isCurrent)
         };
       });
+
+      // 当前伙伴只以服务端为准；同步到 globalData，避免「解锁后本地以为换了、服务端没换」的不一致
+      getApp().globalData.currentPet = current;
 
       let birthKey = '';
       let birthZodiac = null;
@@ -121,13 +134,21 @@ Page({
   closeDetail() { this.setData({ detail: null }); },
   noop() {},
 
+  // 自定义 tabBar 现在浮在弹层之上、可点击切页，切走时把弹层收掉，避免切回来还挂着
+  onHide() {
+    if (this.data.detail) this.setData({ detail: null });
+  },
+
   async doSetCurrent(e) {
     const key = e.currentTarget.dataset.key;
     try {
       await cloud.petService.setCurrent(key);
       getApp().globalData.currentPet = key;
-      // 同步更新 pets 数组里各卡片的 isCurrent，使高亮跟随切换后的当前伙伴
-      const pets = this.data.pets.map((p) => ({ ...p, isCurrent: p.key === key }));
+      // 同步更新 pets 数组里各卡片的 isCurrent 与左下角 pill（原「陪伴中」→「让它陪我」，新的反之）
+      const pets = this.data.pets.map((p) => {
+        const isCurrent = p.key === key;
+        return { ...p, isCurrent, pillText: pillOf(p.owned, isCurrent) };
+      });
       this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, pets, detail: null });
       wx.showToast({ title: '已切换', icon: 'none' });
     } catch (err) {}
@@ -135,14 +156,15 @@ Page({
 
   async doUnlock(e) {
     const key = e.currentTarget.dataset.key;
+    // 解锁只解锁，不自动切换成当前伙伴（对齐原型 buyAnimal：先解锁，想用再点「让它陪我」），
+    // 所以这里不再改 globalData.currentPet —— 那是服务端 mine.current 说了算，load() 会同步。
     if (DEV_DEMO) {
       wx.showLoading({ title: '解锁中' });
       try {
         await cloud.petService.unlock(key);
         await this.load();
-        getApp().globalData.currentPet = key;
         this.setData({ detail: null });
-        wx.showToast({ title: '已演示解锁', icon: 'none' });
+        wx.showToast({ title: '已解锁（演示）', icon: 'none' });
       } catch (err) {} finally { wx.hideLoading(); }
       return;
     }
@@ -156,7 +178,6 @@ Page({
         await this.realPay(order, key);
       }
       await this.load();
-      getApp().globalData.currentPet = key;
       this.setData({ detail: null });
       wx.showToast({ title: '解锁成功', icon: 'none' });
     } catch (err) {

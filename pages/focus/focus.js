@@ -93,14 +93,6 @@ Page({
     }, 1000);
   },
 
-  // 快进（演示）：每次跳过 1 分钟，便于看效果
-  fastForward() {
-    if (!this.data.running) return;
-    let left = Math.max(0, this.data.left - 60);
-    this.setData({ left, timeText: fmt(left) });
-    if (left === 0) this.finish(true);
-  },
-
   finish(completed) {
     if (this.timer) clearInterval(this.timer);
     if (this.coffeeTimer) { clearTimeout(this.coffeeTimer); this.coffeeTimer = null; }
