@@ -1,5 +1,7 @@
-<!-- pages/quadrant/quadrant.wxml —— 四象限 -->
-<view class="page">
+<!-- pages/quadrant/quadrant.wxml —— 四象限
+     交互对齐原型 renderQuadrant：每行前面一个圆圈，直接点掉即完成（不再弹 ActionSheet），
+     左滑露出「删除」（与今日页同一套手势）。 -->
+<view class="page" bindtap="closeSwipe">
   <view class="head">
     <view class="title">四象限</view>
     <view class="filters">
@@ -12,20 +14,35 @@
   <view class="grid">
     <view wx:for="{{quads}}" wx:key="key" class="quad {{item.key}}">
       <view class="q-head">
-        <view class="q-title">{{item.title}}</view>
-        <view class="q-sub">{{item.sub}} · {{item.items.length}}</view>
-      </view>
-      <view wx:for="{{item.items}}" wx:for-item="t" wx:key="_id"
-            class="q-task {{t.done?'done':''}}" bindtap="onItem" data-id="{{t._id}}">
-        <view class="q-task-title">{{t.title}}</view>
-        <view class="q-task-meta">
-          <text wx:if="{{t.due}}" class="q-due">{{t.due}}</text>
-          <text wx:if="{{t.repeatLabel}}" class="q-flag repeat">🔁 {{t.repeatLabel}}</text>
-          <text wx:if="{{t.overdue}}" class="q-flag overdue">已过期</text>
-          <text wx:if="{{t.done}}" class="q-flag done">已完成</text>
+        <view class="q-titles">
+          <view class="q-title">{{item.title}}</view>
+          <view class="q-sub">{{item.sub}}</view>
         </view>
+        <view class="q-count">{{item.open}}</view>
       </view>
-      <view wx:if="{{item.items.length===0}}" class="q-empty">空</view>
+
+      <view class="q-list">
+        <view wx:for="{{item.items}}" wx:for-item="t" wx:key="_id"
+              class="task-swipe {{openId===t._id?'open':''}}"
+              data-id="{{t._id}}"
+              bindtouchstart="onSwipeStart" bindtouchmove="onSwipeMove" bindtouchend="onSwipeEnd">
+          <view class="swipe-btn del" catchtap="onRemove" data-id="{{t._id}}">删除</view>
+          <view class="q-task {{t.done?'done':''}} {{t.future?'future':''}} {{t.overdue?'overdue':''}}">
+            <view class="qdot {{t.done?'on':''}}" catchtap="onToggle" data-id="{{t._id}}"><view class="tick"></view></view>
+            <view class="q-body" catchtap="onToggle" data-id="{{t._id}}">
+              <view class="qt">{{t.title}}</view>
+              <view wx:if="{{t.imp || t.repeatLabel || t.due || t.overdue || t.done}}" class="qt-t">
+                <view wx:if="{{t.imp}}" class="imp-dot"></view>
+                <text wx:if="{{t.repeatLabel}}" class="qt-tag repeat">🔁 {{t.repeatLabel}}</text>
+                <text wx:if="{{t.due}}" class="qt-tag">{{t.due}}</text>
+                <text wx:if="{{t.overdue}}" class="qt-tag overdue">已过期</text>
+                <text wx:if="{{t.done}}" class="qt-tag done">已完成</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{item.items.length===0}}" class="q-empty">{{item.hint}}</view>
+      </view>
     </view>
   </view>
 </view>

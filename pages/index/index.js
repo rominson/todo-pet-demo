@@ -290,9 +290,8 @@ Page({
     if (lock === 'v' || Math.abs(dy) > Math.abs(dx)) return; // 竖向滚动，不处理
     if (dx > 30) { this.setData({ openId: '' }); return; }
     if (dx < -30) {
-      // 已完成的行没有删除按钮，不允许滑开（否则会露出空白）
-      const t = this.data.tasks.find((x) => x._id === id);
-      this.setData({ openId: t && !t.done ? id : '' });
+      // 已完成的行同样支持左滑删除（用户要求：已完成的也能滑、也能删）
+      this.setData({ openId: id });
     }
   },
 

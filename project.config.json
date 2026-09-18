@@ -19,6 +19,8 @@
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "condition": false,
+    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": false,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],

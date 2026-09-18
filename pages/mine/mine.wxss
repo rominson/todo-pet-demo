@@ -1,29 +1,118 @@
-/* pages/mine/mine.wxss —— 档案页 */
-.page { padding: 24rpx 28rpx 80rpx; }
+/* pages/mine/mine.wxss —— 宠物档案
+   视觉 1:1 对齐原型 #sheet-profile（那是一张白色底部浮层 → 这里做成整页白色）。
+   之所以整页用白底而不是米白：① 原型浮层底色就是 #fff；② 宠物动图是白底合成的 GIF，
+      放在米白页底会露出「白色方块」。 */
+page { background: #FFFFFF; }
 
-.bond { display: flex; flex-direction: column; align-items: center; padding: 44rpx 28rpx 36rpx; }
-.bond-img { width: 200rpx; height: 170rpx; }
-.bond-name { font-size: 30rpx; font-weight: 600; margin-top: 12rpx; }
-.bond-stats { display: flex; width: 100%; margin-top: 28rpx; border-top: 2rpx solid var(--track); padding-top: 24rpx; }
-.b-item { flex: 1; text-align: center; display: flex; flex-direction: column; }
-.b-num { font-size: 40rpx; font-weight: 700; color: var(--ink); }
-.b-lbl { font-size: 24rpx; color: var(--ink-2); margin-top: 4rpx; }
+.page { padding: 0 44rpx 90rpx; }
 
-.mem-card { padding: 28rpx 32rpx; }
-.mem-list { display: flex; flex-direction: column; }
-.mem { display: flex; gap: 20rpx; padding: 16rpx 0; border-bottom: 2rpx solid var(--track); }
-.mem:last-child { border-bottom: none; }
-.mem-date { color: var(--ink-2); font-size: 24rpx; flex-shrink: 0; padding-top: 2rpx; }
-.mem-text { font-size: 26rpx; color: var(--ink); flex: 1; }
-.mem.ms .mem-text { color: var(--accent); font-weight: 600; }
-.empty { text-align: center; color: var(--ink-3); padding: 40rpx 0; font-size: 26rpx; }
-
-.set { padding: 8rpx 32rpx; }
-.set-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 26rpx 0; border-bottom: 2rpx solid var(--track); font-size: 28rpx;
+/* 右上角关闭叉（原型 .sheet-x：30px 圆、底 #F4F0E9） */
+.topbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  padding-left: 44rpx;
+  padding-right: 44rpx;
+  box-sizing: border-box;
 }
-.set-row:last-child { border-bottom: none; }
-.set-val { color: var(--ink-2); }
+.topbar .sheet-x {
+  position: static;
+  margin-top: 20rpx;
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 50%;
+  background: #F4F0E9;
+  color: var(--ink-2);
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-.share-btn { margin-top: 44rpx; }
+/* 头部：90px 头像 + 名字 + 一句话 */
+.prof-head { text-align: center; }
+.prof-avatar { width: 173rpx; height: 173rpx; margin: 0 auto; }
+.prof-video { width: 100%; height: 100%; }
+.prof-name {
+  font-family: var(--serif);
+  font-size: 35rpx;
+  font-weight: 800;
+  color: var(--ink);
+  margin-top: 19rpx;
+}
+.prof-desc {
+  font-size: 25rpx;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin-top: 6rpx;
+}
+
+/* 三个统计盒（原型 .stat-row / .stat-box：#FAF8F4 底、14px 圆角、22px 衬线数字） */
+.stat-row { display: flex; gap: 19rpx; margin: 27rpx 0 0; }
+.stat-box {
+  flex: 1;
+  background: #FAF8F4;
+  border-radius: 27rpx;
+  padding: 23rpx 8rpx;
+  text-align: center;
+}
+.stat-box .n {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--accent-d);
+  font-family: var(--serif);
+  line-height: 1.2;
+}
+.stat-box .l { font-size: 21rpx; color: var(--ink-2); margin-top: 4rpx; }
+
+/* 分组标题（原型 .group-title：13px/700/ink-2） */
+.group-title {
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin: 35rpx 8rpx 19rpx;
+}
+
+.anv-card { padding: 8rpx 31rpx; }
+.mem-card { padding: 8rpx 31rpx; }
+
+/* 纪念日 / 回忆册：白卡 + 分隔线（原型 .card 白底 + var(--line) 分隔） */
+.anv { display: flex; align-items: center; gap: 15rpx; padding: 15rpx 0; border-bottom: 2rpx solid var(--line); }
+.anv:last-child { border-bottom: none; }
+.anv-txt { font-size: 25rpx; color: var(--ink); line-height: 1.5; flex: 1; }
+
+/* 纪念日图标：已过=圆形对勾，未到=沙漏（原型 ico('checkc'|'hourglass')） */
+.anv-ico {
+  width: 30rpx;
+  height: 30rpx;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+.anv-ico.ok {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A847B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.8'/%3E%3Cpath d='m8.6 12.6 2.4 2.4 4.6-5.2'/%3E%3C/svg%3E");
+}
+.anv-ico.wait {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A847B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 22h14'/%3E%3Cpath d='M5 2h14'/%3E%3Cpath d='M17 22v-4.17a2 2 0 0 0-.59-1.41L12 12l-4.41 4.42A2 2 0 0 0 7 17.83V22'/%3E%3Cpath d='M7 2v4.17a2 2 0 0 0 .59 1.41L12 12l4.41-4.42A2 2 0 0 0 17 6.17V2'/%3E%3C/svg%3E");
+}
+
+/* 回忆册条目（原型 .memory-item：.d 11px/ink-3、正文 13px） */
+.mem-list { display: flex; flex-direction: column; }
+.mem { display: flex; gap: 19rpx; padding: 19rpx 0; border-bottom: 2rpx solid var(--line); }
+.mem:last-child { border-bottom: none; }
+.mem-date { color: var(--ink-3); font-size: 21rpx; flex-shrink: 0; padding-top: 4rpx; }
+.mem-text { font-size: 25rpx; color: var(--ink); flex: 1; line-height: 1.5; }
+/* 里程碑条目（原型：左侧 3px 橙边 + 淡橙底） */
+.mem.ms {
+  border-left: 6rpx solid #f5a623;
+  background: rgba(245, 166, 35, 0.08);
+  padding-left: 19rpx;
+  margin-left: -19rpx;
+  border-bottom-color: transparent;
+}
+.empty { text-align: center; color: var(--ink-3); padding: 44rpx 0; font-size: 25rpx; }

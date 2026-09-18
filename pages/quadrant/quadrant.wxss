@@ -1,5 +1,7 @@
-/* pages/quadrant/quadrant.wxss */
-.page { padding: 24rpx 28rpx 60rpx; }
+/* pages/quadrant/quadrant.wxss —— 四象限
+   卡片/行样式对齐原型 .quad-cell / .quad-task：白卡 + 顶部彩色描边 + 虚线分隔的行，
+   行首一个小圆圈（点掉即完成），左滑露出「删除」。 */
+.page { padding: 24rpx 28rpx 220rpx; }
 .head { display: flex; justify-content: space-between; align-items: center; }
 .title { font-family: var(--serif); font-size: 44rpx; font-weight: 600; }
 .filters { display: flex; gap: 14rpx; }
@@ -18,28 +20,98 @@
   width: calc(50% - 10rpx);
   box-sizing: border-box;
   background: var(--card);
-  border-radius: 36rpx;
-  padding: 26rpx;
+  border-radius: 31rpx;
+  border-top: 6rpx solid var(--quad-c, #C9C2B6);
+  padding: 25rpx 25rpx 17rpx;
   min-height: 280rpx;
+  box-shadow: var(--shadow);
 }
-.quad.iu { background: var(--accent-soft); }
-.quad.iu .q-title { color: var(--accent); }
-.q-title { font-size: 28rpx; font-weight: 600; }
-.q-sub { font-size: 22rpx; color: var(--ink-2); margin-top: 4rpx; }
+.quad.iu { --quad-c: #E4695B; }
+.quad.in { --quad-c: var(--accent); }
+.quad.nu { --quad-c: #5B8DEF; }
+.quad.nn { --quad-c: #B9B3A8; }
+
+.q-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12rpx; }
+.q-titles { min-width: 0; }
+.q-title { font-size: 26rpx; font-weight: 800; color: var(--ink); }
+.q-sub { font-size: 20rpx; color: var(--ink-2); margin-top: 4rpx; }
+.q-count {
+  font-size: 20rpx;
+  color: var(--ink-3);
+  background: #F1EDE4;
+  border-radius: 999rpx;
+  padding: 4rpx 15rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.q-list { display: flex; flex-direction: column; }
+
+/* 左滑：外层裁剪，内层让位给「删除」。象限卡片窄，按钮收窄一些。 */
+.q-list .task-swipe { border-bottom: 2rpx dashed rgba(0, 0, 0, 0.06); }
+.q-list .task-swipe:last-child { border-bottom: none; }
+.quad .swipe-btn { width: 116rpx; font-size: 24rpx; }
+.quad .task-swipe.open .q-task { transform: translateX(-116rpx); }
+
 .q-task {
-  background: var(--bg-soft);
-  border-radius: 20rpx;
-  padding: 16rpx 20rpx;
-  margin-top: 16rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 15rpx;
+  padding: 15rpx 0;
+  background: var(--card);
+  position: relative;
+  z-index: 2;
+  transition: transform .25s ease;
 }
-.q-task.done .q-task-title { color: var(--ink-3); text-decoration: line-through; }
-.q-task-title { font-size: 26rpx; word-break: break-all; }
-.q-task-meta { display: flex; gap: 12rpx; margin-top: 6rpx; }
-.q-due { font-size: 20rpx; color: var(--ink-2); }
-.q-flag { font-size: 20rpx; border-radius: 6rpx; padding: 0 8rpx; }
-.q-flag.overdue { color: #fff; background: var(--warm); }
-.q-flag.done { color: var(--ok); background: rgba(127, 183, 126, 0.15); }
-.q-empty { color: var(--ink-3); font-size: 24rpx; text-align: center; margin-top: 60rpx; }
+.q-task.done { opacity: .55; }
+.q-task.future { opacity: .75; }
+.q-task.overdue .qt { color: #E4695B; }
+
+/* 行首圆圈：点一下即完成（对齐原型 .qdot） */
+.qdot {
+  width: 29rpx;
+  height: 29rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+  position: relative;
+  z-index: 2;
+  transition: background .2s, border-color .2s;
+}
+.qdot.on { background: var(--ok); border-color: var(--ok); }
+.qdot .tick { width: 15rpx; height: 8rpx; border-left-width: 3rpx; border-bottom-width: 3rpx; margin-top: -3rpx; }
+.qdot.on .tick { opacity: 1; }
+.q-task.future .qdot { opacity: .45; }
+
+.q-body { flex: 1; min-width: 0; }
+.qt { font-size: 25rpx; color: var(--ink); word-break: break-word; line-height: 1.35; }
+.q-task.done .qt { color: var(--ink-3); text-decoration: line-through; }
+
+.qt-t {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-wrap: wrap;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: var(--ink-3);
+}
+.qt-tag { border-radius: 8rpx; padding: 0 10rpx; }
+.qt-tag.repeat { color: var(--accent-d); background: var(--accent-soft); }
+.qt-tag.overdue { color: #fff; background: var(--warm); }
+.qt-tag.done { color: var(--ok); background: rgba(127, 183, 126, 0.15); }
+.imp-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.q-empty { font-size: 23rpx; color: var(--ink-3); text-align: center; padding: 19rpx 0 15rpx; }
 
 /* 悬浮新建按钮（与今日页一致） */
 .fab {
@@ -73,4 +145,3 @@
 }
 .opt-lbl { font-size: 28rpx; }
 .opt-sub { font-size: 22rpx; color: var(--ink-2); margin-top: 2rpx; }
-.q-flag.repeat { background: var(--accent-soft); color: var(--accent); }

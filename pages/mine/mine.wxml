@@ -1,18 +1,37 @@
-<!-- pages/mine/mine.wxml —— 档案：羁绊 / 回忆册 / 设置 / 分享 -->
-<view class="page">
-  <!-- 羁绊卡 -->
-  <view class="card bond">
-    <image class="bond-img" src="{{pet.img}}" mode="aspectFit" />
-    <view class="bond-name">{{pet.name}} 一直陪着你</view>
-    <view class="bond-stats">
-      <view class="b-item"><text class="b-num">{{companionDays}}</text><text class="b-lbl">陪伴天数</text></view>
-      <view class="b-item"><text class="b-num">{{doneTotal}}</text><text class="b-lbl">一起搞定</text></view>
-      <view class="b-item"><text class="b-num">{{streak}}</text><text class="b-lbl">连续天数</text></view>
+<!-- pages/mine/mine.wxml —— 宠物档案（1:1 对齐原型 sheet-profile）
+     原型结构：看书动画头像 → 名字 → 一句话 → 陪伴天数/一起完成/专注小时 → 纪念日 → 回忆册
+     原型里没有「设置」（我的生日 / 重要节点提醒），也没有分享按钮，故不在此页出现。 -->
+<view class="page" style="padding-top:{{pageTop}}px">
+
+  <!-- 右上角关闭叉（对齐原型 .sheet-x，本页等同于原型那张白色底部浮层） -->
+  <view class="topbar" style="padding-top:{{statusBarHeight}}px">
+    <view class="sheet-x" bindtap="closeArchive">✕</view>
+  </view>
+
+  <!-- 头像：对应当前宠物的「看书」动图（原型 renderPets：#pet-profile-avatar 用 SCENES[cur].read） -->
+  <view class="prof-head">
+    <view class="prof-avatar">
+      <image class="prof-video" src="{{petAnim}}" mode="aspectFit" />
+    </view>
+    <view class="prof-name">{{pet.name}}</view>
+    <view class="prof-desc">你的 AI 智能伙伴 —— 它记得你完成过的每件事</view>
+  </view>
+
+  <view class="stat-row">
+    <view class="stat-box"><view class="n">{{companionDays}}</view><view class="l">陪伴天数</view></view>
+    <view class="stat-box"><view class="n">{{doneTotal}}</view><view class="l">一起完成</view></view>
+    <view class="stat-box"><view class="n">{{focusHours}}</view><view class="l">专注小时</view></view>
+  </view>
+
+  <view class="group-title">纪念日</view>
+  <view class="card anv-card">
+    <view wx:for="{{annivs}}" wx:key="day" class="anv">
+      <view class="anv-ico {{item.passed?'ok':'wait'}}"></view>
+      <view class="anv-txt">{{item.label}} {{item.tail}}</view>
     </view>
   </view>
 
-  <!-- 回忆册 -->
-  <view class="block-title">回忆册</view>
+  <view class="group-title">回忆册</view>
   <view class="card mem-card">
     <view class="mem-list">
       <view wx:for="{{memories}}" wx:key="id" class="mem {{item.milestone?'ms':''}}">
@@ -21,39 +40,5 @@
       </view>
       <view wx:if="{{memories.length===0}}" class="empty">还没有回忆，去完成一件待办或专注一次吧</view>
     </view>
-  </view>
-
-  <!-- 设置 -->
-  <view class="block-title">设置</view>
-  <view class="card set">
-    <view class="set-row">
-      <text>我的生日（算本命）</text>
-      <picker mode="date" value="2026-01-01" bindchange="onBirth">
-        <view class="set-val">{{birthday || '未设置'}}{{birthZodiacName ? ' · ' + birthZodiacName : ''}} ›</view>
-      </picker>
-    </view>
-    <view class="set-row">
-      <text>重要节点提醒</text>
-      <switch checked="{{remind}}" bindchange="onRemind" color="#7e6fd6" />
-    </view>
-  </view>
-
-  <button class="btn-primary share-btn" bindtap="openShare">分享我的坚持</button>
-</view>
-
-<!-- 分享弹层 -->
-<view wx:if="{{showShare}}" class="modal-mask" bindtap="closeShare">
-  <view class="modal" catchtap="noop">
-    <view class="modal-title">分享</view>
-    <view class="share-card dark" style="background:{{pet.color}}">
-      <view class="sc-emoji">{{pet.emoji}}</view>
-      <view class="sc-text">坚持之墙 · 已陪伴 {{companionDays}} 天</view>
-    </view>
-    <view class="share-card light">
-      <view class="sc-emoji">{{pet.emoji}}</view>
-      <view class="sc-text">{{summaryText}}</view>
-    </view>
-    <button class="btn-primary" open-type="share">转发给好友</button>
-    <button class="btn-ghost" catchtap="closeShare">关闭</button>
   </view>
 </view>

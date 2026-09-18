@@ -1,33 +1,65 @@
-// pages/mine/mine.js —— 我的：羁绊 / 足迹日历 / 回忆册 / 设置 / 分享
+// pages/mine/mine.js —— 宠物档案（对齐原型 sheet-profile / renderPets / renderAnniversaries）
+// 数据口径：
+//   陪伴天数 = 初次相遇日(firstOpen) → 今天（与今日页 getCompanionDays 保持一致）
+//   一起完成 = 已完成的待办总数
+//   专注小时 = 专注/冥想足迹分钟数之和 ÷ 60（原型 renderFocusHours）
+//   纪念日   = 原型 milestones [7, 100] 实时计算
+// 注意：原型档案浮层里没有「我的生日」「重要节点提醒」，也没有分享按钮 —— 已移除，不要加回来。
 const cloud = require('../../utils/cloud.js');
-const { getPet, zodiacOf } = require('../../utils/pets.js');
+const { getPet, petAnims } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
+
+const MILESTONES = [7, 100];
 
 Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', color: '#ff8a3d' },
+    petAnim: '/assets/pets/orange-anim.gif',
     companionDays: 1,
     doneTotal: 0,
-    streak: 0,
-    year: 2026,
-    month: 1,
-    cells: [],
+    focusHours: 0,
+    annivs: [],
     memories: [],
-    birthday: '',
-    birthZodiacName: '',
-    remind: true,
-    showShare: false,
-    summaryText: ''
+    summaryText: '',
+    statusBarHeight: 44,
+    pageTop: 96
+  },
+
+  onLoad() {
+    // 本页用自定义导航（navigationStyle: custom），需自行让出状态栏高度
+    let sb = 44;
+    try {
+      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      sb = info.statusBarHeight || 44;
+    } catch (e) {}
+    this.setData({ statusBarHeight: sb, pageTop: sb + 56 });
   },
 
   onShow() { this.load(); },
 
-  getCompanionDays() {
+  getFirstMet() {
     let first = wx.getStorageSync('firstOpen');
     if (!first) { first = agg.todayStr(); wx.setStorageSync('firstOpen', first); }
-    const a = new Date(first + 'T00:00:00');
+    return first;
+  },
+
+  getCompanionDays() {
+    const a = new Date(this.getFirstMet() + 'T00:00:00');
     const b = new Date(agg.todayStr() + 'T00:00:00');
     return Math.max(1, Math.floor((b - a) / 86400000) + 1);
+  },
+
+  // 原型 renderAnniversaries：过了就「第 N 天 · 已过」，没过就「第 N 天 · 还有 X 天」
+  buildAnnivs(days) {
+    return MILESTONES.map((m) => {
+      const passed = days >= m;
+      return {
+        day: m,
+        passed,
+        label: passed ? `第 ${m} 天 · 已过` : `第 ${m} 天 · 还有 ${Math.max(0, m - days)} 天`,
+        tail: passed ? '"认识你一周了。"' : '"到时候给你看个东西。"'
+      };
+    });
   },
 
   async load() {
@@ -35,62 +67,51 @@ Page({
       const [mine, list, fps] = await Promise.all([
         cloud.petService.getMine(),
         cloud.taskService.list(),
-        cloud.sessionService.getFootprints(200)
+        cloud.sessionService.getFootprints(200).catch(() => ({ list: [] }))
       ]);
-      const pet = getPet(mine.current || 'orange');
+      const key = mine.current || 'orange';
+      const pet = getPet(key);
+      const anims = petAnims(key) || {};
       const tasks = list.list || [];
       const fpsList = fps.list || [];
+      const companionDays = this.getCompanionDays();
       const doneTotal = agg.totalDone(tasks);
-      const streak = agg.computeStreak(tasks);
+
+      // 专注小时：专注 25 分钟 / 冥想 15 分钟（与今日页 focusMinutes 同一口径）
+      const mins = fpsList.reduce(
+        (sum, f) => sum + (f.type === 'focus' ? 25 : f.type === 'meditate' ? 15 : 0),
+        0
+      );
+
       const memories = fpsList
         .slice()
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         .map((f) => ({
           id: f._id,
-          date: agg.toDateStr(f.created_at),
+          date: agg.toDateStr(f.created_at).slice(5).replace('-', '.'),
           content: f.content,
           milestone: f.type === 'milestone'
         }));
-      const b = wx.getStorageSync('birthday');
-      let birthZodiacName = '';
-      if (b && b.m && b.d) birthZodiacName = zodiacOf(b.m, b.d).name;
-      const remind = wx.getStorageSync('remind');
+
       this.setData({
-        pet,
-        companionDays: this.getCompanionDays(),
+        pet: { name: pet.name, emoji: pet.emoji, color: pet.color },
+        // 原型档案头像 = 当前宠物的「看书」动图
+        petAnim: anims.read || pet.anim || pet.read,
+        companionDays,
         doneTotal,
-        streak,
+        focusHours: Math.round(mins / 60),
+        annivs: this.buildAnnivs(companionDays),
         memories,
-        birthday: b ? (b.m + '-' + b.d) : '',
-        birthZodiacName,
-        remind: remind === undefined ? true : remind,
-        summaryText: this.buildSummary(pet, doneTotal, streak)
+        summaryText: `${pet.name}已经陪你 ${companionDays} 天，一起搞定了 ${doneTotal} 件待办。`
       });
     } catch (e) {}
   },
 
-  buildSummary(pet, doneTotal, streak) {
-    return `${pet.name}已经陪你 ${this.getCompanionDays()} 天，一起搞定了 ${doneTotal} 件待办，连续坚持 ${streak} 天。`;
+  // 关掉档案（原型 closeSheet('sheet-profile') → 回到今日页）
+  closeArchive() {
+    if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.switchTab({ url: '/pages/index/index' });
   },
-
-  onBirth(e) {
-    const p = e.detail.value.split('-'); // 'YYYY-MM-DD'
-    const m = +p[1];
-    const d = +p[2];
-    const z = zodiacOf(m, d);
-    wx.setStorageSync('birthday', { m, d });
-    this.setData({ birthday: m + '-' + d, birthZodiacName: z.name });
-    wx.showToast({ title: '本命：' + z.name, icon: 'none' });
-  },
-
-  onRemind(e) {
-    wx.setStorageSync('remind', e.detail.value);
-    this.setData({ remind: e.detail.value });
-  },
-
-  openShare() { this.setData({ showShare: true }); },
-  closeShare() { this.setData({ showShare: false }); },
-  noop() {},
 
   onShareAppMessage() {
     return { title: this.data.summaryText, path: '/pages/index/index' };

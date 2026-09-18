@@ -47,7 +47,7 @@
             class="task-swipe {{openId===item._id?'open':''}}"
             data-id="{{item._id}}"
             bindtouchstart="onSwipeStart" bindtouchmove="onSwipeMove" bindtouchend="onSwipeEnd">
-        <view wx:if="{{!item.done}}" class="swipe-btn del" catchtap="onRemove" data-id="{{item._id}}">删除</view>
+        <view class="swipe-btn del" catchtap="onRemove" data-id="{{item._id}}">删除</view>
         <view class="task-item {{item.done?'done':''}}">
           <view class="check {{item.done?'on':''}}" catchtap="onToggle" data-id="{{item._id}}"><view class="tick"></view></view>
           <view class="task-body" catchtap="onToggle" data-id="{{item._id}}">
