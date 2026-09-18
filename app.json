@@ -29,20 +29,6 @@
     ]
   },
   "usingComponents": {},
-  "packOptions": {
-    "ignore": [
-      { "type": "folder", "value": "prototype" },
-      { "type": "folder", "value": "scripts" },
-      { "type": "folder", "value": ".workbuddy" },
-      { "type": "folder", "value": ".git" },
-      { "type": "folder", "value": "cloud" },
-      { "type": "suffix", "value": ".md" },
-      { "type": "suffix", "value": ".xls" },
-      { "type": "suffix", "value": ".xlsx" },
-      { "type": "file", "value": ".DS_Store" }
-    ],
-    "include": []
-  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
