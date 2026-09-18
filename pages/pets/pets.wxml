@@ -14,8 +14,7 @@
                scroll-with-animation bindscroll="onTrackScroll" scroll-left="{{scrollLeft}}">
     <view class="store-track">
       <view wx:for="{{pets}}" wx:key="key"
-            class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}"
-            bindtap="onTap" data-key="{{item.key}}">
+            class="animal-card {{item.owned?'owned':''}} {{item.isCurrent?'is-active':''}}">
         <view wx:if="{{!item.owned}}" class="lock-ico">🔒</view>
         <view wx:if="{{item.owned}}" class="owned-badge">已拥有</view>
         <view class="a-emoji">
@@ -24,7 +23,8 @@
         <view class="a-meta">
           <view class="a-name">{{item.animal}}</view>
           <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
-          <!-- 左下角 pill 直接操作（不经详情弹层）：未拥有→直接唤起支付 / 已拥有→直接切为当前伙伴 / 陪伴中→不可点 -->
+          <!-- 本页唯一的操作入口（已删除详情弹层：弹层里只有大图+名字+星座·两个词，卡片上全都有，纯属多一步）
+               未拥有→直接唤起支付 / 已拥有→直接切为当前伙伴 / 陪伴中→灰掉不可点 -->
           <view class="a-pill {{item.isCurrent?'is-disabled':''}}"
                 hover-class="{{item.isCurrent?'none':'a-pill-hover'}}" hover-stay-time="80"
                 catchtap="onPill" data-key="{{item.key}}">{{item.pillText}}</view>
@@ -38,19 +38,5 @@
     <view wx:for="{{pets}}" wx:key="key"
           class="dot {{index===activeIdx?'on':''}}"
           catchtap="goDot" data-idx="{{index}}"></view>
-  </view>
-
-  <!-- 详情弹层 -->
-  <view wx:if="{{detail}}" class="modal-mask" bindtap="closeDetail">
-    <view class="modal" catchtap="noop">
-      <view class="grab"></view>
-      <image class="d-img" src="{{detail.scene}}" mode="aspectFit" />
-      <view class="d-name">{{detail.animal}}</view>
-      <view class="d-zodiac">{{detail.zodiacName}} · {{detail.traits}}</view>
-      <!-- 三态（对齐原型 openAnimal 的 #animal-buy-btn）：未拥有→解锁 / 已拥有→让它陪我 / 当前→陪伴中(不可点) -->
-      <button wx:if="{{!detail.owned}}" class="btn-primary" bindtap="doUnlock" data-key="{{detail.key}}">¥6 解锁</button>
-      <button wx:elif="{{!detail.isCurrent}}" class="btn-primary" bindtap="doSetCurrent" data-key="{{detail.key}}">让它陪我</button>
-      <view wx:else class="btn-primary is-disabled">陪伴中</view>
-    </view>
   </view>
 </view>

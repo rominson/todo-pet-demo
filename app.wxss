@@ -135,14 +135,6 @@ page {
 /* 弹层提交按钮：与上方表单拉开距离（原来贴着表单太近） */
 .modal .btn-primary { margin-top: 32rpx; }
 
-/* 弹层里的「已在使用」按钮（遇见页「陪伴中」）：淡紫不可点。
-   用 view + 类名而不是 button[disabled]，避免被小程序内置 disabled 样式盖掉。 */
-.btn-primary.is-disabled {
-  background: #CFC8E8;
-  color: #fff;
-  pointer-events: none;
-}
-
 /* 通用底部弹层
    注意：自定义 tabBar（custom:true）的层级由框架控制，高于页面内任何 z-index，
    弹层压不住它。所以遮罩主动让出 tabBar 那条高度（100rpx + 安全区），

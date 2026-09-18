@@ -112,9 +112,3 @@
   background: var(--line, #e5ddcf); transition: all 0.25s;
 }
 .meet-dots .dot.on { width: 40rpx; border-radius: 999rpx; background: var(--accent, #7e6fd6); }
-
-/* 详情弹层 */
-.modal .grab { width: 80rpx; height: 8rpx; border-radius: 4rpx; background: var(--line); margin: 0 auto 28rpx; }
-.d-img { width: 280rpx; height: 280rpx; display: block; margin: 0 auto 24rpx; }
-.d-name { font-family: var(--serif); font-size: 44rpx; font-weight: 800; color: var(--ink); text-align: center; }
-.d-zodiac { font-size: 26rpx; color: var(--ink-2); text-align: center; margin: 8rpx 0 32rpx; }

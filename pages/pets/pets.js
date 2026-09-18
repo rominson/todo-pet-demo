@@ -1,6 +1,6 @@
 // pages/pets/pets.js —— 星座伙伴：目录 / 解锁 / 切换（对齐原型 screen-store）
 const cloud = require('../../utils/cloud.js');
-const { PET_META, ZODIAC_TRAITS, zodiacOf } = require('../../utils/pets.js');
+const { PET_META, ZODIAC_TRAITS } = require('../../utils/pets.js');
 
 // 是否「正式版」：正式版(envVersion==='release')强制走真实支付，开发/体验版允许免费解锁演示。
 // 这样提审发布后自动变真实扣款，不怕忘记手动改开关。
@@ -27,9 +27,6 @@ Page({
     ownedCount: 0,
     currentKey: 'orange',
     currentPet: { emoji: '🐱', name: '橘小满', color: '#ff8a3d' },
-    birthKey: '',
-    birthZodiac: null,
-    detail: null,
     activeIdx: 0,
     scrollLeft: 0
   },
@@ -77,22 +74,11 @@ Page({
       // 当前伙伴只以服务端为准；同步到 globalData，避免「解锁后本地以为换了、服务端没换」的不一致
       getApp().globalData.currentPet = current;
 
-      let birthKey = '';
-      let birthZodiac = null;
-      const b = wx.getStorageSync('birthday'); // { m, d }
-      if (b && b.m && b.d) {
-        const z = zodiacOf(b.m, b.d);
-        birthKey = z.key;
-        birthZodiac = { name: z.name, key: z.key, owned: ownedSet.has(z.key) };
-      }
-
       this.setData({
         pets,
         ownedCount: pets.filter((x) => x.owned).length,
         currentKey: current,
-        currentPet: PET_META[current] || PET_META.orange,
-        birthKey,
-        birthZodiac
+        currentPet: PET_META[current] || PET_META.orange
       });
       // 卡片间距测量（用于滚动同步圆点 / 点圆点定位），等布局完成后测
       wx.nextTick(() => this.measurePitch());
@@ -126,35 +112,18 @@ Page({
     this.setData({ scrollLeft: idx * this.pitch, activeIdx: idx });
   },
 
-  onTap(e) {
-    const key = e.currentTarget.dataset.key;
-    const p = this.data.pets.find((x) => x.key === key);
-    if (p) this.setData({ detail: p });
-  },
-  closeDetail() { this.setData({ detail: null }); },
-  noop() {},
-
-  // 自定义 tabBar 现在浮在弹层之上、可点击切页，切走时把弹层收掉，避免切回来还挂着
-  onHide() {
-    if (this.data.detail) this.setData({ detail: null });
-  },
-
-  // 卡片左下角那颗 pill：直接执行，不再经过详情弹层。
-  // （用户 2026-09-18：弹层里也只有一个同名按钮，等于凭空多一步）
+  // 卡片左下角那颗 pill 是本页唯一的操作入口（详情弹层已整体删除——
+  // 弹层里只有大图 + 名字 + 星座·两个词，卡片上本来就全有，等于凭空多一步）。
   //   未拥有 → 直接下单/唤起支付   已拥有 → 直接设为当前伙伴   陪伴中 → 不可点
-  // 注：原型 .a-price 只是纯文本，点击卡片才 openAnimal；此处是有意偏离原型。
+  // 注：原型 .a-price 只是纯文本 div、点整卡才 openAnimal；此处按用户要求有意偏离原型。
   onPill(e) {
     const key = e.currentTarget.dataset.key;
     const p = this.data.pets.find((x) => x.key === key);
     if (!p || p.isCurrent) return;
-    return p.owned ? this._setCurrent(key) : this._unlock(key);
+    return p.owned ? this.doSetCurrent(key) : this.doUnlock(key);
   },
 
-  // 详情弹层里的按钮（弹层保留：点卡片主体进入，里面还有卡面没有的描述文案）
-  doSetCurrent(e) { return this._setCurrent(e.currentTarget.dataset.key); },
-  doUnlock(e) { return this._unlock(e.currentTarget.dataset.key); },
-
-  async _setCurrent(key) {
+  async doSetCurrent(key) {
     try {
       await cloud.petService.setCurrent(key);
       getApp().globalData.currentPet = key;
@@ -163,12 +132,12 @@ Page({
         const isCurrent = p.key === key;
         return { ...p, isCurrent, pillText: pillOf(p.owned, isCurrent) };
       });
-      this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, pets, detail: null });
+      this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, pets });
       wx.showToast({ title: '已切换', icon: 'none' });
     } catch (err) {}
   },
 
-  async _unlock(key) {
+  async doUnlock(key) {
     // 解锁只解锁，不自动切换成当前伙伴（对齐原型 buyAnimal：先解锁，想用再点「让它陪我」），
     // 所以这里不再改 globalData.currentPet —— 那是服务端 mine.current 说了算，load() 会同步。
     if (DEV_DEMO) {
@@ -176,7 +145,6 @@ Page({
       try {
         await cloud.petService.unlock(key);
         await this.load();
-        this.setData({ detail: null });
         wx.showToast({ title: '已解锁（演示）', icon: 'none' });
       } catch (err) {} finally { wx.hideLoading(); }
       return;
@@ -191,7 +159,6 @@ Page({
         await this.realPay(order, key);
       }
       await this.load();
-      this.setData({ detail: null });
       wx.showToast({ title: '解锁成功', icon: 'none' });
     } catch (err) {
       // cloud 封装已 toast
