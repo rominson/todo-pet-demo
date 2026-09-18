@@ -64,6 +64,70 @@ page {
 .muted { color: var(--ink-2); }
 .center { text-align: center; }
 
+/* ============ 待办左滑操作（对齐原型 .task-swipe / .swipe-btn）============
+   原型里待办没有右侧的叉：左滑露出「删除」。容器负责裁剪，item 负责背景遮罩。 */
+.task-swipe {
+  position: relative;
+  overflow: hidden;
+}
+.swipe-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 160rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  z-index: 1;
+}
+.swipe-btn.del { background: #D95B5B; }
+.swipe-btn.skip { background: #8BA3C7; }
+
+/* ============ 完成勾选：几何对勾 ============
+   不用「✓」字体符号（字重与整体风格不搭、偏俏皮），改用描边画出的正规对勾。 */
+.tick {
+  width: 20rpx;
+  height: 11rpx;
+  margin-top: -5rpx;
+  border-left: 4rpx solid #fff;
+  border-bottom: 4rpx solid #fff;
+  transform: rotate(-45deg);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.check.on .tick { opacity: 1; }
+
+/* ============ 宠物「档案」小按钮（对齐原型 .pet-archive-pop）============
+   点头像弹出/收起，点它进档案页——不是跳聊天页（原型没有聊天）。 */
+.pet-archive-pop {
+  position: absolute;
+  top: 50%;
+  z-index: 8;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-d);
+  border-radius: 28rpx;
+  padding: 12rpx 24rpx;
+  box-shadow: 0 12rpx 32rpx rgba(126, 111, 214, 0.35);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.85);
+  pointer-events: none;
+  transition: opacity .22s, transform .22s;
+}
+.pet-archive-pop.show {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  pointer-events: auto;
+}
+
+/* 弹层提交按钮：与上方表单拉开距离（原来贴着表单太近） */
+.modal .btn-primary { margin-top: 32rpx; }
+
 /* 通用底部弹层 */
 .modal-mask {
   position: fixed;

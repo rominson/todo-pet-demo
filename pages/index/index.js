@@ -45,6 +45,8 @@ Page({
     companionDays: 1,
     focusMinutes: 0,
     showAdd: false,
+    openId: '',
+    archiveShow: false,
     form: { title: '', due: '', important: false, repeatOn: false, freq: 'daily', customNum: 2, unitIdx: 0 },
     freqs: [
       { f: 'daily', t: '每天' },
@@ -145,6 +147,8 @@ Page({
 
   async onToggle(e) {
     const id = e.currentTarget.dataset.id;
+    // 左滑已打开时，先点一下只收起「删除」，不误触完成
+    if (this.data.openId) { this.setData({ openId: '' }); return; }
     const before = this.data.tasks.find((t) => t._id === id);
     const wasDone = before ? before.done : false;
     try {
@@ -261,8 +265,48 @@ Page({
     } catch (e) {}
   },
 
-  openChat() {
-    wx.navigateTo({ url: '/pages/chat/chat' });
+  // —— 待办左滑：露出「删除」（对齐原型 .task-swipe，待办右边没有叉）——
+  onSwipeStart(e) {
+    this._sx = e.touches[0].clientX;
+    this._sy = e.touches[0].clientY;
+    this._lock = '';
+  },
+  onSwipeMove(e) {
+    if (this._sx == null) return;
+    const dx = e.touches[0].clientX - this._sx;
+    const dy = e.touches[0].clientY - this._sy;
+    if (!this._lock && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      this._lock = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+  },
+  onSwipeEnd(e) {
+    if (this._sx == null) return;
+    const dx = e.changedTouches[0].clientX - this._sx;
+    const dy = e.changedTouches[0].clientY - this._sy;
+    const id = e.currentTarget.dataset.id;
+    const lock = this._lock;
+    this._sx = null;
+    this._lock = '';
+    if (lock === 'v' || Math.abs(dy) > Math.abs(dx)) return; // 竖向滚动，不处理
+    if (dx > 30) { this.setData({ openId: '' }); return; }
+    if (dx < -30) {
+      // 已完成的行没有删除按钮，不允许滑开（否则会露出空白）
+      const t = this.data.tasks.find((x) => x._id === id);
+      this.setData({ openId: t && !t.done ? id : '' });
+    }
+  },
+
+  // 点头像：弹出 / 收起「档案」小按钮（对齐原型 toggleArchive）
+  toggleArchive() {
+    this.setData({ archiveShow: !this.data.archiveShow });
+  },
+  hideArchive() {
+    if (this.data.archiveShow) this.setData({ archiveShow: false });
+  },
+  // 点「档案」按钮：进档案页（原型 openArchive → 档案浮层）
+  openArchive() {
+    this.setData({ archiveShow: false });
+    wx.navigateTo({ url: '/pages/mine/mine' });
   },
 
   goProfile() {
@@ -271,6 +315,7 @@ Page({
 
   onRemove(e) {
     const id = e.currentTarget.dataset.id;
+    this.setData({ openId: '' });
     wx.showModal({
       title: '删除待办',
       content: '确定删除这件？',

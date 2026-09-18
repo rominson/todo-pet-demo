@@ -1,5 +1,5 @@
 <!-- pages/index/index.wxml —— 今日：问候 + 宠物陪伴 + 进度 + 待办 -->
-<view class="page">
+<view class="page" bindtap="hideArchive">
   <!-- 主卡：问候 / 宠物 / 进度 / 统计（对齐原型 companion-card） -->
   <view class="card hero face-{{petFace}}">
     <view class="gear" bindtap="goProfile">⚙︎</view>
@@ -7,11 +7,12 @@
       <view class="greet">{{greetWord}}</view>
       <view class="date">{{todayText}}</view>
     </view>
-    <view class="pet-card" bindtap="openChat">
-      <view class="pet-clip">
+    <view class="pet-card">
+      <view class="pet-clip" catchtap="toggleArchive">
         <image class="pet-img" style="{{petStyle}}" src="{{pet.anim || pet.read}}" mode="aspectFit" />
       </view>
       <view wx:if="{{greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{greeting}}</view>
+      <view class="pet-archive-pop {{archiveShow?'show':''}}" catchtap="openArchive">档案</view>
     </view>
 
     <view class="progress-row">
@@ -42,19 +43,24 @@
   <view class="card list-card">
     <view class="list-head">今天 · {{doneToday}}/{{totalToday}} 完成</view>
     <view class="task-list">
-      <view wx:for="{{tasks}}" wx:key="_id" class="task {{item.done?'done':''}}">
-        <view class="check {{item.done?'on':''}}" catchtap="onToggle" data-id="{{item._id}}">{{item.done?'✓':''}}</view>
-        <view class="task-body" catchtap="onToggle" data-id="{{item._id}}">
-          <view class="task-title">
-            <text wx:if="{{item.important}}" class="imp-dot"></text>
-            {{item.title}}
-          </view>
-          <view wx:if="{{item.repeatLabel || item.due}}" class="task-tags">
-            <text wx:if="{{item.repeatLabel}}" class="tag repeat">🔁 {{item.repeatLabel}}</text>
-            <text wx:if="{{item.due}}" class="due">📅 {{item.due}}</text>
+      <view wx:for="{{tasks}}" wx:key="_id"
+            class="task-swipe {{openId===item._id?'open':''}}"
+            data-id="{{item._id}}"
+            bindtouchstart="onSwipeStart" bindtouchmove="onSwipeMove" bindtouchend="onSwipeEnd">
+        <view wx:if="{{!item.done}}" class="swipe-btn del" catchtap="onRemove" data-id="{{item._id}}">删除</view>
+        <view class="task-item {{item.done?'done':''}}">
+          <view class="check {{item.done?'on':''}}" catchtap="onToggle" data-id="{{item._id}}"><view class="tick"></view></view>
+          <view class="task-body" catchtap="onToggle" data-id="{{item._id}}">
+            <view class="task-title">
+              <text wx:if="{{item.important}}" class="imp-dot"></text>
+              {{item.title}}
+            </view>
+            <view wx:if="{{item.repeatLabel || item.due}}" class="task-tags">
+              <text wx:if="{{item.repeatLabel}}" class="tag repeat">🔁 {{item.repeatLabel}}</text>
+              <text wx:if="{{item.due}}" class="due">📅 {{item.due}}</text>
+            </view>
           </view>
         </view>
-        <view class="del" catchtap="onRemove" data-id="{{item._id}}">✕</view>
       </view>
       <view wx:if="{{tasks.length===0}}" class="empty">一件事，做完打勾就好</view>
     </view>

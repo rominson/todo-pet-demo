@@ -5,8 +5,7 @@
     "pages/quadrant/quadrant",
     "pages/calendar/calendar",
     "pages/pets/pets",
-    "pages/mine/mine",
-    "pages/chat/chat"
+    "pages/mine/mine"
   ],
   "window": {
     "navigationBarTitleText": "毛茸清单",
@@ -21,12 +20,26 @@
     "backgroundColor": "#faf8f4",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/index/index", "text": "今日", "iconPath": "assets/tab/today.png", "selectedIconPath": "assets/tab/today-active.png" },
-      { "pagePath": "pages/focus/focus", "text": "专注", "iconPath": "assets/tab/focus.png", "selectedIconPath": "assets/tab/focus-active.png" },
-      { "pagePath": "pages/quadrant/quadrant", "text": "象限", "iconPath": "assets/tab/quad.png", "selectedIconPath": "assets/tab/quad-active.png" },
-      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "assets/tab/calendar.png", "selectedIconPath": "assets/tab/calendar-active.png" },
-      { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "assets/tab/meet.png", "selectedIconPath": "assets/tab/meet-active.png" }
+      { "pagePath": "pages/index/index", "text": "今日", "iconPath": "/assets/tab/today.png", "selectedIconPath": "/assets/tab/today-active.png" },
+      { "pagePath": "pages/focus/focus", "text": "专注", "iconPath": "/assets/tab/focus.png", "selectedIconPath": "/assets/tab/focus-active.png" },
+      { "pagePath": "pages/quadrant/quadrant", "text": "象限", "iconPath": "/assets/tab/quad.png", "selectedIconPath": "/assets/tab/quad-active.png" },
+      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "/assets/tab/calendar.png", "selectedIconPath": "/assets/tab/calendar-active.png" },
+      { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "/assets/tab/meet.png", "selectedIconPath": "/assets/tab/meet-active.png" }
     ]
+  },
+  "packOptions": {
+    "ignore": [
+      { "type": "folder", "value": "prototype" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": ".workbuddy" },
+      { "type": "folder", "value": ".git" },
+      { "type": "folder", "value": "cloud" },
+      { "type": "suffix", "value": ".md" },
+      { "type": "suffix", "value": ".xls" },
+      { "type": "suffix", "value": ".xlsx" },
+      { "type": "file", "value": ".DS_Store" }
+    ],
+    "include": []
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",

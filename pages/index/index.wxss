@@ -67,6 +67,11 @@
 /* 具体贴左还是贴右、推多少，由 utils/pets.js 的 petEdgeStyle 按素材白边算出（内联 style） */
 /* 今日页宠物用真·动图素材（APNG 转的 GIF 循环播放）。 */
 
+/* 「档案」小按钮落点：浮在宠物头部那一侧
+   （脸朝右→宠物贴左，按钮在宠物右侧；脸朝左→宠物贴右，按钮在左侧） */
+.hero.face-right .pet-archive-pop { left: 300rpx; }
+.hero.face-left .pet-archive-pop { right: 300rpx; }
+
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */
 .pet-bubble {
   position: absolute;
@@ -135,29 +140,36 @@
 .list-card { margin-top: 28rpx; }
 .list-head { font-size: 30rpx; font-weight: 600; margin-bottom: 20rpx; }
 .task-list { display: flex; flex-direction: column; }
-.task {
+/* 待办行：外层 .task-swipe 负责裁剪，内层 .task-item 左滑让位给「删除」
+   （原型待办没有右侧的叉，是左滑出删除） */
+.task-item {
   display: flex;
   align-items: center;
   padding: 22rpx 0;
   border-bottom: 2rpx solid var(--track);
+  background: var(--card);
+  position: relative;
+  z-index: 2;
+  transition: transform .25s ease;
 }
-.task:last-child { border-bottom: none; }
+.task-swipe.open .task-item { transform: translateX(-160rpx); }
+.task-swipe:last-child .task-item { border-bottom: none; }
 .check {
   width: 44rpx;
   height: 44rpx;
   border-radius: 50%;
-  border: 3rpx solid var(--ink-3);
-  color: #fff;
-  font-size: 26rpx;
+  border: 3rpx solid rgba(0, 0, 0, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background .2s, border-color .2s;
 }
-.check.on { background: var(--accent); border-color: var(--accent); }
+.check.on { background: var(--ok); border-color: var(--ok); }
 .task-body { flex: 1; margin: 0 20rpx; min-width: 0; }
 .task-title { font-size: 30rpx; color: var(--ink); word-break: break-all; }
-.task.done .task-title { color: var(--ink-3); text-decoration: line-through; }
+.task-item.done .task-title { color: var(--ink-3); text-decoration: line-through; }
+.task-item.done { opacity: .55; }
 .imp-dot {
   display: inline-block;
   width: 14rpx;
@@ -176,15 +188,6 @@
   padding: 2rpx 12rpx;
 }
 .due { font-size: 22rpx; color: var(--ink-2); }
-.focus-badge {
-  font-size: 22rpx;
-  color: var(--accent);
-  border: 2rpx solid var(--accent);
-  border-radius: 999rpx;
-  padding: 4rpx 16rpx;
-  flex-shrink: 0;
-}
-.del { color: var(--ink-3); font-size: 28rpx; padding: 8rpx 0 8rpx 20rpx; flex-shrink: 0; }
 .empty { text-align: center; color: var(--ink-3); padding: 60rpx 0; }
 
 /* 悬浮新建按钮 */
