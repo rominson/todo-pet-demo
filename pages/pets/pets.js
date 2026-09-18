@@ -139,8 +139,22 @@ Page({
     if (this.data.detail) this.setData({ detail: null });
   },
 
-  async doSetCurrent(e) {
+  // 卡片左下角那颗 pill：直接执行，不再经过详情弹层。
+  // （用户 2026-09-18：弹层里也只有一个同名按钮，等于凭空多一步）
+  //   未拥有 → 直接下单/唤起支付   已拥有 → 直接设为当前伙伴   陪伴中 → 不可点
+  // 注：原型 .a-price 只是纯文本，点击卡片才 openAnimal；此处是有意偏离原型。
+  onPill(e) {
     const key = e.currentTarget.dataset.key;
+    const p = this.data.pets.find((x) => x.key === key);
+    if (!p || p.isCurrent) return;
+    return p.owned ? this._setCurrent(key) : this._unlock(key);
+  },
+
+  // 详情弹层里的按钮（弹层保留：点卡片主体进入，里面还有卡面没有的描述文案）
+  doSetCurrent(e) { return this._setCurrent(e.currentTarget.dataset.key); },
+  doUnlock(e) { return this._unlock(e.currentTarget.dataset.key); },
+
+  async _setCurrent(key) {
     try {
       await cloud.petService.setCurrent(key);
       getApp().globalData.currentPet = key;
@@ -154,8 +168,7 @@ Page({
     } catch (err) {}
   },
 
-  async doUnlock(e) {
-    const key = e.currentTarget.dataset.key;
+  async _unlock(key) {
     // 解锁只解锁，不自动切换成当前伙伴（对齐原型 buyAnimal：先解锁，想用再点「让它陪我」），
     // 所以这里不再改 globalData.currentPet —— 那是服务端 mine.current 说了算，load() 会同步。
     if (DEV_DEMO) {

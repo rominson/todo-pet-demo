@@ -92,10 +92,15 @@
 .a-meta { position: relative; padding: 28rpx 34rpx 34rpx; background: #fff; }
 .a-name { font-family: var(--serif); font-size: 40rpx; font-weight: 800; color: var(--ink); line-height: 1.15; }
 .a-zodiac { font-size: 23rpx; color: var(--ink-2); margin-top: 6rpx; }
-.a-price {
+/* 左下角操作 pill：现在是真按钮（直接付款/直接切换，不经弹层）。
+   金色 = 可点（¥6 解锁 / 让它陪我）；灰 = 已经是我在陪你了（陪伴中，不可点）。 */
+.a-pill {
   display: inline-block; margin-top: 22rpx; font-size: 23rpx; font-weight: 700;
-  color: #3A2E10; background: var(--gold); padding: 12rpx 27rpx; border-radius: 999rpx;
+  color: #3A2E10; background: var(--gold); padding: 14rpx 30rpx; border-radius: 999rpx;
+  transition: transform 0.15s, background 0.15s;
 }
+.a-pill-hover { transform: scale(0.94); }
+.a-pill.is-disabled { background: #EFE9DE; color: var(--ink-3, #a89f92); }
 
 /* 轮播圆点指示器（对齐原型 meet-dots：当前点拉长成紫色胶囊） */
 .meet-dots {

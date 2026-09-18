@@ -24,7 +24,10 @@
         <view class="a-meta">
           <view class="a-name">{{item.animal}}</view>
           <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
-          <view class="a-price">{{item.pillText}}</view>
+          <!-- 左下角 pill 直接操作（不经详情弹层）：未拥有→直接唤起支付 / 已拥有→直接切为当前伙伴 / 陪伴中→不可点 -->
+          <view class="a-pill {{item.isCurrent?'is-disabled':''}}"
+                hover-class="{{item.isCurrent?'none':'a-pill-hover'}}" hover-stay-time="80"
+                catchtap="onPill" data-key="{{item.key}}">{{item.pillText}}</view>
         </view>
       </view>
     </view>
