@@ -15,18 +15,20 @@
     "enablePullDownRefresh": false
   },
   "tabBar": {
+    "custom": true,
     "color": "#8a847b",
     "selectedColor": "#7e6fd6",
     "backgroundColor": "#faf8f4",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/index/index", "text": "今日", "iconPath": "/assets/tab/today.png", "selectedIconPath": "/assets/tab/today-active.png" },
-      { "pagePath": "pages/focus/focus", "text": "专注", "iconPath": "/assets/tab/focus.png", "selectedIconPath": "/assets/tab/focus-active.png" },
-      { "pagePath": "pages/quadrant/quadrant", "text": "象限", "iconPath": "/assets/tab/quad.png", "selectedIconPath": "/assets/tab/quad-active.png" },
-      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "/assets/tab/calendar.png", "selectedIconPath": "/assets/tab/calendar-active.png" },
-      { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "/assets/tab/meet.png", "selectedIconPath": "/assets/tab/meet-active.png" }
+      { "pagePath": "pages/index/index", "text": "今日", "iconPath": "assets/tab/today.png", "selectedIconPath": "assets/tab/today-active.png" },
+      { "pagePath": "pages/focus/focus", "text": "专注", "iconPath": "assets/tab/focus.png", "selectedIconPath": "assets/tab/focus-active.png" },
+      { "pagePath": "pages/quadrant/quadrant", "text": "象限", "iconPath": "assets/tab/quad.png", "selectedIconPath": "assets/tab/quad-active.png" },
+      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "assets/tab/calendar.png", "selectedIconPath": "assets/tab/calendar-active.png" },
+      { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "assets/tab/meet.png", "selectedIconPath": "assets/tab/meet-active.png" }
     ]
   },
+  "usingComponents": {},
   "packOptions": {
     "ignore": [
       { "type": "folder", "value": "prototype" },

@@ -25,6 +25,7 @@ Page({
     if (q && q.title) this.setData({ taskTitle: decodeURIComponent(q.title) });
   },
   onShow() {
+    this.setTab(1);
     const key = (getApp().globalData.currentPet) || 'orange';
     const pet = getPet(key);
     this.anims = petAnims(key) || {};
@@ -34,6 +35,13 @@ Page({
       sceneSrc: this.anims.read || pet.anim || pet.read,
       sceneLive: false
     });
+  },
+
+  // 自定义 tabBar：每个 tab 页各有一个组件实例，选中态要在 onShow 里同步
+  setTab(i) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: i });
+    }
   },
 
   // —— 场景动画（对齐原型 SCENE_BY_MODE：focus→敲键盘 / meditate→看日落 / 完成→咖啡6秒 / 中断→回看书）——

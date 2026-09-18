@@ -57,7 +57,17 @@ Page({
     units: [{ v: 'd', t: '天' }, { v: 'w', t: '周' }, { v: 'm', t: '月' }]
   },
 
-  onShow() { this.loadAll(); },
+  onShow() {
+    this.setTab(0);
+    this.loadAll();
+  },
+
+  // 自定义 tabBar：每个 tab 页各有一个组件实例，选中态要在 onShow 里同步
+  setTab(i) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: i });
+    }
+  },
 
   getCompanionDays() {
     let first = wx.getStorageSync('firstOpen');

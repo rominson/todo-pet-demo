@@ -1,5 +1,10 @@
 /* pages/calendar/calendar.wxss —— 对齐原型 screen-footprint */
-.page { padding: 28rpx 36rpx 80rpx; box-sizing: border-box; }
+/* 底部留出自定义 tabBar（100rpx + 安全区）的高度，内容不被盖住 */
+.page {
+  padding: 28rpx 36rpx 160rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
 .title { font-family: var(--serif); font-size: 40rpx; font-weight: 800; color: var(--ink); margin: 8rpx 8rpx 24rpx; }
 
 .cal { padding: 28rpx 24rpx; margin-bottom: 24rpx; }
@@ -15,24 +20,34 @@
 .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 8rpx; }
 .cal-cell {
   aspect-ratio: 1; border-radius: 12rpx; background: var(--card); box-shadow: var(--shadow);
-  display: flex; align-items: center; justify-content: center; position: relative;
+  position: relative; display: flex; align-items: center; justify-content: center;
   font-size: 26rpx; color: var(--ink-2);
 }
 .cal-cell.empty { background: transparent; box-shadow: none; }
 .cal-cell.today, .cal-cell.selected { outline: 3rpx solid var(--accent); outline-offset: -3rpx; }
-.cdot { position: absolute; bottom: 10rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--accent); }
-/* 当天有足迹：左上角小日期 + 居中 N 个圆形宠物头像（1 次专注 = 1 个头，最多 3 个） */
-.cal-day.mini { position: absolute; top: 7rpx; left: 9rpx; font-size: 20rpx; color: var(--ink-3); z-index: 2; }
-.cal-pets { display: flex; align-items: center; justify-content: center; }
-.cal-pet {
-  border-radius: 50%; flex: none; background: #fff;
-  box-shadow: 0 2rpx 7rpx rgba(60,50,40,.14);
+
+/* 日期数字：右上角小号（对齐原型 .cal-cell .num），白色描边保证压到头像上也能看清 */
+.num {
+  position: absolute; top: 6rpx; right: 10rpx; z-index: 4;
+  font-size: 20rpx; color: var(--ink-3);
+  text-shadow: 0 0 3rpx #fff, 0 0 6rpx #fff, 0 0 9rpx #fff;
 }
-.cal-pet.s1 { width: 54rpx; height: 54rpx; }
-.cal-pet.s2 { width: 40rpx; height: 40rpx; margin-left: 4rpx; }
-.cal-pet.s2:first-child { margin-left: 0; }
-.cal-pet.s3 { width: 26rpx; height: 26rpx; margin-left: 3rpx; }
-.cal-pet.s3:first-child { margin-left: 0; }
+
+/* 足迹头像堆：整块绝对定位 + overflow 裁剪，每个头像用内联 style 定 left/top/rotate。
+   数量不设上限——超过 9 个会绕回锚点，并因抖动偏移而互相叠压（原型 petGlyphs 行为）。 */
+.glyph-stack {
+  position: absolute; top: 6rpx; right: 4rpx; bottom: 24rpx; left: 4rpx;
+  overflow: hidden; z-index: 3; pointer-events: none;
+}
+.glyph-pet { position: absolute; width: 26rpx; height: 26rpx; opacity: .95; }
+
+/* 待办点：一个点 = 一件待办；未完成紫、已完成灰（对齐原型 .task-dots） */
+.task-dots {
+  position: absolute; bottom: 10rpx; left: 50%; transform: translateX(-50%);
+  width: 76rpx; display: flex; flex-wrap: wrap; justify-content: center; gap: 5rpx; z-index: 2;
+}
+.task-dots .td { width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--accent); }
+.task-dots .td.done { background: #C9C2B6; }
 
 .detail { padding: 28rpx 28rpx 32rpx; margin-bottom: 24rpx; }
 .dd-title { font-weight: 700; color: var(--ink); margin-bottom: 12rpx; font-size: 28rpx; }

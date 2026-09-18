@@ -1,5 +1,10 @@
 /* pages/pets/pets.wxss —— 对齐原型 screen-store：横向滑动大卡片轮播 */
-.page { padding: 28rpx 0 80rpx; box-sizing: border-box; }
+/* 底部留出自定义 tabBar（100rpx + 安全区）的高度 */
+.page {
+  padding: 28rpx 0 160rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
 
 .group-title { font-size: 30rpx; font-weight: 700; color: var(--ink-2); margin: 8rpx 36rpx 16rpx; }
 

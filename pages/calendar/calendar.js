@@ -3,6 +3,29 @@ const cloud = require('../../utils/cloud.js');
 const { getPet, getPetByName } = require('../../utils/pets.js');
 const agg = require('../../utils/agg.js');
 
+// —— 足迹头像的铺法（1:1 抄原型 petGlyphs(n,d)，见 prototype/index.html 第 2241-2263 行）——
+// 9 个锚点；超过 9 个就从第 1 个锚点绕回，但因为抖动种子含序号，绕回的位置会偏移 → 自然互相叠压。
+// 种子只由 (日, 序号, 总数) 决定，所以同一天每次渲染的头像位置都一致，不会乱跳。
+const GLYPH_SPOTS = [
+  [0.18, 0.22], [0.52, 0.15], [0.84, 0.24],
+  [0.12, 0.50], [0.48, 0.48], [0.82, 0.45],
+  [0.22, 0.78], [0.55, 0.76], [0.86, 0.74]
+];
+function glyphStyle(i, n, d) {
+  if (n <= 1) return 'left:50%;top:50%;transform:translate(-50%,-50%)';
+  const spot = GLYPH_SPOTS[i % GLYPH_SPOTS.length];
+  const seed = ((d * 73) + (i * 37) + (n * 7)) % 1000;
+  const rnd = (k) => {
+    const x = Math.sin(seed * 0.123 + k * 997) * 10000;
+    return x - Math.floor(x);
+  };
+  const clamp = (v) => Math.max(5, Math.min(95, v));
+  const left = clamp((spot[0] + (rnd(1) - 0.5) * 0.16) * 100);
+  const top = clamp((spot[1] + (rnd(2) - 0.5) * 0.16) * 100);
+  const rot = Math.round((rnd(3) - 0.5) * 22);
+  return `left:${left.toFixed(1)}%;top:${top.toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot}deg)`;
+}
+
 Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', color: '#ff8a3d' },
@@ -16,7 +39,18 @@ Page({
     daySessions: []
   },
 
-  onShow() { this._offset = 0; this.load(0); },
+  onShow() {
+    this.setTab(3);
+    this._offset = 0;
+    this.load(0);
+  },
+
+  // 自定义 tabBar：每个 tab 页各有一个组件实例，选中态要在 onShow 里同步
+  setTab(i) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: i });
+    }
+  },
 
   async load(offsetMonth = 0) {
     try {
@@ -31,6 +65,7 @@ Page({
       this._fps = fpsList;
 
       const now = new Date();
+      const today = agg.todayStr();
       let y = now.getFullYear();
       let m = now.getMonth() + offsetMonth; // 0-based，可越界自动进位
       const first = new Date(y, m, 1).getDay(); // 0=周日
@@ -52,15 +87,20 @@ Page({
         const stamps = list.filter((f) => f.type === 'focus' || f.type === 'meditate');
         if (stamps.length) monthCount++;
         const isToday = d === now.getDate() && m === now.getMonth() && y === now.getFullYear();
-        // 每完成一次 = 一个宠物头像，最多展示 3 个
-        const pets = stamps.slice(0, 3).map((f, i) => ({
+        // 一次专注/冥想 = 一个宠物头像，**不设上限**（原型 petGlyphs：9 锚点循环 + 抖动，多了自然叠压）
+        const pets = stamps.map((f, i) => ({
           k: i,
-          img: (getPetByName(f.pet) || pet).img
+          img: (getPetByName(f.pet) || pet).img,
+          style: glyphStyle(i, stamps.length, d)
         }));
-        const size = pets.length <= 1 ? 's1' : (pets.length === 2 ? 's2' : 's3');
+        // 一个点 = 一件待办；已完成变灰（对齐原型 renderCalendar 的 .task-dots：
+        // 未完成 var(--accent) / 已完成 #C9C2B6）。无日期的待办归今天。
+        const dots = (this._tasks || [])
+          .filter((t) => (t.due || today) === ds)
+          .map((t, i) => ({ k: i, done: !!t.done }));
         cells.push({
           day: d, empty: false, has: stamps.length > 0, count: stamps.length,
-          pets, size, today: isToday, sel: false, detail: list
+          pets, dots, today: isToday, sel: false, detail: list
         });
       }
 

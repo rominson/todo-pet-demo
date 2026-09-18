@@ -194,7 +194,9 @@
 .fab {
   position: fixed;
   right: 44rpx;
-  bottom: 60rpx;
+  /* 自定义 tabBar 固定盖在底部（100rpx + 安全区），悬浮按钮要落在它上面 */
+  bottom: 160rpx;
+  bottom: calc(160rpx + env(safe-area-inset-bottom));
   width: 112rpx;
   height: 112rpx;
   border-radius: 50%;

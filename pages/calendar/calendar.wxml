@@ -15,10 +15,18 @@
       <view wx:for="{{cells}}" wx:key="index" wx:for-index="index"
             class="cal-cell {{item.empty?'empty':''}} {{item.today&&!item.sel?'today':''}} {{item.sel?'selected':''}}"
             bindtap="selectCell" data-d="{{item.day}}">
-        <text wx:if="{{!item.empty}}" class="cal-day {{item.has?'mini':''}}">{{item.day}}</text>
-        <view wx:if="{{item.has}}" class="cal-pets">
-          <image wx:for="{{item.pets}}" wx:for-item="p" wx:key="k" class="cal-pet {{item.size}}" src="{{p.img}}" mode="aspectFit"/>
-        </view>
+        <block wx:if="{{!item.empty}}">
+          <!-- 足迹头像：一次专注/冥想 = 一个头像，不设上限（位置按原型 petGlyphs 算法铺，多了自然叠压） -->
+          <view wx:if="{{item.pets.length}}" class="glyph-stack">
+            <image wx:for="{{item.pets}}" wx:for-item="p" wx:key="k"
+                   class="glyph-pet" src="{{p.img}}" mode="aspectFit" style="{{p.style}}" />
+          </view>
+          <!-- 待办点：一个点 = 一件待办；未完成紫、已完成灰（对齐原型 .task-dots） -->
+          <view wx:if="{{item.dots.length}}" class="task-dots">
+            <view wx:for="{{item.dots}}" wx:for-item="d" wx:key="k" class="td {{d.done?'done':''}}"></view>
+          </view>
+          <text class="num">{{item.day}}</text>
+        </block>
       </view>
     </view>
   </view>

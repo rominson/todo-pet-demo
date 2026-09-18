@@ -1,5 +1,11 @@
 /* pages/focus/focus.wxss —— 对齐原型 screen-focus（无日历） */
-.page { height: 100vh; box-sizing: border-box; padding: 28rpx 36rpx 80rpx; }
+/* 底部留出自定义 tabBar（100rpx + 安全区）的高度，快进按钮不被盖住 */
+.page {
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 28rpx 36rpx 160rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+}
 
 /* 模式切换药丸 */
 .focus-mode-switch {

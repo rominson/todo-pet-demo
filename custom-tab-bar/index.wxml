@@ -1,0 +1,9 @@
+<!-- custom-tab-bar —— 自定义 tabBar（固定底部，图标走 <image> 引用本地 PNG） -->
+<view class="tabbar">
+  <view wx:for="{{list}}" wx:key="path"
+        class="tb {{selected===index?'on':''}}"
+        data-i="{{index}}" bindtap="onTap">
+    <image class="tb-ico" src="{{selected===index ? item.active : item.icon}}" mode="aspectFit" />
+    <view class="tb-txt">{{item.text}}</view>
+  </view>
+</view>
