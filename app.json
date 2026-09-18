@@ -28,7 +28,9 @@
       { "pagePath": "pages/pets/pets", "text": "遇见", "iconPath": "assets/tab/meet.png", "selectedIconPath": "assets/tab/meet-active.png" }
     ]
   },
-  "usingComponents": {},
+  "usingComponents": {
+    "custom-tab-bar": "custom-tab-bar/index"
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
