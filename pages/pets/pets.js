@@ -1,4 +1,4 @@
-// pages/pets/pets.js —— 星座伙伴：目录 / 解锁 / 切换（对齐原型 screen-store）
+// pages/pets/pets.js —— 星座伙伴：目录 / 解锁 / 切换 / 全家桶（对齐原型 screen-store）
 const cloud = require('../../utils/cloud.js');
 const { PET_META, ZODIAC_TRAITS } = require('../../utils/pets.js');
 
@@ -7,17 +7,23 @@ const { PET_META, ZODIAC_TRAITS } = require('../../utils/pets.js');
 const IS_RELEASE = (() => {
   try { return wx.getAccountInfoSync().miniProgram.envVersion === 'release'; } catch (e) { return false; }
 })();
-// ⚠️ 开发/体验版：点「¥6 解锁」直接调 petService.unlock 本地标记已拥有，不调 wx.requestVirtualPayment、不扣钱（测 UI 用）。
-//    正式版 IS_RELEASE 为 true → 强制走真实支付（真扣 ¥6）。
+// ⚠️ 开发/体验版：点「¥6 解锁」/「全家桶」直接调 petService.unlock(All) 本地标记已拥有，不调
+//    wx.requestVirtualPayment、不扣钱（测 UI 用）。正式版 IS_RELEASE 为 true → 强制走真实支付。
 //    如需在开发/体验版临时强制真实支付，可在 devtools 执行 wx.setStorageSync('FORCE_REAL_PAY', true)。
 const DEV_DEMO = !IS_RELEASE && !wx.getStorageSync('FORCE_REAL_PAY');
-// 真实支付链路（DEV_DEMO=false）：createOrder → wx.requestVirtualPayment → payNotify 发货（云函数侧 PAY_USE_SANDBOX=1 可在开发者工具模拟器走沙箱免费用测）。
+// 真实支付链路（DEV_DEMO=false）：createOrder → wx.requestVirtualPayment → payNotify 发货
+// （云函数侧 PAY_USE_SANDBOX=1 可在开发者工具模拟器走沙箱免费用测）。
 
-// 卡片左下角 pill / 弹层按钮的三态文案（对齐原型 renderStore 的 .a-price 与 openAnimal 的 #animal-buy-btn）：
+// 价格兜底值：正常以服务端 getCatalog/getMine 下发的 prices 为准，这里只在接口异常时兜底。
+// ⚠️ 必须与 cloud/petService/pets.js、cloud/payService/pets.js 里的 SINGLE_PRICE / BUNDLE_PRICE 一致。
+const SINGLE_PRICE = 6;   // 单只买断价（元）
+const BUNDLE_PRICE = 36;  // 全家桶封顶价（元）：集齐 12 只最多花这么多
+
+// 卡片左下角 pill 的三态文案：
 //   未拥有 → 「¥6 解锁」   已拥有但没在用 → 「让它陪我」   正在陪 → 「陪伴中」
 // 注：原型这里写的是「使用中」，用户指定用「陪伴中」，故偏离原型一处。
-function pillOf(owned, isCurrent) {
-  if (!owned) return '¥6 解锁';
+function pillOf(owned, isCurrent, single) {
+  if (!owned) return '¥' + (single || SINGLE_PRICE) + ' 解锁';
   return isCurrent ? '陪伴中' : '让它陪我';
 }
 
@@ -28,7 +34,13 @@ Page({
     currentKey: 'orange',
     currentPet: { emoji: '🐱', name: '橘小满', color: '#ff8a3d' },
     activeIdx: 0,
-    scrollLeft: 0
+    scrollLeft: 0,
+    // 价格与全家桶（对齐原型：banner 副文案写单价与全家桶总价；底部悬浮条显示当前要补的差价）
+    singlePrice: SINGLE_PRICE,
+    bundleTotal: BUNDLE_PRICE,
+    bundlePatch: BUNDLE_PRICE,   // 当前还需补多少（= 总价 − 已拥有只数 × 单价）
+    bundleMissing: 12,           // 还差几只
+    showBundle: false            // 没有差价空间（已拥有 ≥ 6 只）或已集齐时不显示
   },
 
   onShow() {
@@ -49,6 +61,10 @@ Page({
         cloud.petService.getCatalog(),
         cloud.petService.getMine()
       ]);
+      const prices = (cat && cat.prices) || {};
+      const single = prices.single || SINGLE_PRICE;
+      const bundle = prices.bundle || BUNDLE_PRICE;
+
       const ownedSet = new Set(mine.owned || ['orange']);
       const current = mine.current || 'orange';
       const pets = (cat.catalog || []).map((p) => {
@@ -58,6 +74,7 @@ Page({
         return {
           key: p.key,
           price: p.price,
+          free: !!p.free,                            // 橘小满是免费自带形象，不计入全家桶的 12 只
           emoji: meta.emoji,
           scene: meta.scene,
           color: meta.color,
@@ -67,18 +84,30 @@ Page({
           traits: ZODIAC_TRAITS[p.key] || '',        // 活力 · 冲动
           owned,
           isCurrent,
-          pillText: pillOf(owned, isCurrent)
+          pillText: pillOf(owned, isCurrent, single)
         };
       });
 
       // 当前伙伴只以服务端为准；同步到 globalData，避免「解锁后本地以为换了、服务端没换」的不一致
       getApp().globalData.currentPet = current;
 
+      // 全家桶只对 12 只付费星座计账（免费形象不算，否则「已拥有 N/12」和补差价都会多算一只）
+      const paid = pets.filter((x) => !x.free);
+      const ownedPaid = paid.filter((x) => x.owned).length;
+      const bundleMissing = paid.length - ownedPaid;
+      const bundlePatch = Math.max(0, bundle - ownedPaid * single);
+
       this.setData({
         pets,
-        ownedCount: pets.filter((x) => x.owned).length,
+        ownedCount: ownedPaid,
         currentKey: current,
-        currentPet: PET_META[current] || PET_META.orange
+        currentPet: PET_META[current] || PET_META.orange,
+        singlePrice: single,
+        bundleTotal: bundle,
+        bundlePatch,
+        bundleMissing,
+        // 补差价补到不足一只单价的量（即已拥有 ≥ 6 只）就没有意义了，入口隐藏
+        showBundle: bundleMissing > 0 && bundlePatch >= single
       });
       // 卡片间距测量（用于滚动同步圆点 / 点圆点定位），等布局完成后测
       wx.nextTick(() => this.measurePitch());
@@ -112,7 +141,7 @@ Page({
     this.setData({ scrollLeft: idx * this.pitch, activeIdx: idx });
   },
 
-  // 卡片左下角那颗 pill 是本页唯一的操作入口（详情弹层已整体删除——
+  // 卡片左下角那颗 pill 是本页卡片的操作入口（详情弹层已整体删除——
   // 弹层里只有大图 + 名字 + 星座·两个词，卡片上本来就全有，等于凭空多一步）。
   //   未拥有 → 直接下单/唤起支付   已拥有 → 直接设为当前伙伴   陪伴中 → 不可点
   // 注：原型 .a-price 只是纯文本 div、点整卡才 openAnimal；此处按用户要求有意偏离原型。
@@ -130,7 +159,7 @@ Page({
       // 同步更新 pets 数组里各卡片的 isCurrent 与左下角 pill（原「陪伴中」→「让它陪我」，新的反之）
       const pets = this.data.pets.map((p) => {
         const isCurrent = p.key === key;
-        return { ...p, isCurrent, pillText: pillOf(p.owned, isCurrent) };
+        return { ...p, isCurrent, pillText: pillOf(p.owned, isCurrent, this.data.singlePrice) };
       });
       this.setData({ currentKey: key, currentPet: PET_META[key] || PET_META.orange, pets });
       wx.showToast({ title: '已切换', icon: 'none' });
@@ -156,7 +185,7 @@ Page({
       if (order.alreadyOwned) {
         await cloud.petService.unlock(key);
       } else {
-        await this.realPay(order, key);
+        await this.realPay(order);
       }
       await this.load();
       wx.showToast({ title: '解锁成功', icon: 'none' });
@@ -164,6 +193,40 @@ Page({
       // cloud 封装已 toast
     } finally {
       wx.hideLoading();
+    }
+  },
+
+  // 全家桶：一次买断剩余全部 12 星座伙伴，按已拥有数量补差价（对齐原型 buyAll）。
+  // 无独有差价档位时服务端会拦下来（补到不足一只单价就没必要卖了）。
+  async doBuyBundle() {
+    if (this.buying || !this.data.showBundle) return;
+    this.buying = true;
+    const missing = this.data.bundleMissing;
+    try {
+      if (DEV_DEMO) {
+        wx.showLoading({ title: '解锁中' });
+        await cloud.petService.unlockAll();
+        await this.load();
+        wx.showToast({ title: '已解锁（演示）', icon: 'none' });
+      } else {
+        wx.showLoading({ title: '下单中' });
+        const { code } = await this.wxLogin();
+        const order = await cloud.payService.createOrderBundle(code);
+        if (order.allOwned) {
+          await this.load();
+          wx.showToast({ title: '12 只伙伴已经都是你的了', icon: 'none' });
+        } else {
+          await this.realPay(order);
+          await this.load();
+          wx.showToast({ title: '补 ' + missing + ' 只，全家桶集齐', icon: 'none' });
+        }
+      }
+    } catch (err) {
+      // DEV_DEMO 分支的失败无人 toast，这里补一个；真实支付分支 cloud 封装已 toast
+      if (DEV_DEMO && err && err.message) wx.showToast({ title: String(err.message).slice(0, 30), icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.buying = false;
     }
   },
 
@@ -190,7 +253,7 @@ Page({
     return true;
   },
 
-  realPay(order, key) {
+  realPay(order) {
     return new Promise((resolve, reject) => {
       if (!this.checkIosVersion()) { reject(new Error('iOS 版本过低')); return; }
       const payData = order.payData || {};

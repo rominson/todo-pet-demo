@@ -33,5 +33,18 @@ module.exports = {
     capricorn: 'zodiac_capricorn',
     aquarius: 'zodiac_aquarius',
     pisces: 'zodiac_pisces'
+  },
+
+  // 全家桶（12 只一次买断，封顶 ¥36）用的道具 ID：按「已拥有数量」分档，价格 = 36 − 已拥有×6。
+  // 需在 MP 后台【道具管理】另建 6 个道具，道具ID 与下面对应、价格必须与注释一致：
+  //   已拥有 0 只→¥36  1 只→¥30  2 只→¥24  3 只→¥18  4 只→¥12  5 只→¥6
+  // （已拥有 6 只以上，用户已付满封顶价，前端不再显示全家桶入口。）
+  bundleMap: {
+    0: 'zodiac_bundle_0',
+    1: 'zodiac_bundle_1',
+    2: 'zodiac_bundle_2',
+    3: 'zodiac_bundle_3',
+    4: 'zodiac_bundle_4',
+    5: 'zodiac_bundle_5'
   }
 };

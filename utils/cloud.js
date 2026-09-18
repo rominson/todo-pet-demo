@@ -51,11 +51,15 @@ const petService = {
   getCatalog: () => call('petService', { action: 'getCatalog' }),
   getMine: () => call('petService', { action: 'getMine' }),
   unlock: (petKey) => call('petService', { action: 'unlock', petKey }),
+  // 一键解锁全部付费伙伴（仅开发/体验版的演示路径使用，正式版走 payService）
+  unlockAll: () => call('petService', { action: 'unlockAll' }),
   setCurrent: (petKey) => call('petService', { action: 'setCurrent', petKey })
 };
 
 const payService = {
   createOrder: (petKey, code) => call('payService', { action: 'createOrder', petKey, code }),
+  // 全家桶：一次买断剩余全部 12 星座伙伴（按已拥有数量自动补差价）
+  createOrderBundle: (code) => call('payService', { action: 'createOrder', bundle: true, code }),
   confirmPay: (orderId, wxOrderId) => call('payService', { action: 'confirmPay', orderId, wxOrderId }),
   queryOrder: (orderId) => call('payService', { action: 'query', orderId })
 };

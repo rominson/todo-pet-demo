@@ -1,11 +1,11 @@
-<!-- pages/pets/pets.wxml —— 星座伙伴（对齐原型 screen-store：横向滑动大卡片轮播） -->
-<view class="page">
+<!-- pages/pets/pets.wxml —— 星座伙伴（对齐原型 screen-store：横向滑动大卡片轮播 + 底部全家桶悬浮条） -->
+<view class="page {{showBundle?'has-bundle':''}}">
   <view class="group-title">星座伙伴</view>
 
   <view class="store-banner card">
     <view class="sb-text">
       <view class="t">12 个星座伙伴</view>
-      <view class="s">单个 ¥6 解锁</view>
+      <view class="s">单个 ¥{{singlePrice}} 买断 · 全家桶 12 个 ¥{{bundleTotal}}</view>
     </view>
     <view class="store-progress {{ownedCount>=12?'done':''}}">已拥有 {{ownedCount}}/12</view>
   </view>
@@ -23,7 +23,7 @@
         <view class="a-meta">
           <view class="a-name">{{item.animal}}</view>
           <view class="a-zodiac">{{item.zodiacName}} · {{item.traits}}</view>
-          <!-- 本页唯一的操作入口（已删除详情弹层：弹层里只有大图+名字+星座·两个词，卡片上全都有，纯属多一步）
+          <!-- 卡片唯一的操作入口（详情弹层已删除：弹层里只有大图+名字+星座·两个词，卡片上全都有，纯属多一步）
                未拥有→直接唤起支付 / 已拥有→直接切为当前伙伴 / 陪伴中→灰掉不可点 -->
           <view class="a-pill {{item.isCurrent?'is-disabled':''}}"
                 hover-class="{{item.isCurrent?'none':'a-pill-hover'}}" hover-stay-time="80"
@@ -38,5 +38,17 @@
     <view wx:for="{{pets}}" wx:key="key"
           class="dot {{index===activeIdx?'on':''}}"
           catchtap="goDot" data-idx="{{index}}"></view>
+  </view>
+
+  <!-- 全家桶悬浮条（对齐原型 #bundle-btn：左下角是「当前要补的差价」，右侧「购买」，整条可点）。
+       只在遇见页且还没集齐时显示；已拥有 6 只以上时补差价已不足一只单价，自动隐藏。 -->
+  <view wx:if="{{showBundle}}" class="bundle-cta"
+        hover-class="bundle-cta-hover" hover-stay-time="80"
+        bindtap="doBuyBundle">
+    <view class="bc-main">
+      <view class="bc-t">全家桶 ¥{{bundlePatch}}</view>
+      <view class="bc-s">一次集齐剩余 {{bundleMissing}} 只星座伙伴</view>
+    </view>
+    <view class="bc-buy">购买</view>
   </view>
 </view>

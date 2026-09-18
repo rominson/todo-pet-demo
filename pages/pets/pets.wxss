@@ -112,3 +112,41 @@
   background: var(--line, #e5ddcf); transition: all 0.25s;
 }
 .meet-dots .dot.on { width: 40rpx; border-radius: 999rpx; background: var(--accent, #7e6fd6); }
+
+/* 全家桶悬浮条（对齐原型 .bundle-cta：浅金渐变卡、左侧文案 + 右侧白底「购买」药丸）。
+   原型靠 calc(76px + 安全区) 让开它自己的 tabBar；我们用自定义 tabBar（100rpx + 安全区），
+   所以往上让 100rpx + 安全区 + 16rpx。z-index 低于 tabBar(999)，两者本就不重叠。 */
+.bundle-cta {
+  position: fixed;
+  left: 32rpx;
+  right: 32rpx;
+  bottom: calc(100rpx + env(safe-area-inset-bottom) + 16rpx);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 24rpx 36rpx;
+  border-radius: 32rpx;
+  border: 2rpx solid rgba(220, 200, 170, 0.5);
+  background: linear-gradient(135deg, #FFF8EC, #FFF2DC);
+  color: #3A2E10;
+  box-shadow: 0 20rpx 56rpx rgba(60, 40, 10, 0.11), 0 8rpx 24rpx rgba(239, 160, 60, 0.10);
+}
+.bundle-cta-hover { transform: scale(0.985); }
+.bundle-cta .bc-main { min-width: 0; }
+.bundle-cta .bc-t { font-size: 30rpx; font-weight: 800; line-height: 1.35; }
+.bundle-cta .bc-s { font-size: 21rpx; font-weight: 500; color: rgba(58, 46, 16, 0.6); margin-top: 2rpx; }
+.bundle-cta .bc-buy {
+  flex: none;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #3A2E10;
+  background: #fff;
+  padding: 14rpx 36rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 4rpx 12rpx rgba(60, 40, 10, 0.08);
+}
+
+/* 悬浮条出现时，给页面多留出它的高度，免得盖住轮播圆点 */
+.page.has-bundle { padding-bottom: calc(280rpx + env(safe-area-inset-bottom)); }

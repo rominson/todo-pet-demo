@@ -15,4 +15,14 @@ const PET_CATALOG = [
   { key: 'aquarius',     name: '水瓶',   free: false, price: 6, desc: '脑洞清奇的水瓶，给你不一样的视角。' },
   { key: 'pisces',       name: '双鱼',   free: false, price: 6, desc: '浪漫温柔的双鱼，陪你做白日梦。' }
 ];
-module.exports = { PET_CATALOG };
+// —— 定价（⚠️ 与 cloud/payService/pets.js 的同一段必须逐字一致，两处改一处会算错钱）——
+const SINGLE_PRICE = 6;   // 单只买断价（元）
+const BUNDLE_PRICE = 36;  // 「全家桶」封顶价（元）：集齐 12 只最多花这么多
+
+// 已拥有 n 只时，全家桶还需补的差价（元）。补到 <=0 表示已到封顶价，不再需要全家桶。
+function bundlePatch(ownedCount) {
+  const patch = BUNDLE_PRICE - ownedCount * SINGLE_PRICE;
+  return patch > 0 ? patch : 0;
+}
+
+module.exports = { PET_CATALOG, SINGLE_PRICE, BUNDLE_PRICE, bundlePatch };

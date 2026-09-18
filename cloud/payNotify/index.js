@@ -66,13 +66,19 @@ exports.main = async (event) => {
     const o = ord.data[0];
 
     // 幂等：已发货也直接回 0
-    const up = await db.collection('user_pets').where({ openid: o.openid, pet_key: o.pet_key }).get();
     const wxBlock = between(raw, '<WeChatPayInfo>', '</WeChatPayInfo>');
     const wxOrderId = wxBlock ? xmlVal(wxBlock, 'MchOrderNo') : xmlVal(raw, 'MchOrderNo');
 
     await db.collection('orders').doc(o._id).update({ data: { status: 'paid', wx_order_id: wxOrderId, paid_at: new Date() } });
-    if (!up.data.length) {
-      await db.collection('user_pets').add({ data: { openid: o.openid, pet_key: o.pet_key, unlocked_at: new Date() } });
+
+    // 发货（幂等）：单只订单的发货键 = pet_key；全家桶订单 = 下单时固化在 grant_keys 里的清单。
+    // 这里刻意不再读宠物目录，避免「目录改了、老订单发错」。
+    const keys = (Array.isArray(o.grant_keys) && o.grant_keys.length) ? o.grant_keys : [o.pet_key];
+    const up = await db.collection('user_pets').where({ openid: o.openid }).get();
+    const have = new Set(up.data.map((x) => x.pet_key));
+    for (const k of keys) {
+      if (!k || k === 'orange' || have.has(k)) continue;
+      await db.collection('user_pets').add({ data: { openid: o.openid, pet_key: k, unlocked_at: new Date() } });
     }
   } catch (e) {
     // 出错仍回 0（平台会重试）；如需排查可在此记录 e
