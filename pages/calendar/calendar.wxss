@@ -36,7 +36,31 @@
 
 .detail { padding: 28rpx 28rpx 32rpx; margin-bottom: 24rpx; }
 .dd-title { font-weight: 700; color: var(--ink); margin-bottom: 12rpx; font-size: 28rpx; }
-.dd-row { padding: 12rpx 0; color: var(--ink-2); font-size: 26rpx; border-top: 1rpx dashed var(--line); }
+.dd-sec {
+  font-size: 24rpx; color: var(--ink-3); font-weight: 600;
+  margin: 18rpx 0 4rpx; letter-spacing: 1rpx;
+}
+.dd-sec:first-of-type { margin-top: 4rpx; }
+/* 当天安排：小圆圈只反映状态（不可点，去今日/象限页勾选），完成则划线 */
+.dd-row { display: flex; align-items: flex-start; gap: 14rpx; padding: 14rpx 0; border-top: 1rpx dashed var(--line); }
+.dd-dot {
+  width: 30rpx; height: 30rpx; border-radius: 50%; flex: none; margin-top: 4rpx;
+  border: 2rpx solid var(--line); background: #fff;
+}
+.dd-dot.on {
+  border-color: var(--ok); background: var(--ok);
+  position: relative;
+}
+.dd-dot.on::after {
+  content: ''; position: absolute; left: 9rpx; top: 4rpx;
+  width: 8rpx; height: 15rpx; border: solid #fff; border-width: 0 3rpx 3rpx 0;
+  transform: rotate(45deg);
+}
+.dd-dot.ses { border-color: var(--accent); background: var(--accent-soft); }
+.dd-text { flex: 1; min-width: 0; }
+.dd-t { font-size: 26rpx; color: var(--ink-2); line-height: 1.45; }
+.dd-m { font-size: 22rpx; color: var(--ink-3); margin-top: 4rpx; }
+.dd-row.done .dd-t { text-decoration: line-through; color: var(--ink-3); }
 .dd-empty { color: var(--ink-3); font-size: 26rpx; }
 
 .partners { display: flex; align-items: center; padding: 28rpx; }

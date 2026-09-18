@@ -63,7 +63,31 @@ function totalDone(tasks) {
   return tasks.filter((t) => t.done).length;
 }
 
+// 今日页口径（对齐原型 renderTasks）：只显示「日期为空 或 日期=今天」的任务；
+// 已完成项额外要求「完成时间=今天」。未来日期的任务不属于今天，逾期未完成的也不属于。
+function isTodayTask(t, today) {
+  const ds = today || todayStr();
+  if (t.due && t.due !== ds) return false;
+  if (t.done) return !!t.done_at && toDateStr(t.done_at) === ds;
+  return true;
+}
+
+// 重复频率文案：none 返回空串
+function repeatLabel(r) {
+  if (!r || r === 'none') return '';
+  if (r === 'daily') return '每天';
+  if (r === 'weekly') return '每周';
+  if (r === 'monthly') return '每月';
+  const m = String(r).match(/custom:(\d+)([dwm])/);
+  if (m) {
+    const u = m[2] === 'd' ? '天' : m[2] === 'w' ? '周' : '月';
+    return `每${m[1]}${u}`;
+  }
+  return '';
+}
+
 module.exports = {
   pad, toDateStr, todayStr, yesterdayStr,
-  computeStreak, yesterdayDone, overdueTasks, totalDone
+  computeStreak, yesterdayDone, overdueTasks, totalDone,
+  isTodayTask, repeatLabel
 };

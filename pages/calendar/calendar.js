@@ -12,19 +12,23 @@ Page({
     monthCount: 0,
     canGoNext: false,
     dayLabel: '',
-    dayDetail: []
+    dayTasks: [],
+    daySessions: []
   },
 
   onShow() { this._offset = 0; this.load(0); },
 
   async load(offsetMonth = 0) {
     try {
-      const [mine, fps] = await Promise.all([
+      const [mine, fps, taskRes] = await Promise.all([
         cloud.petService.getMine(),
-        cloud.sessionService.getFootprints(200)
+        cloud.sessionService.getFootprints(200),
+        cloud.taskService.list()
       ]);
       const pet = getPet(mine.current || 'orange');
       const fpsList = fps.list || [];
+      this._tasks = taskRes.list || [];
+      this._fps = fpsList;
 
       const now = new Date();
       let y = now.getFullYear();
@@ -95,13 +99,25 @@ Page({
     if (idx < 0) return;
     const cells = this.data.cells.map((c, i) => Object.assign({}, c, { sel: i === idx }));
     const c = cells[idx];
-    const dayDetail = (c.detail || []).map((f) =>
-      (f.content || '').replace(/^(专注|冥想)\s*/, '$1 ') || (f.type === 'focus' ? '专注' : '冥想')
-    );
+    const ds = `${this.data.year}-${agg.pad(this.data.month)}-${agg.pad(c.day)}`;
+    const today = agg.todayStr();
+    // 当天安排 = 那天的待办（无日期的归今天）；同一条只列一次，勾选/取消只改变它的状态
+    const dayTasks = (this._tasks || []).filter((t) => (t.due || today) === ds)
+      .map((t) => ({
+        _id: t._id,
+        title: t.title,
+        done: !!t.done,
+        repeatLabel: agg.repeatLabel(t.repeat)
+      }));
+    // 当天足迹 = 专注/冥想记录（勾选待办不记足迹，避免反复勾选刷出一堆重复）
+    const daySessions = (this._fps || [])
+      .filter((f) => agg.toDateStr(f.created_at) === ds && (f.type === 'focus' || f.type === 'meditate'))
+      .map((f, i) => ({ i, text: f.content || (f.type === 'focus' ? '专注' : '冥想') }));
     this.setData({
       cells,
       dayLabel: `${this.data.month}月${c.day}日`,
-      dayDetail
+      dayTasks,
+      daySessions
     });
   }
 });

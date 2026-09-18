@@ -5,6 +5,12 @@ const agg = require('../../utils/agg.js');
 const bc = require('../../utils/broadcast.js');
 
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+const EMPTY_FORM = { title: '', due: '', important: false, repeatOn: false, freq: 'daily', customNum: 2, unitIdx: 0 };
+
+// 给任务补上展示用的重复文案
+function decorate(t) {
+  return Object.assign({}, t, { repeatLabel: agg.repeatLabel(t.repeat) });
+}
 
 function hashId(s) {
   let n = 0;
@@ -39,7 +45,14 @@ Page({
     companionDays: 1,
     focusMinutes: 0,
     showAdd: false,
-    form: { title: '', tag: '', due: '', type: 'normal', important: false }
+    form: { title: '', due: '', important: false, repeatOn: false, freq: 'daily', customNum: 2, unitIdx: 0 },
+    freqs: [
+      { f: 'daily', t: '每天' },
+      { f: 'weekly', t: '每周' },
+      { f: 'monthly', t: '每月' },
+      { f: 'custom', t: '自定义' }
+    ],
+    units: [{ v: 'd', t: '天' }, { v: 'w', t: '周' }, { v: 'm', t: '月' }]
   },
 
   onShow() { this.loadAll(); },
@@ -67,19 +80,19 @@ Page({
         cloud.sessionService.getFootprints(200).catch(() => ({ list: [] }))
       ]);
       const pet = getPet(mineRes.current || 'orange');
-      const tasks = listRes.list || [];
+      const all = listRes.list || [];
+      this._all = all;
       const fps = fpsRes.list || [];
-      const streak = agg.computeStreak(tasks);
-      const yDone = agg.yesterdayDone(tasks);
-      const overdue = agg.overdueTasks(tasks);
+      const streak = agg.computeStreak(all);
+      const yDone = agg.yesterdayDone(all);
+      const overdue = agg.overdueTasks(all);
 
-      // 今日 n/n：未完成 + 今天完成的
+      // 今日页口径（对齐原型 renderTasks）：只显示「无日期 或 日期=今天」的；
+      // 未来日期的任务不属于今天（归象限/日历），已完成项只保留当天完成的。
       const today = agg.todayStr();
-      const doneToday = tasks.filter(
-        (t) => t.done && t.done_at && agg.toDateStr(t.done_at) === today
-      ).length;
-      const totalToday = doneToday + tasks.filter((t) => !t.done).length;
-      const progress = totalToday ? Math.round((doneToday / totalToday) * 100) : 0;
+      const tasks = all.filter((t) => agg.isTodayTask(t, today)).map(decorate);
+      const doneToday = tasks.filter((t) => t.done).length;
+      const progress = tasks.length ? Math.round((doneToday / tasks.length) * 100) : 0;
 
       // 专注分钟：由专注/冥想足迹累计（专注 25 / 冥想 15）
       const focusMinutes = fps.reduce(
@@ -95,9 +108,9 @@ Page({
         todayText: this.buildTodayText(),
         tasks,
         doneToday,
-        totalToday,
+        totalToday: tasks.length,
         progress,
-        doneTotal: agg.totalDone(tasks),
+        doneTotal: agg.totalDone(all),
         streak,
         companionDays: this.getCompanionDays(),
         focusMinutes
@@ -137,29 +150,30 @@ Page({
     try {
       const res = await cloud.taskService.toggle(id);
       const nowDone = res.done;
-      const tasks = this.data.tasks.map((t) =>
+      const all = (this._all || this.data.tasks).map((t) =>
         t._id === id ? { ...t, done: nowDone, done_at: nowDone ? new Date() : null } : t
       );
+      this._all = all;
       this.setData({
-        tasks,
-        doneTotal: agg.totalDone(tasks),
-        streak: agg.computeStreak(tasks)
+        doneTotal: agg.totalDone(all),
+        streak: agg.computeStreak(all)
       });
-      this.refreshToday(tasks);
-      if (nowDone && !wasDone) this.onComplete(before, tasks);
+      this.refreshToday(all);
+      if (nowDone && !wasDone) this.onComplete(before, all);
+      // 重复任务完成会在服务端生成下一条，本地列表需重新拉一次
+      if (before && before.repeat && before.repeat !== 'none') this.loadAll();
     } catch (e) {}
   },
 
-  refreshToday(tasks) {
+  refreshToday(all) {
     const today = agg.todayStr();
-    const doneToday = tasks.filter(
-      (t) => t.done && t.done_at && agg.toDateStr(t.done_at) === today
-    ).length;
-    const totalToday = doneToday + tasks.filter((t) => !t.done).length;
+    const list = (all || []).filter((t) => agg.isTodayTask(t, today)).map(decorate);
+    const doneToday = list.filter((t) => t.done).length;
     this.setData({
+      tasks: list,
       doneToday,
-      totalToday,
-      progress: totalToday ? Math.round((doneToday / totalToday) * 100) : 0
+      totalToday: list.length,
+      progress: list.length ? Math.round((doneToday / list.length) * 100) : 0
     });
   },
 
@@ -179,9 +193,12 @@ Page({
     }
     this.showBubble(bubbleText);
 
-    const line = bc.memoryLine(task.title, hashId(task._id), petName);
-    cloud.sessionService.addFootprint('done', line, petName).catch(() => {});
-    cloud.sessionService.saveMessage('pet', line, petName).catch(() => {});
+    // 同一条任务只记一次足迹/回忆：反复勾选取消不会刷出一堆重复记录
+    if (!already) {
+      const line = bc.memoryLine(task.title, hashId(task._id), petName);
+      cloud.sessionService.addFootprint('done', line, petName).catch(() => {});
+      cloud.sessionService.saveMessage('pet', line, petName).catch(() => {});
+    }
 
     const streak = this.data.streak;
     if (streak === 3 || streak === 7 || streak === 14) {
@@ -211,34 +228,37 @@ Page({
   hideAdd() { this.setData({ showAdd: false }); },
   noop() {},
   onTitle(e) { this.setData({ 'form.title': e.detail.value }); },
-  onTag(e) { this.setData({ 'form.tag': e.detail.value }); },
   onDue(e) { this.setData({ 'form.due': e.detail.value }); },
-  setType(e) { this.setData({ 'form.type': e.currentTarget.dataset.t }); },
   onImportant(e) { this.setData({ 'form.important': e.detail.value }); },
+  onRepeat(e) { this.setData({ 'form.repeatOn': e.detail.value }); },
+  pickFreq(e) { this.setData({ 'form.freq': e.currentTarget.dataset.f }); },
+  onCustomNum(e) { this.setData({ 'form.customNum': e.detail.value }); },
+  onCustomUnit(e) { this.setData({ 'form.unitIdx': Number(e.detail.value) }); },
+
+  // 重复频率串：none / daily / weekly / monthly / custom:Nd|Nw|Nm（与原型 buildRepeatStr 一致）
+  buildRepeat() {
+    const f = this.data.form;
+    if (!f.repeatOn) return 'none';
+    if (f.freq === 'custom') {
+      const n = Math.max(1, Math.min(99, parseInt(f.customNum, 10) || 1));
+      return `custom:${n}${this.data.units[f.unitIdx].v}`;
+    }
+    return f.freq;
+  },
 
   async onCreate() {
-    const title = this.data.form.title.trim();
+    const title = (this.data.form.title || '').trim();
     if (!title) { wx.showToast({ title: '写点什么吧', icon: 'none' }); return; }
     try {
       await cloud.taskService.create({
         title,
-        tag: this.data.form.tag,
         due: this.data.form.due,
-        type: this.data.form.type,
-        important: this.data.form.important
+        important: this.data.form.important,
+        repeat: this.buildRepeat()
       });
-      this.setData({
-        showAdd: false,
-        form: { title: '', tag: '', due: '', type: 'normal', important: false }
-      });
+      this.setData({ showAdd: false, form: Object.assign({}, EMPTY_FORM) });
       this.loadAll();
     } catch (e) {}
-  },
-
-  goFocus(e) {
-    const id = e.currentTarget.dataset.id;
-    const t = this.data.tasks.find((x) => x._id === id);
-    wx.navigateTo({ url: '/pages/focus/focus?title=' + encodeURIComponent(t ? t.title : '') });
   },
 
   openChat() {

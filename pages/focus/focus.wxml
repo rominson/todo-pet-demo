@@ -13,9 +13,7 @@
       <view class="timer-sub">{{sub}}</view>
     </view>
     <view class="timer {{running?'running':''}}">{{timeText}}</view>
-    <button class="btn-primary big" bindtap="start">{{running ? '结束' : '开始专注'}}</button>
+    <button class="btn-primary big" bindtap="start">{{btnText}}</button>
     <button wx:if="{{running}}" class="btn-ghost fast" bindtap="fastForward">快进（演示）</button>
   </view>
-
-  <view class="focus-hint">中途停下来也没关系——{{pet.name}}不会怪你，下次想专注了，它随时都在。</view>
 </scroll-view>

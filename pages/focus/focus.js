@@ -17,6 +17,7 @@ Page({
     left: 25 * 60,
     timeText: '25:00',
     sub: '从今日待办带一件事来，或者就这样开始',
+    btnText: '开始专注',
     taskTitle: ''
   },
 
@@ -54,6 +55,8 @@ Page({
       left: total,
       timeText: fmt(total),
       taskTitle: mode === 'meditate' ? '' : this.data.taskTitle,
+      // 按钮文案跟模式走（对齐原型 switchMode：focus→开始专注 / meditate→开始冥想）
+      btnText: mode === 'focus' ? '开始专注' : '开始冥想',
       sub: mode === 'focus'
         ? '从今日待办带一件事来，或者就这样开始'
         : '什么都不用选，跟着呼吸就好'
@@ -64,7 +67,11 @@ Page({
     if (this.data.running) { this.finish(true); return; }
     const mode = this.data.mode;
     if (mode !== 'focus') this.setData({ taskTitle: '' });
-    this.setData({ running: true, sub: '' });
+    this.setData({
+      running: true,
+      sub: '',
+      btnText: mode === 'focus' ? '专注中 · 点击结束' : '冥想中 · 点击结束'
+    });
     // 陪伴动画跟状态走：专注→敲键盘 / 冥想→看日落（对齐原型 liveScene = focusMode）
     this.setScene(mode === 'focus' ? 'keyboard' : 'sunset');
     this.timer = setInterval(() => {
@@ -90,8 +97,10 @@ Page({
     if (this.timer) clearInterval(this.timer);
     if (this.coffeeTimer) { clearTimeout(this.coffeeTimer); this.coffeeTimer = null; }
     const mode = this.data.mode;
+    // 结束后按钮回到「开始专注 / 开始冥想」
+    const idleText = mode === 'focus' ? '开始专注' : '开始冥想';
     if (completed) {
-      this.setData({ running: false });
+      this.setData({ running: false, btnText: idleText });
       const minutes = mode === 'focus' ? 25 : 15;
       const content = mode === 'focus'
         ? `专注 ${minutes} 分钟${this.data.taskTitle ? '：' + this.data.taskTitle : ''}`
@@ -117,6 +126,7 @@ Page({
       this.setScene(''); // 中断：回到日常看书
       this.setData({
         running: false,
+        btnText: idleText,
         sub: mode === 'focus'
           ? '从今日待办带一件事来，或者就这样开始'
           : '什么都不用选，跟着呼吸就好'

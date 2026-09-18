@@ -75,6 +75,7 @@ page {
 }
 .modal {
   width: 100%;
+  position: relative; /* 右上角关闭叉 .sheet-x 的绝对定位基准 */
   background: var(--bg-soft);
   border-radius: 48rpx 48rpx 0 0;
   padding: 44rpx 40rpx calc(44rpx + env(safe-area-inset-bottom));
@@ -94,4 +95,54 @@ page {
   padding: 24rpx 28rpx;
   margin-bottom: 24rpx;
   font-size: 30rpx;
+}
+
+/* 弹层右上角关闭叉（对齐原型 .sheet-x）：点叉或点遮罩关闭，不再放「取消」按钮 */
+.sheet-x {
+  position: absolute;
+  right: 32rpx;
+  top: 30rpx;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: rgba(0,0,0,.05);
+  color: var(--ink-2);
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+/* 重复频率（对齐原型 .freq-pick / #freq-custom） */
+.freq-row { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
+.freq-opt {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 18rpx;
+  background: #F1EDE5;
+  color: var(--ink-2);
+  font-size: 25rpx;
+  font-weight: 600;
+}
+.freq-opt.on { background: var(--accent); color: #fff; }
+.custom-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 24rpx; }
+.custom-lbl { font-size: 26rpx; color: var(--ink-2); }
+.custom-num {
+  width: 110rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 16rpx;
+  background: var(--card);
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.custom-unit {
+  padding: 14rpx 22rpx;
+  border-radius: 16rpx;
+  background: var(--card);
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
 }

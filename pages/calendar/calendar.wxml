@@ -24,10 +24,29 @@
   </view>
 
   <view class="card detail">
-    <view class="dd-title">{{dayLabel || '今天'}} · 当天安排</view>
-    <block wx:if="{{dayDetail.length}}">
-      <view wx:for="{{dayDetail}}" wx:key="i" class="dd-row">{{item}}</view>
+    <view class="dd-title">{{dayLabel || '今天'}}</view>
+
+    <block wx:if="{{dayTasks.length}}">
+      <view class="dd-sec">当天安排</view>
+      <view wx:for="{{dayTasks}}" wx:key="_id" class="dd-row {{item.done?'done':''}}">
+        <view class="dd-dot {{item.done?'on':''}}"></view>
+        <view class="dd-text">
+          <view class="dd-t">{{item.title}}</view>
+          <view wx:if="{{item.repeatLabel}}" class="dd-m">🔁 {{item.repeatLabel}}</view>
+        </view>
+      </view>
     </block>
-    <view wx:else class="dd-empty">这一天还没有记录</view>
+
+    <block wx:if="{{daySessions.length}}">
+      <view class="dd-sec">当天足迹</view>
+      <view wx:for="{{daySessions}}" wx:key="i" class="dd-row">
+        <view class="dd-dot ses"></view>
+        <view class="dd-text">
+          <view class="dd-t">{{item.text}}</view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{!dayTasks.length && !daySessions.length}}" class="dd-empty">这天还没有安排，也没关系。</view>
   </view>
 </view>

@@ -3,12 +3,23 @@
 const cloud = require('../../utils/cloud.js');
 const agg = require('../../utils/agg.js');
 
+const EMPTY_FORM = { title: '', due: '', important: false, repeatOn: false, freq: 'daily', customNum: 2, unitIdx: 0 };
+const FREQS = [
+  { f: 'daily', t: '每天' },
+  { f: 'weekly', t: '每周' },
+  { f: 'monthly', t: '每月' },
+  { f: 'custom', t: '自定义' }
+];
+const UNITS = [{ v: 'd', t: '天' }, { v: 'w', t: '周' }, { v: 'm', t: '月' }];
+
 Page({
   data: {
     filter: 'all', // all / undone
     total: 0,
     showAdd: false,
-    form: { title: '', tag: '', due: '', type: 'normal', important: false },
+    form: Object.assign({}, EMPTY_FORM),
+    freqs: FREQS,
+    units: UNITS,
     quads: [
       { key: 'iu', title: '重要 · 紧急', sub: '马上做', items: [] },
       { key: 'in', title: '重要 · 不紧急', sub: '计划做', items: [] },
@@ -40,6 +51,7 @@ Page({
         title: t.title,
         due: t.due || '',
         done: !!t.done,
+        repeatLabel: agg.repeatLabel(t.repeat),
         overdue: !t.done && !!t.due && t.due < today
       });
     });
@@ -67,6 +79,14 @@ Page({
   },
 
   async toggleDone(id) {
+    // 对齐原型 completeTask：还没到日期的任务不能提前勾（明天/更远）
+    const all = this.data.quads.flatMap((q) => q.items);
+    const t = all.find((x) => x._id === id);
+    const today = agg.todayStr();
+    if (t && t.due && t.due > today && !t.done) {
+      wx.showToast({ title: '还没到日期，到那天再勾', icon: 'none' });
+      return;
+    }
     try { await cloud.taskService.toggle(id); this.load(); } catch (e) {}
   },
 
@@ -119,26 +139,34 @@ Page({
   hideAdd() { this.setData({ showAdd: false }); },
   noop() {},
   onTitle(e) { this.setData({ 'form.title': e.detail.value }); },
-  onTag(e) { this.setData({ 'form.tag': e.detail.value }); },
   onDue(e) { this.setData({ 'form.due': e.detail.value }); },
-  setType(e) { this.setData({ 'form.type': e.currentTarget.dataset.t }); },
   onImportant(e) { this.setData({ 'form.important': e.detail.value }); },
+  onRepeat(e) { this.setData({ 'form.repeatOn': e.detail.value }); },
+  pickFreq(e) { this.setData({ 'form.freq': e.currentTarget.dataset.f }); },
+  onCustomNum(e) { this.setData({ 'form.customNum': e.detail.value }); },
+  onCustomUnit(e) { this.setData({ 'form.unitIdx': Number(e.detail.value) }); },
+
+  buildRepeat() {
+    const f = this.data.form;
+    if (!f.repeatOn) return 'none';
+    if (f.freq === 'custom') {
+      const n = Math.max(1, Math.min(99, parseInt(f.customNum, 10) || 1));
+      return `custom:${n}${UNITS[f.unitIdx].v}`;
+    }
+    return f.freq;
+  },
 
   async onCreate() {
-    const title = this.data.form.title.trim();
+    const title = (this.data.form.title || '').trim();
     if (!title) { wx.showToast({ title: '写点什么吧', icon: 'none' }); return; }
     try {
       await cloud.taskService.create({
         title,
-        tag: this.data.form.tag,
         due: this.data.form.due,
-        type: this.data.form.type,
-        important: this.data.form.important
+        important: this.data.form.important,
+        repeat: this.buildRepeat()
       });
-      this.setData({
-        showAdd: false,
-        form: { title: '', tag: '', due: '', type: 'normal', important: false }
-      });
+      this.setData({ showAdd: false, form: Object.assign({}, EMPTY_FORM) });
       this.load();
     } catch (e) {}
   }

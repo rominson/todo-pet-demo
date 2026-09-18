@@ -234,14 +234,5 @@
 }
 .opt-lbl { font-size: 28rpx; }
 .opt-sub { font-size: 22rpx; color: var(--ink-2); margin-top: 2rpx; }
-.type-row { display: flex; gap: 20rpx; margin-bottom: 28rpx; }
-.type-opt {
-  flex: 1;
-  text-align: center;
-  padding: 18rpx 0;
-  border-radius: 999rpx;
-  background: var(--card);
-  color: var(--ink-2);
-  font-size: 26rpx;
-}
-.type-opt.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+/* 任务上的重复标记（对齐原型 .tag.repeat） */
+.tag.repeat { background: var(--accent-soft); color: var(--accent); }

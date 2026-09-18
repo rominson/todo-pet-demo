@@ -49,12 +49,11 @@
             <text wx:if="{{item.important}}" class="imp-dot"></text>
             {{item.title}}
           </view>
-          <view wx:if="{{item.tag || item.due}}" class="task-tags">
-            <text wx:if="{{item.tag}}" class="tag">{{item.tag}}</text>
+          <view wx:if="{{item.repeatLabel || item.due}}" class="task-tags">
+            <text wx:if="{{item.repeatLabel}}" class="tag repeat">🔁 {{item.repeatLabel}}</text>
             <text wx:if="{{item.due}}" class="due">📅 {{item.due}}</text>
           </view>
         </view>
-        <view wx:if="{{item.type==='focus' && !item.done}}" class="focus-badge" catchtap="goFocus" data-id="{{item._id}}">专注</view>
         <view class="del" catchtap="onRemove" data-id="{{item._id}}">✕</view>
       </view>
       <view wx:if="{{tasks.length===0}}" class="empty">一件事，做完打勾就好</view>
@@ -71,10 +70,10 @@
 <!-- 新建任务弹层 -->
 <view wx:if="{{showAdd}}" class="modal-mask" bindtap="hideAdd">
   <view class="modal" catchtap="noop">
+    <view class="sheet-x" bindtap="hideAdd">✕</view>
     <view class="modal-title">新建任务</view>
     <view class="modal-sub">一件事，做完打勾就好</view>
     <input class="input" placeholder="任务名称" value="{{form.title}}" bindinput="onTitle" />
-    <input class="input" placeholder="标签（可选）" value="{{form.tag}}" bindinput="onTag" />
     <picker mode="date" value="{{form.due}}" bindchange="onDue">
       <view class="input picker">{{form.due || '提醒日期（可选）'}} ›</view>
     </picker>
@@ -85,11 +84,27 @@
       </view>
       <switch checked="{{form.important}}" bindchange="onImportant" color="#7e6fd6" />
     </view>
-    <view class="type-row">
-      <view class="type-opt {{form.type==='normal'?'on':''}}" bindtap="setType" data-t="normal">勾选完成</view>
-      <view class="type-opt {{form.type==='focus'?'on':''}}" bindtap="setType" data-t="focus">计时专注</view>
+    <view class="opt-row">
+      <view class="opt-lbl">
+        <view>重复</view>
+        <view class="opt-sub">完成后自动生成下一条</view>
+      </view>
+      <switch checked="{{form.repeatOn}}" bindchange="onRepeat" color="#7e6fd6" />
     </view>
+    <block wx:if="{{form.repeatOn}}">
+      <view class="freq-row">
+        <view wx:for="{{freqs}}" wx:key="f"
+              class="freq-opt {{form.freq===item.f?'on':''}}"
+              bindtap="pickFreq" data-f="{{item.f}}">{{item.t}}</view>
+      </view>
+      <view wx:if="{{form.freq==='custom'}}" class="custom-row">
+        <text class="custom-lbl">每</text>
+        <input class="custom-num" type="number" value="{{form.customNum}}" bindinput="onCustomNum" />
+        <picker mode="selector" range="{{units}}" range-key="t" value="{{form.unitIdx}}" bindchange="onCustomUnit">
+          <view class="custom-unit">{{units[form.unitIdx].t}} ›</view>
+        </picker>
+      </view>
+    </block>
     <button class="btn-primary" bindtap="onCreate">添加任务</button>
-    <button class="btn-ghost" bindtap="hideAdd">取消</button>
   </view>
 </view>
