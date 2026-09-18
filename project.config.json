@@ -46,6 +46,7 @@
       { "type": "suffix", "value": ".xlsx" },
       { "type": "suffix", "value": ".py" },
       { "type": "file", "value": ".DS_Store" },
+      { "type": "suffix", "value": ".DS_Store" },
       { "type": "file", "value": ".gitignore" },
       { "type": "file", "value": ".gitattributes" },
       { "type": "file", "value": "cloudbaserc.json" }
