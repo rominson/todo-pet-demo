@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""生成 12 个星座宠物的道具图片（200x200 PNG，供 MP 后台道具管理上传）。
+"""生成道具图片（200x200 PNG，供 MP 后台道具管理上传/批量导入）。
 
-风格：宠物品牌色纯色底 + 白色宠物中文名 + 底部小字动物名。
-输出：assets/prop-images/zodiac_<key>.png
+- 12 个星座宠物：zodiac_<key>.png
+- 1 张「全家桶」道具图：zodiac_bundle.png（6 个全家桶档位道具共用同一张）
+风格：品牌色纯色底 + 半透明白圆盘 + 白色中文名 + 底部小字。
+输出：assets/prop-images/
+注意：这两类图都会 base64 内嵌进 cloud/propImages/index.js 的 IMAGES，改图后要重新内嵌
+      并 `tcb fn deploy propImages --path /propImages --force --install-dependency true`。
 """
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -46,7 +50,7 @@ def hex_rgb(h):
     h = h.lstrip("#")
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-def make(key, name, animal, color):
+def make(key, name, animal, color, big_size=64):
     img = Image.new("RGB", (SIZE, SIZE), hex_rgb(color))
     d = ImageDraw.Draw(img)
 
@@ -57,12 +61,12 @@ def make(key, name, animal, color):
     img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     d = ImageDraw.Draw(img)
 
-    # 宠物名（大字）
-    f_big = load_font(64)
+    # 名称（大字）
+    f_big = load_font(big_size)
     bx, by = d.textbbox((0, 0), name, font=f_big)[2:]
     d.text(((SIZE - bx) / 2, 62 - by / 2), name, font=f_big, fill=(255, 255, 255))
 
-    # 动物名（小字）
+    # 副名（小字）
     f_small = load_font(24)
     sx, sy = d.textbbox((0, 0), animal, font=f_small)[2:]
     d.text(((SIZE - sx) / 2, 138 - sy / 2), animal, font=f_small, fill=(255, 255, 255, 235))
@@ -76,6 +80,9 @@ def main():
     for key, name, animal, color in PETS:
         path, size = make(key, name, animal, color)
         print(f"OK  {os.path.basename(path):24s} {size} bytes")
+    # 全家桶道具图：三个字放不下 64px，缩到 54px 保持左右留白与其余 12 张一致
+    path, size = make("bundle", "全家桶", "12 只伙伴", "#E8B54C", big_size=54)
+    print(f"OK  {os.path.basename(path):24s} {size} bytes")
     print(f"\n输出目录: {os.path.abspath(OUT_DIR)}")
 
 if __name__ == "__main__":
