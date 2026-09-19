@@ -53,6 +53,9 @@ const petService = {
   unlock: (petKey) => call('petService', { action: 'unlock', petKey }),
   // 一键解锁全部付费伙伴（仅开发/体验版的演示路径使用，正式版走 payService）
   unlockAll: () => call('petService', { action: 'unlockAll' }),
+  // 已付满封顶价（已拥有 ≥ 6 只）时，把剩余伙伴直接补齐、不再收钱。
+  // 是否够条件是服务端按 user_pets 自行核算的，前端只是发起。
+  claimBundleRemainder: () => call('petService', { action: 'claimBundleRemainder' }),
   setCurrent: (petKey) => call('petService', { action: 'setCurrent', petKey })
 };
 

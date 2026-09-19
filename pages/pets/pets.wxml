@@ -2,7 +2,10 @@
 <view class="page {{showBundle?'has-bundle':''}}">
   <view class="group-title">星座伙伴</view>
 
-  <view class="store-banner card">
+  <!-- 顶部白卡横幅：只承担「价格 + 收集进度」的说明。
+       集齐 12 只后整块隐藏（对齐原型 renderStore：ownedCount===12 时 display:none）——
+       都拥有了，这行「已拥有 12/12」和价目表就没有信息量了。 -->
+  <view wx:if="{{showBanner}}" class="store-banner card">
     <view class="sb-text">
       <view class="t">12 个星座伙伴</view>
       <view class="s">单个 ¥{{singlePrice}} 买断 · 全家桶 12 个 ¥{{bundleTotal}}</view>
@@ -41,14 +44,14 @@
   </view>
 
   <!-- 全家桶悬浮条（对齐原型 #bundle-btn：左下角是「当前要补的差价」，右侧「购买」，整条可点）。
-       只在遇见页且还没集齐时显示；已拥有 6 只以上时补差价已不足一只单价，自动隐藏。 -->
+       只在遇见页且还没集齐时显示；已付满封顶价 ¥36 时不再收钱，文案换成「免费领」。 -->
   <view wx:if="{{showBundle}}" class="bundle-cta"
         hover-class="bundle-cta-hover" hover-stay-time="80"
         bindtap="doBuyBundle">
     <view class="bc-main">
-      <view class="bc-t">全家桶 ¥{{bundlePatch}}</view>
-      <view class="bc-s">一次集齐剩余 {{bundleMissing}} 只星座伙伴</view>
+      <view class="bc-t">{{bundleTitle}}</view>
+      <view class="bc-s">{{bundleSub}}</view>
     </view>
-    <view class="bc-buy">购买</view>
+    <view class="bc-buy">{{bundleBuy}}</view>
   </view>
 </view>

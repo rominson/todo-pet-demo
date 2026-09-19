@@ -38,9 +38,14 @@ Page({
     // 价格与全家桶（对齐原型：banner 副文案写单价与全家桶总价；底部悬浮条显示当前要补的差价）
     singlePrice: SINGLE_PRICE,
     bundleTotal: BUNDLE_PRICE,
-    bundlePatch: BUNDLE_PRICE,   // 当前还需补多少（= 总价 − 已拥有只数 × 单价）
+    bundlePatch: BUNDLE_PRICE,   // 当前还需补多少（= 总价 − 已拥有只数 × 单价）；0 = 已付满封顶价
     bundleMissing: 12,           // 还差几只
-    showBundle: false            // 没有差价空间（已拥有 ≥ 6 只）或已集齐时不显示
+    bundleFree: false,           // true = 已付满封顶价 ¥36，剩余的直接免费补齐、不再收钱
+    bundleTitle: '全家桶',        // 悬浮条主文案（按是否免费补齐切换）
+    bundleSub: '',               // 悬浮条副文案
+    bundleBuy: '购买',            // 右侧药丸文案（购买 / 领取）
+    showBanner: true,            // 顶部「12 个星座伙伴」横幅：集齐后隐藏（对齐原型 renderStore）
+    showBundle: false            // 底部全家桶悬浮条：只要还差伙伴就显示，集齐后隐藏
   },
 
   onShow() {
@@ -96,6 +101,9 @@ Page({
       const ownedPaid = paid.filter((x) => x.owned).length;
       const bundleMissing = paid.length - ownedPaid;
       const bundlePatch = Math.max(0, bundle - ownedPaid * single);
+      // 已付满封顶价（36 − 6×已拥有 ≤ 0，即已拥有 ≥ 6 只）→ 剩下的一次性免费补齐。
+      // 口径是「集齐 12 只最多花 ¥36」，超过了就不该再让用户逐只补票（原型 buyAll 也是补到 0）。
+      const bundleFree = bundleMissing > 0 && bundlePatch <= 0;
 
       this.setData({
         pets,
@@ -106,8 +114,16 @@ Page({
         bundleTotal: bundle,
         bundlePatch,
         bundleMissing,
-        // 补差价补到不足一只单价的量（即已拥有 ≥ 6 只）就没有意义了，入口隐藏
-        showBundle: bundleMissing > 0 && bundlePatch >= single
+        bundleFree,
+        bundleTitle: bundleFree ? '补齐剩余 ' + bundleMissing + ' 只' : '全家桶 ¥' + bundlePatch,
+        bundleSub: bundleFree
+          ? '已付满封顶价 ¥' + bundle + '，剩下的免费领'
+          : '一次集齐剩余 ' + bundleMissing + ' 只星座伙伴',
+        bundleBuy: bundleFree ? '领取' : '购买',
+        // 集齐 12 只后：顶部横幅与底部悬浮条都隐藏（对齐原型：横幅只承担「价格 + 进度」说明，
+        // 全都有了就没有信息量了；此时卡片上每只都是「已拥有/陪伴中」）。
+        showBanner: bundleMissing > 0,
+        showBundle: bundleMissing > 0
       });
       // 卡片间距测量（用于滚动同步圆点 / 点圆点定位），等布局完成后测
       wx.nextTick(() => this.measurePitch());
@@ -182,13 +198,13 @@ Page({
     try {
       const { code } = await this.wxLogin();
       const order = await cloud.payService.createOrder(key, code);
-      if (order.alreadyOwned) {
-        await cloud.petService.unlock(key);
-      } else {
+      // alreadyOwned = 服务端 user_pets 里已经有这条了（重复下单），无需发货也不必再调 unlock，
+      // 直接刷新即可 —— unlock 是演示专用的免费通道，正式版会被 DEMO_UNLOCK 闸门拦下。
+      if (!order.alreadyOwned) {
         await this.realPay(order);
       }
       await this.load();
-      wx.showToast({ title: '解锁成功', icon: 'none' });
+      wx.showToast({ title: order.alreadyOwned ? '它已经是你的伙伴了' : '解锁成功', icon: 'none' });
     } catch (err) {
       // cloud 封装已 toast
     } finally {
@@ -196,13 +212,25 @@ Page({
     }
   },
 
-  // 全家桶：一次买断剩余全部 12 星座伙伴，按已拥有数量补差价（对齐原型 buyAll）。
-  // 无独有差价档位时服务端会拦下来（补到不足一只单价就没必要卖了）。
+  // 全家桶：一次带走剩余全部 12 星座伙伴。
+  //   还差单价以上的钱（已拥有 0~5 只）→ 走 payService 补差价下单（云函数侧再校验一次）；
+  //   已付满封顶价 ¥36（已拥有 ≥ 6 只）→ 不再收钱，交服务端核过条件后直接补齐。
   async doBuyBundle() {
     if (this.buying || !this.data.showBundle) return;
     this.buying = true;
     const missing = this.data.bundleMissing;
     try {
+      // —— 免费补齐：条件由服务端按 user_pets 实算（已拥有只数 × ¥6 ≥ ¥36 才放行）——
+      if (this.data.bundleFree) {
+        wx.showLoading({ title: '补齐中' });
+        const r = await cloud.petService.claimBundleRemainder();
+        await this.load();
+        wx.showToast({
+          title: (r && r.already) ? '12 只伙伴已经都是你的了' : '补齐 ' + missing + ' 只，全家桶集齐',
+          icon: 'none'
+        });
+        return;
+      }
       if (DEV_DEMO) {
         wx.showLoading({ title: '解锁中' });
         await cloud.petService.unlockAll();
