@@ -30,10 +30,11 @@
    原型用的是 `-webkit-text-stroke:1.5px #fff` + `paint-order:stroke fill`（描边压在填充之下，
    等效于向字外扩 0.75px）。小程序不支持 `paint-order`，直接用 text-stroke 会把字心吃掉一半，
    所以改用 12 方向零模糊 text-shadow 模拟同样的「字在描边之上」效果。
-   不要再用带模糊半径的阴影（0 0 Nrpx #fff）——那是白色光晕，边缘发虚，不是描边。 */
+   不要再用带模糊半径的阴影（0 0 Nrpx #fff）——那是白色光晕，边缘发虚，不是描边。
+   字色用 --ink-2 而非原型的 --ink-3：#B8B2A8 压在棕黄头像上几乎没有对比，光是描边救不回来。 */
 .num {
   position: absolute; top: 6rpx; right: 10rpx; z-index: 4;
-  font-size: 20rpx; color: var(--ink-3);
+  font-size: 20rpx; color: var(--ink-2);
   text-shadow:
     4rpx 0 0 #fff, -4rpx 0 0 #fff, 0 4rpx 0 #fff, 0 -4rpx 0 #fff,
     3rpx 3rpx 0 #fff, -3rpx 3rpx 0 #fff, 3rpx -3rpx 0 #fff, -3rpx -3rpx 0 #fff,
