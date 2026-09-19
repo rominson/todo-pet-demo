@@ -424,10 +424,6 @@ Page({
     wx.navigateTo({ url: '/pages/mine/mine' });
   },
 
-  goProfile() {
-    wx.navigateTo({ url: '/pages/mine/mine' });
-  },
-
   onRemove(e) {
     const id = e.currentTarget.dataset.id;
     this.setData({ openId: '' });

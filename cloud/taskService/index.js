@@ -38,6 +38,39 @@ function nextDateStr(repeat, base) {
   return `${b.getUTCFullYear()}-${pad(b.getUTCMonth() + 1)}-${pad(b.getUTCDate())}`;
 }
 
+/* —— 首次进入放一条引导待办（一般待办 App 都会有的那条「介绍」）——
+   幂等保证：
+   · users.intro_seeded 为真 → 永不再放（用户自己删掉后也不会突然冒回来）；
+   · 列表里已经有任务 → 只打标记、不打扰（老用户不会平白多一条）。
+   没有 users 记录时（全新用户）顺带建出来，petService.getMine 要读它的 current_pet。 */
+const INTRO_TITLE = '欢迎来毛茸清单 · 点圆圈完成，左滑删除';
+async function ensureIntroTask() {
+  const u = await db.collection('users').where({ openid: OPENID }).get();
+  const doc = u.data[0];
+  if (doc && doc.intro_seeded) return;
+  const cnt = await tasks.where({ openid: OPENID }).count();
+  if (cnt.total > 0) {
+    if (doc) await db.collection('users').doc(doc._id).update({ data: { intro_seeded: true } });
+    return;
+  }
+  await tasks.add({
+    data: {
+      openid: OPENID, title: INTRO_TITLE, tag: '', due: '', note: '', type: 'normal',
+      repeat: 'none', important: false, done: false, done_at: null, gen_id: null,
+      created_at: new Date(), updated_at: new Date()
+    }
+  });
+  if (doc) await db.collection('users').doc(doc._id).update({ data: { intro_seeded: true } });
+  else {
+    await db.collection('users').add({
+      data: {
+        openid: OPENID, owned_pets: ['orange'], current_pet: 'orange',
+        intro_seeded: true, created_at: new Date()
+      }
+    });
+  }
+}
+
   switch (action) {
     case 'create': {
       const { title, tag = '', due = '', note = '', type = 'normal', important = false, repeat = 'none' } = event;
@@ -58,6 +91,7 @@ function nextDateStr(repeat, base) {
       return { ok: true, id: res._id };
     }
     case 'list': {
+      await ensureIntroTask();
       const res = await tasks
         .where({ openid: OPENID })
         .orderBy('done', 'asc')

@@ -2,7 +2,6 @@
 <view class="page" bindtap="hideArchive">
   <!-- 主卡：问候 / 宠物 / 进度 / 统计（对齐原型 companion-card） -->
   <view class="card hero face-{{petFace}}">
-    <view class="gear" bindtap="goProfile">⚙︎</view>
     <view class="greet-block">
       <view class="greet">{{greetWord}}</view>
       <view class="date">{{todayText}}</view>
@@ -11,7 +10,11 @@
       <view class="pet-clip" catchtap="toggleArchive">
         <image class="pet-img" style="{{petStyle}}" src="{{petErr ? pet.read : (pet.anim || pet.read)}}" mode="aspectFit" binderror="onPetErr" />
       </view>
-      <view wx:if="{{greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{greeting}}</view>
+      <!-- 对话气泡：宠物旁边那块特意空出来的位置。
+           开屏问候（greeting）与完成/里程碑反馈（bubble）共用这一处；
+           bubble 优先 —— 用户刚做的动作要盖过开屏那句话。
+           原型也是同一个 .pet-bubble（没有页面底部的浮动条）。 -->
+      <view wx:if="{{bubble || greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{bubble || greeting}}</view>
       <view class="pet-archive-pop {{archiveShow?'show':''}}" catchtap="openArchive">档案</view>
     </view>
 
@@ -70,9 +73,6 @@
 
 <!-- 悬浮新建按钮 -->
 <view class="fab" bindtap="showAdd">＋</view>
-
-<!-- 完成/陪伴气泡 -->
-<view wx:if="{{bubble}}" class="float-bubble">{{bubble}}</view>
 
 <!-- 新建任务弹层 -->
 <view wx:if="{{showAdd}}" class="modal-mask" bindtap="hideAdd">

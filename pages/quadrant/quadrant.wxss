@@ -1,8 +1,18 @@
 /* pages/quadrant/quadrant.wxss —— 四象限
    卡片/行样式对齐原型 .quad-cell / .quad-task：白卡 + 顶部彩色描边 + 虚线分隔的行，
    行首一个小圆圈（点掉即完成），左滑露出「删除」。 */
-.page { padding: 24rpx 28rpx 220rpx; }
-.head { display: flex; justify-content: space-between; align-items: center; }
+/* 四张卡片撑满标题以下的剩余高度（对齐原型 .quad-grid 的 grid-template-rows:1fr 1fr 四等分）：
+   .page 锁死在视口里、变成 flex 列 → .grid 吃掉剩余空间 → 上下两行再平分 → 四卡一样大。
+   卡片内部任务多了在 .q-list 里自己滚，页面本身不滚（原型 .quad-list{flex:1;overflow-y:auto}）。
+   底部留出的是自定义 tabBar 的高度（它 fixed 覆盖在页面上）。 */
+.page {
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx 28rpx calc(176rpx + env(safe-area-inset-bottom));
+}
+.head { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .title { font-family: var(--serif); font-size: 44rpx; font-weight: 600; }
 .filters { display: flex; gap: 14rpx; }
 .chip {
@@ -13,9 +23,19 @@
   padding: 10rpx 26rpx;
 }
 .chip.on { background: var(--accent); color: #fff; }
-.total { color: var(--ink-2); font-size: 24rpx; margin: 12rpx 8rpx 20rpx; }
+.total { color: var(--ink-2); font-size: 24rpx; margin: 12rpx 8rpx 20rpx; flex-shrink: 0; }
 
-.grid { display: flex; flex-wrap: wrap; gap: 20rpx; }
+.grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  /* 关键两点：align-content 让上下两行平分容器高度；align-items 让同一行两张卡等高。
+     原来只写了 display:flex;flex-wrap，卡片高度各随内容，于是四张大小不一。 */
+  align-content: stretch;
+  align-items: stretch;
+}
 .quad {
   width: calc(50% - 10rpx);
   box-sizing: border-box;
@@ -23,15 +43,19 @@
   border-radius: 31rpx;
   border-top: 6rpx solid var(--quad-c, #C9C2B6);
   padding: 25rpx 25rpx 17rpx;
-  min-height: 280rpx;
   box-shadow: var(--shadow);
+  /* 卡内自成滚动容器：标题固定，任务列表滚动（原来有 min-height:280rpx，会撑破自由拉伸） */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 .quad.iu { --quad-c: #E4695B; }
 .quad.in { --quad-c: var(--accent); }
 .quad.nu { --quad-c: #5B8DEF; }
 .quad.nn { --quad-c: #B9B3A8; }
 
-.q-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12rpx; }
+.q-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12rpx; flex-shrink: 0; }
 .q-titles { min-width: 0; }
 .q-title { font-size: 26rpx; font-weight: 800; color: var(--ink); }
 .q-sub { font-size: 20rpx; color: var(--ink-2); margin-top: 4rpx; }
@@ -45,7 +69,15 @@
   flex-shrink: 0;
 }
 
-.q-list { display: flex; flex-direction: column; }
+/* 任务列表：吃掉卡片剩余高度，超出时只有这一块滚（原型 .quad-list{flex:1;min-height:0;overflow-y:auto}） */
+.q-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
 
 /* 左滑：外层裁剪，内层让位给「删除」。象限卡片窄，按钮收窄一些。 */
 .q-list .task-swipe { border-bottom: 2rpx dashed rgba(0, 0, 0, 0.06); }
