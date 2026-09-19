@@ -14,6 +14,27 @@ const FREQS = [
 ];
 const UNITS = [{ v: 'd', t: '天' }, { v: 'w', t: '周' }, { v: 'm', t: '月' }];
 
+// 四个象限的固定定义（顺序同原型 QUADS：iu → in → nu → nn）
+const QUADS = [
+  { key: 'iu', title: '重要 · 紧急', sub: '马上做', hint: '又急又重要，优先搞定' },
+  { key: 'in', title: '重要 · 不紧急', sub: '计划做', hint: '重要但还没到提醒时间，安排进日程' },
+  { key: 'nu', title: '不重要 · 紧急', sub: '快速处理', hint: '急但不重要，顺手快速清掉' },
+  { key: 'nn', title: '不重要 · 不紧急', sub: '有空再说', hint: '不着急也不重要，别让它们堆积' }
+];
+
+// 拍成「两行 × 两列」再交给 wxml：外层每个 .qrow 是 flex:1（拿到容器一半高度），行内两张卡再各 flex:1。
+// 卡片高度只由这条布局链决定、与任务条数无关 —— 某个象限塞满也只在卡内自己滚。
+// ⚠️ 不能用 flex-wrap + align-content:stretch 代替：flex 的行只会被撑大、不会被压小，
+//    任务多的那一行会变高并把另一行挤扁（实测就是这样，用户已反馈）。
+function toRows(cells) {
+  return [
+    { idx: 0, cells: cells.slice(0, 2) },
+    { idx: 1, cells: cells.slice(2, 4) }
+  ];
+}
+
+const EMPTY_CELLS = QUADS.map((q) => Object.assign({}, q, { items: [], open: 0 }));
+
 function pad(n) { return String(n).padStart(2, '0'); }
 
 // 相对日期（原型 relDate）：今天留空、明天/后天用文字、更远显示 MM-DD
@@ -36,12 +57,8 @@ Page({
     form: Object.assign({}, EMPTY_FORM),
     freqs: FREQS,
     units: UNITS,
-    quads: [
-      { key: 'iu', title: '重要 · 紧急', sub: '马上做', hint: '又急又重要，优先搞定', items: [] },
-      { key: 'in', title: '重要 · 不紧急', sub: '计划做', hint: '重要但还没到提醒时间，安排进日程', items: [] },
-      { key: 'nu', title: '不重要 · 紧急', sub: '快速处理', hint: '急但不重要，顺手快速清掉', items: [] },
-      { key: 'nn', title: '不重要 · 不紧急', sub: '有空再说', hint: '不着急也不重要，别让它们堆积', items: [] }
-    ]
+    // 两行两列（见 toRows 的注释）：wxml 遍历 quadRows，每行一个 .qrow
+    quadRows: toRows(EMPTY_CELLS)
   },
 
   onShow() {
@@ -89,11 +106,11 @@ Page({
         future: !t.done && !!t.due && t.due > today
       });
     });
-    const quads = this.data.quads.map((q) => {
+    const cells = QUADS.map((q) => {
       const items = buckets[q.key];
       return { ...q, items, open: items.filter((x) => !x.done).length };
     });
-    this.setData({ quads, total: shown.length });
+    this.setData({ quadRows: toRows(cells), total: shown.length });
   },
 
   setFilter(e) {

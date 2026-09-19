@@ -12,7 +12,10 @@
   <view class="total">{{total}} 项</view>
 
   <view class="grid">
-    <view wx:for="{{quads}}" wx:key="key" class="quad {{item.key}}">
+    <!-- 两行两列：外层 .qrow（flex:1）把高度五五分，行内两张卡各 flex:1 → 四张卡永远等高。
+         任务再多也只在卡内滚动，不会把别的卡挤变形。 -->
+    <view class="qrow" wx:for="{{quadRows}}" wx:for-item="row" wx:key="idx">
+    <view wx:for="{{row.cells}}" wx:key="key" class="quad {{item.key}}">
       <view class="q-head">
         <view class="q-titles">
           <view class="q-title">{{item.title}}</view>
@@ -21,7 +24,7 @@
         <view class="q-count">{{item.open}}</view>
       </view>
 
-      <view class="q-list">
+      <scroll-view scroll-y class="q-list">
         <view wx:for="{{item.items}}" wx:for-item="t" wx:key="_id"
               class="task-swipe {{openId===t._id?'open':''}}"
               data-id="{{t._id}}"
@@ -42,7 +45,8 @@
           </view>
         </view>
         <view wx:if="{{item.items.length===0}}" class="q-empty">{{item.hint}}</view>
-      </view>
+      </scroll-view>
+    </view>
     </view>
   </view>
 </view>
