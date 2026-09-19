@@ -26,11 +26,18 @@
 .cal-cell.empty { background: transparent; box-shadow: none; }
 .cal-cell.today, .cal-cell.selected { outline: 3rpx solid var(--accent); outline-offset: -3rpx; }
 
-/* 日期数字：右上角小号（对齐原型 .cal-cell .num），白色描边保证压到头像上也能看清 */
+/* 日期数字：右上角小号（对齐原型 .cal-cell .num），白色描边保证压到头像上也能看清。
+   原型用的是 `-webkit-text-stroke:1.5px #fff` + `paint-order:stroke fill`（描边压在填充之下，
+   等效于向字外扩 0.75px）。小程序不支持 `paint-order`，直接用 text-stroke 会把字心吃掉一半，
+   所以改用 12 方向零模糊 text-shadow 模拟同样的「字在描边之上」效果。
+   不要再用带模糊半径的阴影（0 0 Nrpx #fff）——那是白色光晕，边缘发虚，不是描边。 */
 .num {
   position: absolute; top: 6rpx; right: 10rpx; z-index: 4;
   font-size: 20rpx; color: var(--ink-3);
-  text-shadow: 0 0 3rpx #fff, 0 0 6rpx #fff, 0 0 9rpx #fff;
+  text-shadow:
+    4rpx 0 0 #fff, -4rpx 0 0 #fff, 0 4rpx 0 #fff, 0 -4rpx 0 #fff,
+    3rpx 3rpx 0 #fff, -3rpx 3rpx 0 #fff, 3rpx -3rpx 0 #fff, -3rpx -3rpx 0 #fff,
+    2rpx 2rpx 0 #fff, -2rpx 2rpx 0 #fff, 2rpx -2rpx 0 #fff, -2rpx -2rpx 0 #fff;
 }
 
 /* 足迹头像堆：整块绝对定位 + overflow 裁剪，每个头像用内联 style 定 left/top/rotate。
