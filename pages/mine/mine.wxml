@@ -11,7 +11,7 @@
   <!-- 头像：对应当前宠物的「看书」动图（原型 renderPets：#pet-profile-avatar 用 SCENES[cur].read） -->
   <view class="prof-head">
     <view class="prof-avatar">
-      <image class="prof-video" src="{{petAnim}}" mode="aspectFit" />
+      <image class="prof-video" src="{{petErr ? petFallback : petAnim}}" mode="aspectFit" binderror="onPetErr" />
     </view>
     <view class="prof-name">{{pet.name}}</view>
     <view class="prof-desc">你的 AI 智能伙伴 —— 它记得你完成过的每件事</view>

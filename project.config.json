@@ -50,7 +50,10 @@
       { "type": "file", "value": ".gitignore" },
       { "type": "file", "value": ".gitattributes" },
       { "type": "file", "value": "cloudbaserc.json" },
-      { "type": "file", "value": "project.private.config.json" }
+      { "type": "file", "value": "project.private.config.json" },
+      { "type": "suffix", "value": "-scene.png" },
+      { "type": "file", "value": "assets/pets/orange-anim.gif" },
+      { "type": "folder", "value": "assets/prop-images" }
     ],
     "include": []
   },

@@ -31,6 +31,7 @@ Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', read: '/assets/pets/orange-read.png', color: '#ff8a3d' },
     petFace: 'right',
+    petErr: false, // CDN 动图拉不到时置真 → 回落本地静态「看书图」
     petStyle: 'left:-119rpx',
     greetWord: greetingWord(),
     todayText: '',
@@ -115,6 +116,7 @@ Page({
       this.setData({
         pet: { name: pet.name, emoji: pet.emoji, img: pet.img, read: pet.read, anim: pet.anim, color: pet.color },
         petFace: pet.face || 'right',
+        petErr: false,
         // 宠物贴住卡片边缘（脸朝右贴左、脸朝左贴右），另一侧整块留给对话气泡
         petStyle: petEdgeStyle(mineRes.current || 'orange', pet.face || 'right'),
         todayText: this.buildTodayText(),
@@ -303,6 +305,11 @@ Page({
       // 已完成的行同样支持左滑删除（用户要求：已完成的也能滑、也能删）
       this.setData({ openId: id });
     }
+  },
+
+  // 宠物动图在 CDN，加载失败就回落到本地静态「看书图」，避免主卡空着
+  onPetErr() {
+    if (!this.data.petErr) this.setData({ petErr: true });
   },
 
   // 点头像：弹出 / 收起「档案」小按钮（对齐原型 toggleArchive）

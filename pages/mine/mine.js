@@ -14,7 +14,9 @@ const MILESTONES = [7, 100];
 Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', color: '#ff8a3d' },
-    petAnim: '/assets/pets/orange-anim.gif',
+    petAnim: getPet('orange').anim,          // 动图在云存储 CDN
+    petFallback: getPet('orange').read,      // CDN 拉不到时回落的本地静态图
+    petErr: false,
     companionDays: 1,
     doneTotal: 0,
     focusHours: 0,
@@ -95,8 +97,10 @@ Page({
 
       this.setData({
         pet: { name: pet.name, emoji: pet.emoji, color: pet.color },
-        // 原型档案头像 = 当前宠物的「看书」动图
+        // 原型档案头像 = 当前宠物的「看书」动图（CDN）；拉不到时回落本地静态图
         petAnim: anims.read || pet.anim || pet.read,
+        petFallback: pet.read,
+        petErr: false,
         companionDays,
         doneTotal,
         focusHours: Math.round(mins / 60),
@@ -105,6 +109,11 @@ Page({
         summaryText: `${pet.name}已经陪你 ${companionDays} 天，一起搞定了 ${doneTotal} 件待办。`
       });
     } catch (e) {}
+  },
+
+  // 头像动图在 CDN，网络异常时回落到本地静态「看书图」，避免头像空着
+  onPetErr() {
+    if (!this.data.petErr) this.setData({ petErr: true });
   },
 
   // 左上角返回（原「关掉档案」；按钮从右上角挪到左上角，避开微信胶囊）

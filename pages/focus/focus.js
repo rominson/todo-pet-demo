@@ -12,6 +12,7 @@ function fmt(s) {
 Page({
   data: {
     pet: { name: '橘小满', emoji: '🐱', read: '/assets/pets/orange-read.png', color: '#ff8a3d' },
+    petFallback: '/assets/pets/orange-read.png', // 动图在 CDN，拉不到就回落本地静态图
     mode: 'focus', // focus / meditate
     running: false,
     left: 25 * 60,
@@ -31,10 +32,17 @@ Page({
     this.anims = petAnims(key) || {};
     this.setData({
       pet: { name: pet.name, emoji: pet.emoji, read: pet.anim || pet.read, color: pet.color },
+      petFallback: pet.read,
       // 日常态：看书动画（对齐原型 liveScene='' → read）
       sceneSrc: this.anims.read || pet.anim || pet.read,
       sceneLive: false
     });
+  },
+
+  // 场景动图在 CDN，加载失败就回落本地静态「看书图」（每次换场景允许重试）
+  onPetErr() {
+    const fb = this.data.petFallback;
+    if (fb && this.data.sceneSrc !== fb) this.setData({ sceneSrc: fb });
   },
 
   // 自定义 tabBar：每个 tab 页各有一个组件实例，选中态要在 onShow 里同步

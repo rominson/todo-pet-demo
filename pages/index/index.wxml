@@ -9,7 +9,7 @@
     </view>
     <view class="pet-card">
       <view class="pet-clip" catchtap="toggleArchive">
-        <image class="pet-img" style="{{petStyle}}" src="{{pet.anim || pet.read}}" mode="aspectFit" />
+        <image class="pet-img" style="{{petStyle}}" src="{{petErr ? pet.read : (pet.anim || pet.read)}}" mode="aspectFit" binderror="onPetErr" />
       </view>
       <view wx:if="{{greeting}}" class="pet-bubble {{petFace==='left'?'bl':'br'}}">{{greeting}}</view>
       <view class="pet-archive-pop {{archiveShow?'show':''}}" catchtap="openArchive">档案</view>
