@@ -64,7 +64,10 @@ const payService = {
   // 全家桶：一次买断剩余全部 12 星座伙伴（按已拥有数量自动补差价）
   createOrderBundle: (code) => call('payService', { action: 'createOrder', bundle: true, code }),
   confirmPay: (orderId, wxOrderId) => call('payService', { action: 'confirmPay', orderId, wxOrderId }),
-  queryOrder: (orderId) => call('payService', { action: 'query', orderId })
+  queryOrder: (orderId) => call('payService', { action: 'query', orderId }),
+  // 订单中心页用：查自己的全部订单明细。silent —— 失败由页面显式给「重新加载」，
+  // 不再叠一层 toast（该页可能被订单中心 path 直接打开，要自己负责错误展示）
+  listOrders: (limit) => call('payService', { action: 'listOrders', limit }, { silent: true })
 };
 
 // AI 对话：传入 messages 数组（[{role, content}]），返回 { ok, text }

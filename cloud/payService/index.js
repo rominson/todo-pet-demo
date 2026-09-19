@@ -100,6 +100,14 @@ function isPaid(resp) {
   return d.state === 'PAID' || d.pay_state === 2 || d.paid === true || d.order_state === 'PAID';
 }
 
+// 时间戳格式化（固定 +8h 北京时间）：订单中心页要照原样展示，在服务端固化，避免端上时区差异
+function fmtCN(d) {
+  if (!d) return '';
+  const t = new Date(new Date(d).getTime() + 8 * 3600 * 1000);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${t.getUTCFullYear()}-${p(t.getUTCMonth() + 1)}-${p(t.getUTCDate())} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`;
+}
+
 // 发货（幂等）：订单里该给哪些伙伴就写哪些。单只订单发货键 = pet_key；
 // 全家桶订单在 createOrder 时就把「要解锁的清单」固化进 grant_keys，
 // 所以这里（以及 payNotify）都不需要再读宠物目录，少一处会漂移的耦合。
@@ -284,6 +292,38 @@ exports.main = async (event) => {
         return { ok: true, paid: true, petKey: o.pet_key, bundle: !!o.bundle };
       }
       return { ok: true, paid: false, order: o };
+    }
+
+    case 'listOrders': {
+      // 订单中心页用（提交审核时登记的 path 就是这个页面）：
+      // 只查服务端 OPENID 自己的订单，前端传任何参数都改不了这一点。
+      const limit = Math.min(Math.max(Number(event.limit) || 50, 1), 100);
+      const res = await db.collection('orders')
+        .where({ openid: OPENID })
+        .orderBy('created_at', 'desc')
+        .limit(limit)
+        .get();
+
+      const list = (res.data || []).map((o) => {
+        const pet = PET_CATALOG.find((p) => p.key === o.pet_key);
+        const isBundle = !!o.bundle || o.pet_key === '__bundle__';
+        const count = Array.isArray(o.grant_keys) ? o.grant_keys.length : 0;
+        const paid = o.status === 'paid';
+        return {
+          orderId: o.order_id,
+          title: isBundle ? '星座全家桶' : (pet ? pet.name : '星座伙伴'),
+          desc: isBundle
+            ? `一次补齐 ${count} 位伙伴（下单时已拥有 ${o.bundle_owned || 0} 位）`
+            : '星座伙伴 · 买断解锁',
+          amountYuan: ((o.amount || 0) / 100).toFixed(2),
+          status: paid ? 'paid' : 'unpaid',
+          statusText: paid ? '已支付' : '待支付',
+          createdAt: fmtCN(o.created_at),
+          paidAt: o.paid_at ? fmtCN(o.paid_at) : ''
+        };
+      });
+
+      return { ok: true, list, total: list.length };
     }
 
     default:

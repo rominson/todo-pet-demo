@@ -1,0 +1,51 @@
+<!-- pages/orders/orders.wxml —— 订单中心页（提交审核时登记的「小程序订单中心 path」指向本页）
+     平台规范（微信《关于小程序订单中心页设置的公告》）：
+       ① 主 path（不带参数）直接进入本页就要能看全，不自动跳首页、不白屏；
+       ② 页面需展示小程序内所有涉及资金交易的订单明细；
+       ③ 无登录态要引导登录 —— 本项目是 openid 静默身份（打开即有），故天然满足。
+     数据全部来自 payService.listOrders（服务端按 openid 查），页面不依赖任何跳转参数。 -->
+<view class="page">
+
+  <view class="hd">
+    <view class="hd-title">我的订单</view>
+    <view class="hd-sub">在毛茸清单的全部购买记录</view>
+  </view>
+
+  <!-- 加载中（不白屏） -->
+  <view wx:if="{{loading}}" class="card state">
+    <view class="state-t">正在加载订单…</view>
+  </view>
+
+  <!-- 加载失败：留在本页给重试，不跳首页 -->
+  <view wx:elif="{{err}}" class="card state">
+    <view class="state-t">订单加载失败</view>
+    <view class="state-s">{{errMsg}}</view>
+    <view class="btn" bindtap="load">重新加载</view>
+  </view>
+
+  <!-- 空态 -->
+  <view wx:elif="{{orders.length === 0}}" class="card state">
+    <view class="state-t">还没有订单</view>
+    <view class="state-s">去「遇见」看看星座伙伴，解锁之后这里会留下购买记录。</view>
+    <view class="btn" bindtap="goPets">去遇见页</view>
+  </view>
+
+  <block wx:else>
+    <view class="sum">共 {{orders.length}} 笔 · 已支付合计 ¥{{totalYuan}}</view>
+
+    <view wx:for="{{orders}}" wx:key="orderId" class="card od">
+      <view class="od-top">
+        <view class="od-title">{{item.title}}</view>
+        <view class="od-amt">¥{{item.amountYuan}}</view>
+      </view>
+      <view class="od-desc">{{item.desc}}</view>
+      <view class="od-bot">
+        <text class="od-time">{{item.paidAt || item.createdAt}}</text>
+        <text class="od-status {{item.status}}">{{item.statusText}}</text>
+      </view>
+      <view class="od-id" bindtap="copyId" data-id="{{item.orderId}}">订单号 {{item.orderId}}</view>
+    </view>
+  </block>
+
+  <view class="foot">这里显示你的全部订单，按时间从新到旧排列。</view>
+</view>

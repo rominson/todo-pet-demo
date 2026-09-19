@@ -5,7 +5,8 @@
     "pages/quadrant/quadrant",
     "pages/calendar/calendar",
     "pages/pets/pets",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/orders/orders"
   ],
   "window": {
     "navigationBarTitleText": "毛茸清单",

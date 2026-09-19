@@ -35,7 +35,8 @@ App({
     });
 
     // 匿名登录，拿到 openid（云函数/数据库写入需要）
-    this.ensureLogin();
+    // 存成 promise：订单中心页可能被 path 直接打开，需要先等它完成再查库
+    this.loginPromise = this.ensureLogin();
   },
 
   // 匿名登录：调 auth 云函数，由后端通过 getWXContext 返回 openid 并落库 users

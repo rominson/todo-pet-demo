@@ -122,3 +122,14 @@ page { background: #FFFFFF; }
   border-bottom-color: transparent;
 }
 .empty { text-align: center; color: var(--ink-3); padding: 44rpx 0; font-size: 25rpx; }
+
+/* 「我的订单」入口（订单中心页的站内入口） */
+.link-card { display: flex; align-items: center; gap: 14rpx; padding: 28rpx 31rpx; }
+.link-txt { font-size: 27rpx; font-weight: 700; color: var(--ink); flex: none; }
+.link-sub { font-size: 22rpx; color: var(--ink-3); flex: 1; }
+.link-chev {
+  width: 15rpx; height: 15rpx; flex: none; margin-right: 6rpx;
+  border-right: 3rpx solid var(--ink-3);
+  border-top: 3rpx solid var(--ink-3);
+  transform: rotate(45deg);
+}
