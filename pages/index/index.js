@@ -32,7 +32,7 @@ Page({
     pet: { name: '橘小满', emoji: '🐱', img: '/assets/pets/orange.png', read: '/assets/pets/orange-read.png', color: '#ff8a3d' },
     petFace: 'right',
     petErr: false, // CDN 动图拉不到时置真 → 回落本地静态「看书图」
-    petStyle: 'left:-119rpx',
+    petStyle: 'left:-140rpx',
     greetWord: greetingWord(),
     todayText: '',
     tasks: [],

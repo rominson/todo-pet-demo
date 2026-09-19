@@ -11,7 +11,14 @@
 // 云存储 CDN（权限「所有用户可读」→ 无签名永久链接可直接作 <image> src，image 组件不受域名白名单限制）
 //   anim/  —— 53 段动图 pets/anim/<pet>-<pose>.gif，pose=laptop/frame/read/stand/coffee
 //             + 橘小满 4 段（read=看书 / laptop=敲键盘 / frame=看日落 / coffee=喝咖啡，均已做帧间优化）
+//             橘小满 orange-read.gif 为 482×340（2 倍分辨率，书名压在 GIF 上会糊，见下方说明）
 //   scene/ —— 13 张遇见页场景图 pets/scene/<pet>-scene.png（480×480，带背景）
+//
+// ⚠️ 2026-09-19 修正：libra(天秤=天鹅) 与 aquarius(水瓶=鸭嘴兽) 的素材曾**整组装反**。
+//    判据（唯一权威）：原型 prototype/index.html 内嵌图的变量名 —— #68-71 = SCENE_SWAN_*、
+//    #88-91 = SCENE_PLATYPUS_*，而 #8/#12 的 alt 也写明「天鹅/鸭嘴兽」。
+//    已交换本地 assets/pets/{libra,aquarius}*.png 与 CDN anim/、scene/ 下的同名文件。
+//    今后核对素材一律看原型 alt / 变量名，**不要靠画风猜**；PET_SHIFT 需同步重扫。
 const CDN_ROOT = 'https://636c-cloud1-d4gck1kjyb8ca2456-1461749586.tcb.qcloud.la/pets/';
 const ANIM_CDN = CDN_ROOT + 'anim/';
 const SCENE_CDN = CDN_ROOT + 'scene/';
@@ -64,15 +71,17 @@ function zodiacOf(m, d) {
 // —— 今日页「贴边偏移」——
 // 动图素材四周带白边，且每只宠物的本体在画布里的横向位置都不同（留白 20%~36%）。
 // 今日页要让宠物尽量贴住卡片边缘、把另一侧整块留给对话气泡，
-// 所以按展示框 540×330rpx + aspectFit 反算出「把左侧白边推出画框」所需的位移量。
-// 算法：scale=min(540/W,330/H)；图中留白=pictureLeft + bboxLeft*scale；位移=留白-10rpx（留 10rpx 呼吸）。
-// 数值由 scripts/regen_gif.py 同款 bbox 扫描实测得出，换素材后需重测。
+// 所以按展示框 622×380rpx（= .pet-img 的尺寸）+ aspectFit 反算出「把白边推出画框」的位移量。
+// 算法：scale = min(622/W, 380/H)；base = (622 − W·scale)/2
+//   l（贴左）= base + bboxLeft·scale − 10      r（贴右）= base + (W−bboxRight)·scale − 10
+// 数值由 scripts/scan_pet_shift.py 对 CDN 上的真实动图逐帧扫「非白 bbox」实测得出；
+// **换素材、改 .pet-img 尺寸后必须重跑**，否则贴边会错位（2026-09-19 发现旧表的 r 值系统性偏大 ~22rpx，已一并修正）。
 const PET_SHIFT = {
-  orange: { l: 119, r: 141 }, aries: { l: 137, r: 145 }, taurus: { l: 179, r: 199 },
-  gemini: { l: 164, r: 114 }, cancer: { l: 171, r: 118 }, leo: { l: 167, r: 180 },
-  virgo: { l: 152, r: 168 }, libra: { l: 117, r: 153 }, scorpio: { l: 160, r: 110 },
-  sagittarius: { l: 140, r: 133 }, capricorn: { l: 148, r: 164 }, aquarius: { l: 144, r: 184 },
-  pisces: { l: 179, r: 207 }
+  orange: { l: 140, r: 139 }, aries: { l: 157, r: 141 }, taurus: { l: 205, r: 203 },
+  gemini: { l: 188, r: 106 }, cancer: { l: 197, r: 112 }, leo: { l: 192, r: 181 },
+  virgo: { l: 174, r: 170 }, libra: { l: 165, r: 190 }, scorpio: { l: 185, r: 97 },
+  sagittarius: { l: 161, r: 132 }, capricorn: { l: 172, r: 163 }, aquarius: { l: 134, r: 150 },
+  pisces: { l: 208, r: 212 }
 };
 // face='right'（宠物朝右）→ 宠物贴左边；face='left' → 宠物贴右边。
 // 素材左右留白不对称，贴左/贴右是两个不同的位移量（l / r），不能混用。

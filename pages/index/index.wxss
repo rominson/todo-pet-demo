@@ -41,7 +41,7 @@
    用左右负 margin 抵掉卡片的 40rpx 内边距，让宠物能真正贴到卡片边。 */
 .pet-card {
   position: relative;
-  height: 330rpx;
+  height: 380rpx;
   padding: 0;
   margin: 16rpx -40rpx 20rpx;
 }
@@ -56,12 +56,14 @@
   overflow: hidden;
 }
 /* 宠物展示位：原型运行时是 280×170 的大动画（pet-video-wrap 实测值），
-   不是 CSS 里那个 88px 小 stage——大图才有 HTML 原型的视觉比例。 */
+   不是 CSS 里那个 88px 小 stage——大图才有 HTML 原型的视觉比例。
+   2026-09-19 放大 15%（540×330 → 622×380）：宠物看书时书封面的书名太小看不清。
+   ⚠️ 改这两个数值必须同步重跑 scripts/scan_pet_shift.py 更新 utils/pets.js 的 PET_SHIFT。 */
 .pet-img {
   position: absolute;
   top: 0;
-  width: 540rpx;
-  height: 330rpx;
+  width: 622rpx;
+  height: 380rpx;
   z-index: 1;
 }
 /* 具体贴左还是贴右、推多少，由 utils/pets.js 的 petEdgeStyle 按素材白边算出（内联 style） */
@@ -69,8 +71,8 @@
 
 /* 「档案」小按钮落点：浮在宠物头部那一侧
    （脸朝右→宠物贴左，按钮在宠物右侧；脸朝左→宠物贴右，按钮在左侧） */
-.hero.face-right .pet-archive-pop { left: 300rpx; }
-.hero.face-left .pet-archive-pop { right: 300rpx; }
+.hero.face-right .pet-archive-pop { left: 345rpx; }
+.hero.face-left .pet-archive-pop { right: 345rpx; }
 
 /* 对话气泡：宠物在左时气泡在右（br），宠物在右时气泡在左（bl） */
 .pet-bubble {
@@ -90,7 +92,9 @@
 .pet-bubble.br {
   left: auto;
   right: 40rpx;
-  max-width: 350rpx;
+  /* 310rpx 是宠物放大到 622rpx 后、脸朝左那批（贴右）的最宽一只（天蝎 318rpx）留出的余量：
+     40 + 310 = 350 < 宠物左边缘 364rpx，不重叠。改 .pet-img 尺寸时要重算。 */
+  max-width: 310rpx;
   transform: translateY(-50%);
 }
 .pet-bubble.br::after {
@@ -107,7 +111,7 @@
 }
 .pet-bubble.bl {
   left: 40rpx;
-  max-width: 350rpx;
+  max-width: 310rpx;
   transform: translateY(-50%);
 }
 .pet-bubble.bl::after {
