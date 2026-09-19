@@ -49,7 +49,8 @@
       { "type": "suffix", "value": ".DS_Store" },
       { "type": "file", "value": ".gitignore" },
       { "type": "file", "value": ".gitattributes" },
-      { "type": "file", "value": "cloudbaserc.json" }
+      { "type": "file", "value": "cloudbaserc.json" },
+      { "type": "file", "value": "project.private.config.json" }
     ],
     "include": []
   },
