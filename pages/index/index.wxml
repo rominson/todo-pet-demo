@@ -44,7 +44,8 @@
     <view class="list-head">今天 · {{doneToday}}/{{totalToday}} 完成</view>
     <view class="task-list">
       <view wx:for="{{tasks}}" wx:key="_id"
-            class="task-swipe {{openId===item._id?'open':''}}"
+            class="task-swipe {{openId===item._id?'open':''}} {{item._fly?'fly':''}}"
+            style="{{item._st}}"
             data-id="{{item._id}}"
             bindtouchstart="onSwipeStart" bindtouchmove="onSwipeMove" bindtouchend="onSwipeEnd">
         <view class="swipe-btn del" catchtap="onRemove" data-id="{{item._id}}">删除</view>

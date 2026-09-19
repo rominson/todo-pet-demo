@@ -154,9 +154,13 @@
   background: var(--card);
   position: relative;
   z-index: 2;
-  transition: transform .25s ease;
+  transition: transform .25s ease, opacity .3s;
 }
 .task-swipe.open .task-item { transform: translateX(-160rpx); }
+/* 勾选完成 → 卡片沉底、其余卡上移（撤销则反向飞回），对齐原型 flyTask 的 FLIP 动画。
+   过渡只在动画那一帧挂上：常驻过渡会让左滑的 translateX 变慢，也会跟 FLIP 的「瞬移」冲突。
+   位移加在外层 .task-swipe 上，不能加在内层 .task-item —— 外层是 overflow:hidden，内层位移会被裁掉。 */
+.task-swipe.fly { transition: transform .32s cubic-bezier(.22, 1, .36, 1); }
 .task-swipe:last-child .task-item { border-bottom: none; }
 .check {
   width: 44rpx;

@@ -67,7 +67,11 @@ Page({
 
   render(tasks) {
     const today = agg.todayStr();
-    const shown = tasks.filter((t) => (this.data.filter === 'undone' ? !t.done : true));
+    // 已完成沉底：每个象限内未完成在前、已完成在后
+    //（对齐原型 renderQuadrant 的 sort((a,b)=>a.done-b.done)；sort 稳定，两侧都保持原序）
+    const shown = tasks
+      .filter((t) => (this.data.filter === 'undone' ? !t.done : true))
+      .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
     const buckets = { iu: [], in: [], nu: [], nn: [] };
     shown.forEach((t) => {
       const imp = !!t.important;

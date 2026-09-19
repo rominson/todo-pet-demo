@@ -9,7 +9,41 @@ const EMPTY_FORM = { title: '', due: '', important: false, repeatOn: false, freq
 
 // 给任务补上展示用的重复文案
 function decorate(t) {
-  return Object.assign({}, t, { repeatLabel: agg.repeatLabel(t.repeat) });
+  return Object.assign({}, t, { repeatLabel: agg.repeatLabel(t.repeat), _st: '' });
+}
+
+// —— 今日页列表顺序（对齐原型 renderTasks）——
+// 原型：const todays = tasks.filter(t => t.done ? doneRecent(t,0) : true);
+//       [...todays].sort((a,b)=> a.done - b.done).forEach(...)   // 已完成沉底
+// Array.prototype.sort 是稳定的 → 未完成之间、已完成之间都保持原序。
+// （「全部」页才是「已完成单独成组、按完成时间倒序」；今日页没有分组头。）
+function todayList(all, today) {
+  return (all || [])
+    .filter((t) => agg.isTodayTask(t, today))
+    .map(decorate)
+    .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+}
+
+// —— 勾选后「这张卡沉底、其余卡上移」的位移量（对齐原型 flyTask 的 FLIP）——
+// .task-list 是无间距的 flex 列、.task-swipe 也没有 margin，所以**重排后的位置可以直接算**：
+//   新 top = 首行 top + 前面各行高度之和
+// 不必等重排渲染完再量第二次 → 「换序 + 瞬移回旧位置」能在同一次 setData 完成，
+// 不会先闪一帧新位置再倒回去。
+// rects: { id: { top, h } }，list: 重排后的数组；返回 { id: 需要先瞬移的位移量 px }
+function flipDelta(list, rects) {
+  const keys = rects ? Object.keys(rects) : [];
+  if (!keys.length) return null;
+  const firstTop = Math.min.apply(null, keys.map((k) => rects[k].top));
+  const out = {};
+  let acc = 0;
+  list.forEach((t) => {
+    const r = rects[t._id];
+    if (!r) return;
+    const dy = Math.round(r.top - (firstTop + acc));
+    if (Math.abs(dy) > 1) out[t._id] = dy;
+    acc += r.h;
+  });
+  return out;
 }
 
 function hashId(s) {
@@ -103,7 +137,7 @@ Page({
       // 今日页口径（对齐原型 renderTasks）：只显示「无日期 或 日期=今天」的；
       // 未来日期的任务不属于今天（归象限/日历），已完成项只保留当天完成的。
       const today = agg.todayStr();
-      const tasks = all.filter((t) => agg.isTodayTask(t, today)).map(decorate);
+      const tasks = todayList(all, today);
       const doneToday = tasks.filter((t) => t.done).length;
       const progress = tasks.length ? Math.round((doneToday / tasks.length) * 100) : 0;
 
@@ -163,8 +197,18 @@ Page({
     if (this.data.openId) { this.setData({ openId: '' }); return; }
     const before = this.data.tasks.find((t) => t._id === id);
     const wasDone = before ? before.done : false;
+    // 重复任务完成会由服务端补一条、本地整表重拉（列表整体重排），这轮不做沉底动画
+    const willReload = !!(before && before.repeat && before.repeat !== 'none');
+    // 上一段沉底动画还没播完就先收尾 —— 否则量到的是「飞行中」的中间位置，位移会算错
+    if (this._flipT) { clearTimeout(this._flipT); this._flipT = null; await this.endFlip(); }
     try {
-      const res = await cloud.taskService.toggle(id);
+      // 量卡片位置必须发生在重排之前，所以与 toggle 请求并行发起 —— 不额外增加勾选的等待时间
+      const pair = await Promise.all([
+        willReload ? Promise.resolve(null) : this.measureCards().catch(() => null),
+        cloud.taskService.toggle(id)
+      ]);
+      const rects = pair[0];
+      const res = pair[1];
       const nowDone = res.done;
       const all = (this._all || this.data.tasks).map((t) =>
         t._id === id ? { ...t, done: nowDone, done_at: nowDone ? new Date() : null } : t
@@ -174,23 +218,78 @@ Page({
         doneTotal: agg.totalDone(all),
         streak: agg.computeStreak(all)
       });
-      this.refreshToday(all);
+      // 传 rects 进去：完成项沉底 / 其余上移，位移会演成动画（撤销完成时反向飞回）
+      this.refreshToday(all, rects);
       if (nowDone && !wasDone) this.onComplete(before, all);
       // 重复任务完成会在服务端生成下一条，本地列表需重新拉一次
-      if (before && before.repeat && before.repeat !== 'none') this.loadAll();
+      if (willReload) this.loadAll();
     } catch (e) {}
   },
 
-  refreshToday(all) {
+  // 量当前列表每张卡的 top / 高度，key 用 data-id（今日页只有这一处 .task-swipe）
+  measureCards() {
+    return new Promise((resolve) => {
+      const q = typeof this.createSelectorQuery === 'function'
+        ? this.createSelectorQuery()
+        : wx.createSelectorQuery();
+      q.selectAll('.task-swipe')
+        .fields({ dataset: true, rect: true, size: true }, (res) => {
+          const map = {};
+          (res || []).forEach((r) => {
+            if (r && r.dataset && r.dataset.id != null) map[r.dataset.id] = { top: r.top, h: r.height };
+          });
+          resolve(map);
+        })
+        .exec();
+    });
+  },
+
+  // 第一段：换序的同时把每张卡「瞬移回重排前的位置」
+  //（此刻不能带过渡，否则会看到一段倒放的动画；z-index 让飞行中的卡压在其余卡片之上）
+  refreshToday(all, rects) {
     const today = agg.todayStr();
-    const list = (all || []).filter((t) => agg.isTodayTask(t, today)).map(decorate);
+    const list = todayList(all, today);
     const doneToday = list.filter((t) => t.done).length;
+    const delta = rects ? flipDelta(list, rects) : null;
+    const moving = !!delta && Object.keys(delta).length > 0;
+    const tasks = moving
+      ? list.map((t) => (delta[t._id] != null
+        ? Object.assign({}, t, { _st: 'transform:translateY(' + delta[t._id] + 'px);z-index:30' })
+        : t))
+      : list;
     this.setData({
-      tasks: list,
+      tasks,
       doneToday,
       totalToday: list.length,
       progress: list.length ? Math.round((doneToday / list.length) * 100) : 0
-    });
+    }, () => { if (moving) this.playFlip(); });
+  },
+
+  // 收尾：清掉内联样式（transform 要还给左滑的 translateX 用）。
+  // 返回 Promise 是为了让「上一步动画先落地」再量下一轮的位置。
+  endFlip() {
+    const dirty = this.data.tasks.some((t) => t._st || t._fly);
+    if (!dirty) return Promise.resolve();
+    const clean = this.data.tasks.map((t) => (t._st || t._fly
+      ? Object.assign({}, t, { _st: '', _fly: false })
+      : t));
+    return new Promise((resolve) => { this.setData({ tasks: clean }, resolve); });
+  },
+
+  // 第二段：下一帧开启过渡并回到 0 → 平滑滑到新位置。
+  // 万一设备上没触发过渡，也只是「直接到位」（退化成没有动画），不会出现错位。
+  playFlip() {
+    const step = () => {
+      const go = this.data.tasks.map((t) => (t._st
+        ? Object.assign({}, t, { _st: 'transform:translateY(0px);z-index:30', _fly: true })
+        : t));
+      this.setData({ tasks: go }, () => {
+        clearTimeout(this._flipT);
+        this._flipT = setTimeout(() => { this._flipT = null; this.endFlip(); }, 340);
+      });
+    };
+    if (typeof wx.nextTick === 'function') wx.nextTick(step);
+    else setTimeout(step, 16);
   },
 
   onComplete(task, tasks) {
