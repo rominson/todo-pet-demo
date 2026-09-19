@@ -1,6 +1,16 @@
 <!-- pages/pets/pets.wxml —— 星座伙伴（对齐原型 screen-store：横向滑动大卡片轮播 + 底部全家桶悬浮条） -->
 <view class="page {{showBundle?'has-bundle':''}}">
-  <view class="group-title">星座伙伴</view>
+  <!-- 首行：左侧分组标题，右上角是「订单」入口（订单中心页 pages/orders/orders 的站内入口）。
+       放在这一页的右上角而不是档案页：档案页要滚过「纪念日 + 回忆册」才看得到，回忆一多更沉；
+       这里首屏就在，且遇见页本身就是消费发生的页面。
+       注：微信胶囊（··· ⊙）常驻导航栏右上角，所以入口落在页面内容区的右上角（标题同一行）。 -->
+  <view class="toprow">
+    <view class="group-title">星座伙伴</view>
+    <view class="orders-entry" hover-class="orders-entry-hover" hover-stay-time="80" bindtap="goOrders">
+      <view class="oe-ico"></view>
+      <text class="oe-txt">订单</text>
+    </view>
+  </view>
 
   <!-- 顶部白卡横幅：只承担「价格 + 收集进度」的说明。
        集齐 12 只后整块隐藏（对齐原型 renderStore：ownedCount===12 时 display:none）——

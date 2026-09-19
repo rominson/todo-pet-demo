@@ -41,13 +41,4 @@
       <view wx:if="{{memories.length===0}}" class="empty">还没有回忆，去完成一件待办或专注一次吧</view>
     </view>
   </view>
-
-  <!-- 订单入口：订单中心页（pages/orders/orders）的站内入口。
-       平台规范要求小程序内也要有订单中心入口，不能只给 path。 -->
-  <view class="group-title">订单</view>
-  <view class="card link-card" bindtap="goOrders">
-    <view class="link-txt">我的订单</view>
-    <view class="link-sub">查看全部购买记录</view>
-    <view class="link-chev"></view>
-  </view>
 </view>

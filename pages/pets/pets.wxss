@@ -6,7 +6,39 @@
   box-sizing: border-box;
 }
 
-.group-title { font-size: 30rpx; font-weight: 700; color: var(--ink-2); margin: 8rpx 36rpx 16rpx; }
+.group-title { font-size: 30rpx; font-weight: 700; color: var(--ink-2); }
+
+/* 首行：分组标题 + 右上角「订单」入口（同一行两端对齐） */
+.toprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8rpx 36rpx 16rpx;
+}
+.toprow .group-title { margin: 0; }
+
+/* 「订单」入口：轻量胶囊，压在白底上不抢轮播的视觉重心 */
+.orders-entry {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex: none;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 2rpx solid var(--line, #e5ddcf);
+  transition: transform 0.15s, background 0.15s;
+}
+.orders-entry-hover { background: #fff; transform: scale(0.95); }
+.oe-ico {
+  width: 26rpx;
+  height: 26rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A847B' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 21.2V3.4A1.4 1.4 0 0 1 7.4 2h9.2A1.4 1.4 0 0 1 18 3.4v17.8l-2.4-1.7-2.4 1.7-2.4-1.7-2.4 1.7z'/%3E%3Cpath d='M9.6 7.6h4.8'/%3E%3Cpath d='M9.6 11.6h4.8'/%3E%3C/svg%3E");
+}
+.oe-txt { font-size: 23rpx; font-weight: 700; color: var(--ink-2); }
 
 /* 顶部白卡横幅（对齐原型：左标题+副文案，右侧金色进度角标） */
 .store-banner { margin: 0 36rpx 20rpx; padding: 28rpx 32rpx; display: flex; align-items: center; }

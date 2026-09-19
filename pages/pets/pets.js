@@ -157,6 +157,12 @@ Page({
     this.setData({ scrollLeft: idx * this.pitch, activeIdx: idx });
   },
 
+  // 右上角「订单」入口 → 订单中心页（pages/orders/orders）。
+  // 页面不允许带参数直开（提审时填的 path 就是它），所以这里也不带参数。
+  goOrders() {
+    wx.navigateTo({ url: '/pages/orders/orders' });
+  },
+
   // 卡片左下角那颗 pill 是本页卡片的操作入口（详情弹层已整体删除——
   // 弹层里只有大图 + 名字 + 星座·两个词，卡片上本来就全有，等于凭空多一步）。
   //   未拥有 → 直接下单/唤起支付   已拥有 → 直接设为当前伙伴   陪伴中 → 不可点

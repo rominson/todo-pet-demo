@@ -122,10 +122,6 @@ Page({
     else wx.switchTab({ url: '/pages/index/index' });
   },
 
-  goOrders() {
-    wx.navigateTo({ url: '/pages/orders/orders' });
-  },
-
   onShareAppMessage() {
     return { title: this.data.summaryText, path: '/pages/index/index' };
   }
