@@ -5,6 +5,7 @@ import { PET_META, petAnims, ZODIAC_NAME, ZODIAC_TRAITS, PET_BOX } from './pets.
 import { renderToday } from './views/today.js';
 import { renderCalendar } from './views/calendar.js';
 import { getCurrentWindow, PhysicalPosition, LogicalPosition, LogicalSize } from '@tauri-apps/api/window';
+import { invoke } from '@tauri-apps/api/core';
 
 const PET_KEYS = Object.keys(PET_META);
 let viewCleanup = null;
@@ -68,6 +69,7 @@ function setup() {
 
   function setImg(kind) {
     applyPetBox();
+    pushHitRects();                                 // 宠物变了 → 可见身体矩形可能变，更新命中区
     const a = petAnims(PET_KEYS[idx]) || {};
     const src = (kind === 'keyboard') ? (a.keyboard || a.read) : a.read;
     // 预加载：先解码新 GIF，再交换 src —— 旧图一直显示到新图就绪，切换不闪白；
@@ -114,6 +116,7 @@ function setup() {
     menuOpen = !menuOpen;
     if (menuOpen) positionMenu();
     menu.classList.toggle('show', menuOpen);
+    pushHitRects();                                 // 菜单显隐 → 命中区含/不含菜单矩形
     if (menuOpen) hint.style.opacity = '0';
   }
 
@@ -191,6 +194,7 @@ function setup() {
       await setGeom(RING_W, RING_H, wx, wy, px - bcx, py - bcy);  // 先定位窗口+宠物，再亮环
       ring.classList.add('show');
       ringVisible = true;
+      pushHitRects();                               // 环展开 → 命中区加上 12 只环宠矩形
     } catch (e) { /* 兜底：不展开环 */ }
   }
 
@@ -199,6 +203,7 @@ function setup() {
     ringVisible = false;
     ring.classList.remove('show');
     ring.innerHTML = '';                              // 立即清空：避免刚选中的宠物在环位（如右下）残留闪现
+    pushHitRects();                                 // 环已清空 → 命中区回到只剩宠物身体
     let pos = null;
     try { pos = await petScreenPos(); } catch (e) {}
     setTimeout(async () => {
@@ -209,6 +214,7 @@ function setup() {
         const wx = pos.x - PET_LEFT;
         const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));
         await setGeom(W0, H0, wx, wy, pos.x - wx, pos.y - wy);
+        pushHitRects();                             // 收起环后窗口缩回，命中区随窗口尺寸更新
       } catch (_) { pet.style.left = ''; pet.style.top = ''; }
     }, 220);
   }
@@ -233,6 +239,50 @@ function setup() {
   const boxOf = () => PET_BOX[PET_KEYS[idx]] || BOX_DEF;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const scrSize = () => { const s = window.screen || {}; return { w: Math.round(s.width || 1440), h: Math.round(s.height || 900) }; };
+
+  // ============ 命中区（仅宠物可见身体可点，透明区透传桌面/其它 App）============
+  // 把「当前可点区域」推给 Rust：Rust 轮询全局光标，落在这些矩形内(或拖拽中)就 window 吃点击，
+  // 否则让透明区点击透传给桌面/其它 App。所有矩形都是【窗口本地逻辑像素、左上原点】
+  // （getBoundingClientRect 即视口坐标 = 窗口本地，因为 webview 铺满无边框窗口）。
+  // 量元素「最终布局盒子」，且【不触发也不打断入场过渡】。
+  // 用 offsetLeft/Top/Width/Height（纯布局，忽略 transform/动画），再沿 offsetParent 链累加到窗口本地坐标
+  // （webview 铺满无边框窗口 → 视口坐标 = 窗口本地坐标，左上原点）。
+  // ⚠️ 为什么不能直接 getBoundingClientRect：它会包含入口动画的 transform(scale/translateY)「当前帧」，
+  //    → 量到的是缩小/位移中的盒子，而真实按钮停在动画结束的「最终大盒子」之外 → 热区判定失败 →
+  //    点击被当成透明区透传给桌面，表现就是「按钮出来了但怎么点都没反应」。
+  // offset* 是布局尺寸，等价「无 transform 时的 getBoundingClientRect」，且完全不碰 transition，动画照常播放。
+  function rectOf(el) {
+    let x = 0, y = 0, node = el;
+    while (node && node !== stage) {
+      x += node.offsetLeft;
+      y += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return { left: x, top: y, width: el.offsetWidth, height: el.offsetHeight };
+  }
+
+  function computeHitRects() {
+    const rects = [];
+    const pr = pet.getBoundingClientRect();           // 宠物壳在窗口内的盒子(210×210)，容器本身无 transform
+    const box = boxOf();                              // 当前宠物在壳内的可见边界(PET_BOX)
+    const sx = pr.width / PET_W, sy = pr.height / PET_W;
+    // 宠物可见身体矩形：用 PET_BOX 缩到真实身体，透明留白与窗口空白都不算「可点」
+    rects.push([pr.left + box.l * sx, pr.top + box.t * sy, (box.r - box.l) * sx, (box.b - box.t) * sy]);
+    if (menuOpen) { const m = rectOf(menu); rects.push([m.left, m.top, m.width, m.height]); }
+    if (ringVisible) {
+      ring.querySelectorAll('.ritem').forEach((el) => {
+        const r = rectOf(el); rects.push([r.left, r.top, r.width, r.height]);
+      });
+    }
+    if (panel.classList.contains('show')) {
+      const p = rectOf(panel); rects.push([p.left, p.top, p.width, p.height]);
+    }
+    return rects;
+  }
+  async function pushHitRects(dragging = false) {
+    if (!win) return;
+    try { await invoke('set_hit_rects', { rects: computeHitRects(), dragging }); } catch (e) {}
+  }
 
   function placePet(left, top) {                     // 宠物在窗口内的位置：瞬时生效，不走 transition（避免与窗口缩放错位）
     pet.style.transition = 'none';
@@ -307,6 +357,7 @@ function setup() {
     } catch (e) { /* 兜底：展开失败就仍在原窗口内显示面板 */ }
     panel.classList.remove('left', 'right');
     panel.classList.add('show', side);
+    pushHitRects();                                   // 面板展开 → 命中区加上面板矩形(面板是实体 UI，整块可点)
     if (kind === 'today') viewCleanup = renderToday(panelBody);
     else if (kind === 'calendar') viewCleanup = renderCalendar(panelBody);
   }
@@ -329,6 +380,7 @@ function setup() {
       const wx = pos.x - PET_LEFT;
       const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));
       await setGeom(W0, H0, wx, wy, pos.x - wx, pos.y - wy);
+      pushHitRects();                               // 收起面板后窗口缩回，命中区更新
     } catch (_) { pet.style.left = ''; pet.style.top = ''; }
   }
 
@@ -379,14 +431,14 @@ function setup() {
     } else if (menuOpen) {
       menuOpen = false; menu.classList.remove('show');
     }
+    pushHitRects(false);                                // 松手：拖拽结束，命中区恢复正常(只宠物身体可点)
   }
-
-
 
   pet.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;                          // 仅左键（专注中也允许拖动/弹菜单）
     downT = performance.now();
     decided = false;
+    pushHitRects(true);                                // 按下即「拖拽中」：窗口全程吃点击，避免透明区把拖拽透传掉
     pet.classList.add('dragging');                       // 暂停 bob，避免视觉抖动
     window.removeEventListener('pointerup', onUp, true);
     window.removeEventListener('pointercancel', onUp, true);
@@ -456,6 +508,7 @@ function setup() {
 
   // 初始化
   setImg('read');
+  pushHitRects();                                   // 首次算出宠物身体命中区，让透明区立即可透传
   showBubble(greeting());
   setTimeout(() => { if (bubble.textContent) bubble.classList.remove('show'); }, 4200);
   setTimeout(() => { hint.style.opacity = '0'; }, 6000);
