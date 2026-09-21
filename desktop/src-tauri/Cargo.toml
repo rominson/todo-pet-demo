@@ -1,0 +1,26 @@
+[package]
+name = "maorong-desktop"
+version = "0.1.0"
+description = "毛茸清单 · Mac 桌面版"
+authors = ["luomingxin"]
+edition = "2021"
+
+[lib]
+name = "maorong_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+tauri-plugin-store = "2"
+objc2 = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = true
+strip = true
