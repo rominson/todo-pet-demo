@@ -69,13 +69,20 @@ function setup() {
   function setImg(kind) {
     applyPetBox();
     const a = petAnims(PET_KEYS[idx]) || {};
-    if (kind === 'keyboard') {
-      petImg.onerror = () => { petImg.onerror = null; petImg.src = a.read; };
-      petImg.src = a.keyboard || a.read;
-    } else {
-      petImg.onerror = null;
+    const src = (kind === 'keyboard') ? (a.keyboard || a.read) : a.read;
+    // 预加载：先解码新 GIF，再交换 src —— 旧图一直显示到新图就绪，切换不闪白；
+    // 同时按「源宽」算缩放比写进 --pscale，让 CSS 走 1:1 纹理 + 恒定 transform 合成（见 styles.css），消除逐帧抖动。
+    const pre = new Image();
+    pre.onload = () => {
+      const w = pre.naturalWidth || 560;
+      petImg.style.setProperty('--pscale', (210 / w).toFixed(5));
+      petImg.src = src;
+    };
+    pre.onerror = () => {
+      petImg.style.setProperty('--pscale', (210 / 560).toFixed(5));
       petImg.src = a.read;
-    }
+    };
+    pre.src = src;
   }
 
   function showBubble(text, ms = 4200) {
@@ -122,7 +129,13 @@ function setup() {
   // ============ 切换宠物：以当前宠物为中心，本只以外的 12 只绕一圈 ============
   // 无卡片、无底板 —— 直接用抠好的透明 GIF 贴图，下面两行「星座 + 一句话（星座特质）」，
   // 与小程序遇见页卡片下方一致（白羊座 · 活力 · 冲动）。
-  const RING_W = 500, RING_H = 500, RING_R = 175;     // 环窗口尺寸 / 环半径（逻辑像素）
+  // 环窗口尺寸 / 环半径上限（逻辑像素）。窗口只需「宠物壳左侧留 PET_LEFT + 右侧留够 ±41」即可容下一整圈，
+  // 半径 175 与修复前的观感一致（此前被下面的钳制压到 62.5，12 只才会挤在宠物身上）。
+  // RING_H 取与 H0 相同的 500：环窗口的下边界与普通窗口一致 → 竖直方向的可用空间只由屏幕决定，
+  // 不会出现「屏幕还够、却被环窗口自己的底边先卡住」（宠物靠下时半径会白白小一截）。
+  const RING_W = 460, RING_H = 500, RING_R = 175;
+  // 环上每个 .ritem 的锚点 = 头像中心：盒宽 78(±39)、锚点上方 30(半个头像)、下方 60(星座名+特质两行)
+  const IT_L = 41, IT_R = 41, IT_T = 32, IT_B = 64;   // 环点到「窗口/屏幕」四边所需的最小余量
 
   function renderRing() {
     const current = store.getMine().current || 'orange';
@@ -150,11 +163,22 @@ function setup() {
       const box = boxOf();
       const bcx = (box.l + box.r) / 2, bcy = (box.t + box.b) / 2;   // 可见内容中心在壳内的偏移
       const cx = pos.x + bcx, cy = pos.y + bcy;         // 用【可见内容】中心当环心（用壳中心会偏）
-      const wx = clamp(cx - RING_W / 2, 0, Math.max(0, scr.w - RING_W));
-      const wy = clamp(cy - RING_H / 2, 0, Math.max(0, scr.h - RING_H));
-      const px = cx - wx, py = cy - wy;                 // 宠物在新窗口内的中心
-      // 环半径按「离窗口四条边的最小余量」钳制，避免贴屏幕边缘时环点被 overflow:hidden 切掉
-      const pr = Math.min(RING_R, px - 39, RING_W - px - 39, py - 45, RING_H - py - 45);
+      // 关键：窗口定位/宠物摆位与普通窗口【同一套公式、且与本模式尺寸无关】
+      // → 收起环时 setGeom 判定 willMove=false、宠物不隐藏也不挪动，消除「切换完闪一下」的眨眼。
+      const wx = pos.x - PET_LEFT;                      // 水平不做钳制：窗口允许溢出屏幕左右边（透明处无害），
+      const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));   // 宠物窗内坐标才能永远是 PET_LEFT/PET_TOP
+      const px = cx - wx, py = cy - wy;                 // 宠物在环窗口内的中心
+      // 环半径 = min(窗口内四边余量, 屏幕四边余量)：
+      //   只按窗口钳制的话，宠物贴屏幕边时窗口会溢出屏幕、环点被屏幕边缘切掉半只；
+      //   加上屏幕余量后会自动收小，任何位置都是一圈完整、不压到宠物的圆。
+      //   下限 88：宠物本身已被拖到屏幕边缘外时不会算出负半径（那会变成挤成一团）。
+      const pr = clamp(Math.min(
+        RING_R,
+        px - IT_L, RING_W - px - IT_R,                  // 环窗口内左右余量
+        py - IT_T, RING_H - py - IT_B,                  // 环窗口内上下余量
+        cx - IT_L, scr.w - cx - IT_R,                   // 屏幕上左右余量
+        cy - IT_T, scr.h - cy - IT_B                    // 屏幕上上下余量
+      ), 88, RING_R);
       renderRing();
       const items = ring.querySelectorAll('.ritem');
       const n = items.length || 1;
@@ -163,6 +187,7 @@ function setup() {
         el.style.left = Math.round(px + pr * Math.cos(ang)) + 'px';
         el.style.top = Math.round(py + pr * Math.sin(ang)) + 'px';
       });
+      // 宠物窗内坐标 = (px-bcx, py-bcy)，与普通窗口算出的 (pos.x-wx, pos.y-wy) 完全相同 → willMove=false
       await setGeom(RING_W, RING_H, wx, wy, px - bcx, py - bcy);  // 先定位窗口+宠物，再亮环
       ring.classList.add('show');
       ringVisible = true;
@@ -180,9 +205,10 @@ function setup() {
       if (!pos) { pet.style.left = ''; pet.style.top = ''; return; }
       try {
         const scr = scrSize();
-        const wx = clamp(pos.x - PET_PAD, 0, Math.max(0, scr.w - W0));
-        const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
-        await setGeom(W0, H0, wx, wy, clamp(pos.x - wx, 0, W0 - PET_W), pos.y - wy);
+        // 与 openRing 完全同一套公式（不含窗口尺寸相关项）→ 宠物窗内坐标不变，收起环不闪
+        const wx = pos.x - PET_LEFT;
+        const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));
+        await setGeom(W0, H0, wx, wy, pos.x - wx, pos.y - wy);
       } catch (_) { pet.style.left = ''; pet.style.top = ''; }
     }, 220);
   }
@@ -193,10 +219,13 @@ function setup() {
   //   （Retina 上 = 逻辑 × devicePixelRatio），必须 ÷ dpr 才能和布局对齐。
   //   踩过的坑：曾用 PhysicalSize(650,500) 传逻辑值 → Retina 上窗口只有 325×250（正好一半），
   //   菜单被下边缘裁掉、面板左右溢出被 overflow:hidden 切掉，看起来就是“被切割了”。
-  const W0 = 320, H0 = 500;                          // 宠物窗口默认尺寸（逻辑）
+  // W0 从 320 放宽到 370：宠物壳左留白由 55 增到 PET_LEFT=110（切换环要在左侧留出 175 半径的圈，
+  // 而宠物在窗口内的摆放位置必须与环窗口完全一致，所以这里也要一起外扩），
+  // 同时保证「菜单 286 宽」仍能在宠物可见中心正下方不受窗口右缘钳制（370-286-4=80 ≥ 65.5，不偏）。
+  const W0 = 370, H0 = 500;                          // 宠物窗口默认尺寸（逻辑）
   const PW = 330, M = 14;                            // 面板宽 / 面板到窗口边留白（给投影留气口）
   const GAP = 16;                                    // 面板与宠物【可见内容】之间的间距
-  const PET_W = 210, PET_PAD = 55;                   // 宠物壳宽 / 默认左右留白
+  const PET_W = 210, PET_LEFT = 110, PET_TOP = 110;  // 宠物壳宽 / 宠物在窗口内的固定左上偏移（所有模式统一）
   // ⚠️ 间距铁律：素材四周有大片透明留白，可见内容只占壳宽的 36%~79%。
   //   若拿 210 的壳去算间距，视觉上会远得离谱（实测「宠物可见右缘 → 面板左缘」= 100px）。
   //   所以面板/菜单/气泡一律按 PET_BOX（各宠物在壳内的可见边界）来定位。
@@ -248,7 +277,7 @@ function setup() {
   function panelGeom(side, scr, petX) {
     const box = boxOf();
     if (side === 'right') {
-      const wx = Math.max(0, petX - PET_PAD);        // 贴屏左时窗口顶到屏幕边，宠物在窗内相应内移
+      const wx = petX - PET_LEFT;                    // 与环/普通窗口同一公式，宠物窗内 left 恒为 PET_LEFT（不触发隐藏=不闪）
       const petLeft = petX - wx;
       let ww = petLeft + box.r + GAP + PW + M;       // 由「可见右缘 + GAP + 面板 + 留白」反推窗宽
       ww = Math.min(ww, Math.max(petLeft + PET_W, scr.w - wx));
@@ -256,7 +285,7 @@ function setup() {
     }
     const wx = Math.max(0, Math.round(petX + box.l - GAP - PW - M));
     const petLeft = petX - wx;
-    let ww = petLeft + PET_W + PET_PAD;
+    let ww = petLeft + PET_W + PET_LEFT;
     if (wx + ww > scr.w) ww = Math.max(petLeft + PET_W, scr.w - wx);
     return { wx, ww, petLeft };
   }
@@ -273,7 +302,7 @@ function setup() {
       const pos = await petScreenPos();
       side = chooseSide(pos.x, scr);
       const g = panelGeom(side, scr, pos.x);
-      const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
+      const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));
       await setGeom(g.ww, H0, g.wx, wy, g.petLeft, pos.y - wy);  // 先定位窗口+宠物，再亮面板
     } catch (e) { /* 兜底：展开失败就仍在原窗口内显示面板 */ }
     panel.classList.remove('left', 'right');
@@ -297,9 +326,9 @@ function setup() {
     if (!pos) { pet.style.left = ''; pet.style.top = ''; return; }
     try {
       const scr = scrSize();
-      const wx = clamp(pos.x - PET_PAD, 0, Math.max(0, scr.w - W0));
-      const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
-      await setGeom(W0, H0, wx, wy, clamp(pos.x - wx, 0, W0 - PET_W), pos.y - wy);
+      const wx = pos.x - PET_LEFT;
+      const wy = clamp(pos.y - PET_TOP, 0, Math.max(0, scr.h - H0));
+      await setGeom(W0, H0, wx, wy, pos.x - wx, pos.y - wy);
     } catch (_) { pet.style.left = ''; pet.style.top = ''; }
   }
 

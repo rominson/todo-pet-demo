@@ -296,11 +296,26 @@ body {
 /* ============ 桌面宠物壳（v2）============ */
 html, body { background: transparent; }
 .pet-stage { position: fixed; inset: 0; overflow: hidden; user-select: none; -webkit-user-select: none; }
-.pet { position: absolute; left: calc(50% - 105px); top: 0; width: 210px; height: 210px;
+/* 宠物在窗口内的固定偏移（110,110）：必须与 main.js 的 PET_LEFT/PET_TOP 一致。
+   该值同时被「环窗口 / 普通窗口 / 面板窗口」共用 → 三者切换时宠物窗内坐标不变，
+   Tauri 换窗口尺寸时不需隐藏宠物（隐藏那一下就是「切换后闪一下」）。
+   左侧留 110 才有空间让切换环在宠物四周绕出 175 半径的圈。 */
+.pet { position: absolute; left: 110px; top: 110px; width: 210px; height: 210px;
   cursor: grab; touch-action: none; z-index: 5; }
 .pet:active { cursor: grabbing; }
 .pet.dragging { animation: none; }
-.pet img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+/* 漂移修复（不动素材）：GIF 源是 560×322，浏览器若用 object-fit 把整张图缩到 210(0.375×，非整数比)，
+   逐帧都会重新栅格化 → 运动主体产生亚像素抖动。改为「按源图自然尺寸渲染 + 恒定 transform:scale 缩小」：
+   浏览器把 560 的图栅格化成 1:1 的纹理层，每帧只换纹理、scale 矩阵不变 → 不再逐帧重采样抖动。
+   视觉尺寸与 object-fit:contain 完全一致（都用 210/源宽 等比），PET_BOX 贴边定位不受影响。
+   --pscale 由 main.js 按当前宠物源宽动态写入（默认 0.375 兼容 560 宽宠物）。 */
+.pet img {
+  position: absolute; left: 50%; top: 50%;
+  width: auto; height: auto; max-width: none; max-height: none;
+  transform: translate(-50%, -50%) scale(var(--pscale, 0.375));
+  transform-origin: center center; pointer-events: none;
+  will-change: transform; backface-visibility: hidden;
+}
 .focus-tag { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); display: none;
   background: var(--accent-d); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 11px;
   border-radius: 999px; white-space: nowrap; box-shadow: 0 4px 12px rgba(126,111,214,.4); }
@@ -366,7 +381,8 @@ html, body { background: transparent; }
 
 /* 切换宠物：本只以外的 12 只绕当前宠物围成一圈。
    无卡片、无底板 —— 直接用抠好的透明贴图，下面两行「星座 + 一句话（星座特质）」。
-   环心固定在窗口内的 (RING_HW, RING_TOP)，由 main.js 按屏幕边缘钳制后把宠物摆到环心。 */
+   宠物始终摆在窗口内的 (PET_LEFT, PET_TOP)，环心 = 宠物【可见内容】中心；环半径由 main.js 取
+   「环窗口内四边余量」与「屏幕四边余量」的最小值（上限 175），贴边时自动收小但不压宠物。 */
 .ring { position: absolute; inset: 0; z-index: 22; opacity: 0; pointer-events: none;
   transition: opacity .24s ease; }
 .ring.show { opacity: 1; }
