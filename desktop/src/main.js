@@ -1,10 +1,10 @@
 // src/main.js —— 桌面版 v2：桌面宠物壳
 // 透明无边框窗口里只有一只宠物；点宠物弹菜单（切换/今日/专注/日历），今日与日历进面板，专注=轻量计时。无聊天。
 import * as store from './store.js';
-import { PET_META, petAnims } from './pets.js';
+import { PET_META, petAnims, ZODIAC_NAME, ZODIAC_TRAITS, PET_BOX } from './pets.js';
 import { renderToday } from './views/today.js';
 import { renderCalendar } from './views/calendar.js';
-import { getCurrentWindow, PhysicalPosition } from '@tauri-apps/api/window';
+import { getCurrentWindow, PhysicalPosition, LogicalPosition, LogicalSize } from '@tauri-apps/api/window';
 
 const PET_KEYS = Object.keys(PET_META);
 let viewCleanup = null;
@@ -23,20 +23,21 @@ async function boot() {
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="pet-stage" id="stage">
-      <div class="pet bob" id="pet">
+      <div class="pet" id="pet">
         <img id="petImg" alt="" />
         <div class="focus-tag" id="focusTag"></div>
+        <div class="pet-bubble" id="petBubble"></div>
+        <div class="hint" id="hint">轻点我</div>
       </div>
-      <div class="pet-bubble" id="petBubble"></div>
-      <div class="hint" id="hint">轻点我</div>
       <div class="menu" id="menu">
-        <div class="mbtn switch" data-act="switch"><div class="ic">${ICONS.switch}</div><div class="lb">切换宠物</div></div>
+        <div class="mbtn" data-act="switch"><div class="ic">${ICONS.switch}</div><div class="lb">切换宠物</div></div>
         <div class="mbtn" data-act="today"><div class="ic">${ICONS.today}</div><div class="lb">今日</div></div>
         <div class="mbtn" data-act="focus"><div class="ic">${ICONS.focus}</div><div class="lb">专注</div></div>
         <div class="mbtn" data-act="calendar"><div class="ic">${ICONS.calendar}</div><div class="lb">日历</div></div>
       </div>
+      <div class="ring" id="ring"></div>
       <div class="panel" id="panel">
-        <div class="panel-bar"><div class="panel-back" id="panelBack">‹ 收起</div></div>
+        <div class="panel-bar"><div class="panel-back" id="panelBack">‹ 收起</div><div class="panel-title" id="panelTitle"></div></div>
         <div class="panel-body" id="panelBody"></div>
       </div>
     </div>`;
@@ -47,18 +48,26 @@ async function boot() {
 function setup() {
   const $ = (id) => document.getElementById(id);
   const pet = $('pet'), petImg = $('petImg'), menu = $('menu'), bubble = $('petBubble'),
-    hint = $('hint'), panel = $('panel'), panelBody = $('panelBody'), focusTag = $('focusTag'),
-    stage = $('stage'), back = $('panelBack');
+    hint = $('hint'), panel = $('panel'), panelBody = $('panelBody'), panelTitle = $('panelTitle'), focusTag = $('focusTag'),
+    stage = $('stage'), back = $('panelBack'), ring = $('ring');
   petImg.draggable = false;                              // 禁用 <img> 原生拖拽，避免抢走鼠标
   const focusBtn = () => menu.querySelector('.mbtn[data-act="focus"]');
 
   let idx = PET_KEYS.indexOf(store.getMine().current || 'orange');
   if (idx < 0) idx = 0;
   let menuOpen = false, focusOn = false, timer = null, remain = 25 * 60;
+  let ringVisible = false;                              // 切换环是否展开
   let win = null;
   try { win = getCurrentWindow(); } catch (e) { win = null; }
 
+  function applyPetBox() {                            // 气泡/提示贴【可见的】宠物下缘，而不是 210 壳的下缘
+    const box = boxOf();
+    bubble.style.top = Math.round(box.b + 12) + 'px';
+    hint.style.top = Math.round(box.b + 56) + 'px';
+  }
+
   function setImg(kind) {
+    applyPetBox();
     const a = petAnims(PET_KEYS[idx]) || {};
     if (kind === 'keyboard') {
       petImg.onerror = () => { petImg.onerror = null; petImg.src = a.read; };
@@ -82,9 +91,17 @@ function setup() {
 
   function positionMenu() {
     const r = pet.getBoundingClientRect();
-    const left = Math.max(4, Math.min(innerWidth - menu.offsetWidth - 4, r.left + r.width / 2 - menu.offsetWidth / 2));
+    const box = boxOf();
+    const cx = r.left + (box.l + box.r) / 2;           // 按可见内容居中（不是 210 的壳）
+    const cTop = r.top + box.t, cBottom = r.top + box.b;
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    const left = Math.max(4, Math.min(innerWidth - mw - 4, cx - mw / 2));
     menu.style.left = left + 'px';
-    menu.style.top = (r.bottom + 14) + 'px';   // 宠物贴顶，菜单从下方弹出
+    const below = cBottom + 10, above = cTop - mh - 10;   // 10px：紧贴可见的宠物边缘
+    // 宠物被放到屏幕底部时，下方放不下 → 翻到宠物上方，避免菜单被窗口/屏幕切掉
+    const flip = (below + mh > innerHeight - 4) && (above > 4);
+    menu.style.top = (flip ? above : below) + 'px';
+    menu.style.transformOrigin = flip ? 'top center' : 'bottom center';
   }
   function toggleMenu() {
     menuOpen = !menuOpen;
@@ -93,25 +110,197 @@ function setup() {
     if (menuOpen) hint.style.opacity = '0';
   }
 
-  async function onSwitch() {
-    idx = (idx + 1) % PET_KEYS.length;
+  async function switchTo(key) {
+    if (!PET_META[key]) return;
+    idx = PET_KEYS.indexOf(key);
+    if (idx < 0) idx = 0;
     await store.setCurrentPet(PET_KEYS[idx]);
     setImg('read');
     showBubble('我是' + PET_META[PET_KEYS[idx]].name + '～');
-    menuOpen = false; menu.classList.remove('show');
   }
 
-  function openPanel(kind) {
+  // ============ 切换宠物：以当前宠物为中心，本只以外的 12 只绕一圈 ============
+  // 无卡片、无底板 —— 直接用抠好的透明 GIF 贴图，下面两行「星座 + 一句话（星座特质）」，
+  // 与小程序遇见页卡片下方一致（白羊座 · 活力 · 冲动）。
+  const RING_W = 500, RING_H = 500, RING_R = 175;     // 环窗口尺寸 / 环半径（逻辑像素）
+
+  function renderRing() {
+    const current = store.getMine().current || 'orange';
+    const keys = PET_KEYS.filter((k) => k !== current);   // 除当前占用外的 12 只
+    ring.innerHTML = keys.map((k, i) => {
+      const m = PET_META[k];
+      const a = petAnims(k) || {};
+      return '<div class="ritem" style="--i:' + i + '" data-key="' + k + '">'
+        + '<img class="rimg" src="' + (a.read || m.img || '') + '" alt="' + m.name + '" />'
+        + '<div class="rz">' + (ZODIAC_NAME[k] || '') + '</div>'
+        + '<div class="rs">' + (ZODIAC_TRAITS[k] || '') + '</div>'
+        + '</div>';
+    }).join('');
+    ring.querySelectorAll('.ritem').forEach((el) => {
+      el.onclick = () => { switchTo(el.dataset.key); closeRing(); };
+    });
+  }
+
+  async function openRing() {
+    if (ringVisible) return;
     menuOpen = false; menu.classList.remove('show');
-    panelBody.innerHTML = '';
+    try {
+      const scr = scrSize();
+      const pos = await petScreenPos();                 // 宠物壳屏幕左上（逻辑像素）
+      const box = boxOf();
+      const bcx = (box.l + box.r) / 2, bcy = (box.t + box.b) / 2;   // 可见内容中心在壳内的偏移
+      const cx = pos.x + bcx, cy = pos.y + bcy;         // 用【可见内容】中心当环心（用壳中心会偏）
+      const wx = clamp(cx - RING_W / 2, 0, Math.max(0, scr.w - RING_W));
+      const wy = clamp(cy - RING_H / 2, 0, Math.max(0, scr.h - RING_H));
+      const px = cx - wx, py = cy - wy;                 // 宠物在新窗口内的中心
+      // 环半径按「离窗口四条边的最小余量」钳制，避免贴屏幕边缘时环点被 overflow:hidden 切掉
+      const pr = Math.min(RING_R, px - 39, RING_W - px - 39, py - 45, RING_H - py - 45);
+      renderRing();
+      const items = ring.querySelectorAll('.ritem');
+      const n = items.length || 1;
+      items.forEach((el, i) => {
+        const ang = (i * (360 / n) - 90) * Math.PI / 180;   // 从正上方开始顺时针排
+        el.style.left = Math.round(px + pr * Math.cos(ang)) + 'px';
+        el.style.top = Math.round(py + pr * Math.sin(ang)) + 'px';
+      });
+      await setGeom(RING_W, RING_H, wx, wy, px - bcx, py - bcy);  // 先定位窗口+宠物，再亮环
+      ring.classList.add('show');
+      ringVisible = true;
+    } catch (e) { /* 兜底：不展开环 */ }
+  }
+
+  async function closeRing() {
+    if (!ringVisible) return;
+    ringVisible = false;
+    ring.classList.remove('show');
+    ring.innerHTML = '';                              // 立即清空：避免刚选中的宠物在环位（如右下）残留闪现
+    let pos = null;
+    try { pos = await petScreenPos(); } catch (e) {}
+    setTimeout(async () => {
+      if (!pos) { pet.style.left = ''; pet.style.top = ''; return; }
+      try {
+        const scr = scrSize();
+        const wx = clamp(pos.x - PET_PAD, 0, Math.max(0, scr.w - W0));
+        const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
+        await setGeom(W0, H0, wx, wy, clamp(pos.x - wx, 0, W0 - PET_W), pos.y - wy);
+      } catch (_) { pet.style.left = ''; pet.style.top = ''; }
+    }, 220);
+  }
+
+  // ================= 面板（今日 / 日历 / 切换宠物）=================
+  // ⚠️ 单位铁律：窗口尺寸与坐标一律用【逻辑像素】——setSize 传 LogicalSize、setPosition 传 LogicalPosition。
+  //   理由：tauri.conf.json 的 320×500 和所有 CSS 布局都是逻辑像素；而 outerPosition() 返回的是【物理像素】
+  //   （Retina 上 = 逻辑 × devicePixelRatio），必须 ÷ dpr 才能和布局对齐。
+  //   踩过的坑：曾用 PhysicalSize(650,500) 传逻辑值 → Retina 上窗口只有 325×250（正好一半），
+  //   菜单被下边缘裁掉、面板左右溢出被 overflow:hidden 切掉，看起来就是“被切割了”。
+  const W0 = 320, H0 = 500;                          // 宠物窗口默认尺寸（逻辑）
+  const PW = 330, M = 14;                            // 面板宽 / 面板到窗口边留白（给投影留气口）
+  const GAP = 16;                                    // 面板与宠物【可见内容】之间的间距
+  const PET_W = 210, PET_PAD = 55;                   // 宠物壳宽 / 默认左右留白
+  // ⚠️ 间距铁律：素材四周有大片透明留白，可见内容只占壳宽的 36%~79%。
+  //   若拿 210 的壳去算间距，视觉上会远得离谱（实测「宠物可见右缘 → 面板左缘」= 100px）。
+  //   所以面板/菜单/气泡一律按 PET_BOX（各宠物在壳内的可见边界）来定位。
+  const BOX_DEF = { l: 62, r: 155, t: 57, b: 158 };  // 全宠物可见区中位数，兜底用
+  const boxOf = () => PET_BOX[PET_KEYS[idx]] || BOX_DEF;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const scrSize = () => { const s = window.screen || {}; return { w: Math.round(s.width || 1440), h: Math.round(s.height || 900) }; };
+
+  function placePet(left, top) {                     // 宠物在窗口内的位置：瞬时生效，不走 transition（避免与窗口缩放错位）
+    pet.style.transition = 'none';
+    pet.style.left = Math.round(left) + 'px';
+    pet.style.top = Math.round(top) + 'px';
+    void pet.offsetWidth;
+    pet.style.transition = '';
+  }
+
+  // 改窗口尺寸/位置时，若宠物在窗内坐标会变（环 / 贴边展开面板），先把宠物隐藏，
+  // 等窗口到位再把宠物摆到最终位置并显示，避免「窗口已变、宠物还在旧坐标」的那一两帧
+  // 被画出来 → 看起来像在其他位置闪现。坐标不变时（最常见：右侧展开面板）不隐藏，避免无谓闪烁。
+  async function setGeom(w, h, x, y, petLeft, petTop) {
+    const needPlace = petLeft != null;
+    const willMove = needPlace && (pet.style.left !== Math.round(petLeft) + 'px' || pet.style.top !== Math.round(petTop) + 'px');
+    if (willMove) pet.style.opacity = '0';
+    try {
+      await win.setSize(new LogicalSize(w, h));
+      await win.setPosition(new LogicalPosition(Math.round(x), Math.round(y)));
+    } catch (e) {}
+    if (needPlace) placePet(petLeft, petTop);
+    void pet.offsetWidth;
+    if (willMove) pet.style.opacity = '1';
+  }
+
+  async function petScreenPos() {                    // 宠物当前屏幕坐标（逻辑像素）
+    const dpr = globalThis.devicePixelRatio || 1;
+    const p = await win.outerPosition();             // 物理像素
+    const r = pet.getBoundingClientRect();           // 窗口内 CSS 像素
+    return { x: p.x / dpr + r.left, y: p.y / dpr + r.top };
+  }
+
+  function chooseSide(petX, scr) {                   // 面板放宠物的哪一侧（全部按可见内容算）
+    const box = boxOf();
+    const cr = petX + box.r, cl = petX + box.l;
+    if (cr + GAP + PW + M <= scr.w) return 'right';  // 右边放得下：贴左缘 / 中间 → 都放右边
+    if (cl - GAP - PW - M >= 0) return 'left';       // 贴右缘（右边不够）→ 翻到左边
+    return (scr.w - cr > cl) ? 'right' : 'left';     // 极端窄屏：哪边空间大放哪边
+  }
+
+  // 展开后的窗口几何：让面板恰好距宠物【可见内容】GAP，整窗不出屏，且宠物屏幕位置不动
+  function panelGeom(side, scr, petX) {
+    const box = boxOf();
+    if (side === 'right') {
+      const wx = Math.max(0, petX - PET_PAD);        // 贴屏左时窗口顶到屏幕边，宠物在窗内相应内移
+      const petLeft = petX - wx;
+      let ww = petLeft + box.r + GAP + PW + M;       // 由「可见右缘 + GAP + 面板 + 留白」反推窗宽
+      ww = Math.min(ww, Math.max(petLeft + PET_W, scr.w - wx));
+      return { wx, ww, petLeft };
+    }
+    const wx = Math.max(0, Math.round(petX + box.l - GAP - PW - M));
+    const petLeft = petX - wx;
+    let ww = petLeft + PET_W + PET_PAD;
+    if (wx + ww > scr.w) ww = Math.max(petLeft + PET_W, scr.w - wx);
+    return { wx, ww, petLeft };
+  }
+
+  async function openPanel(kind) {
+    menuOpen = false; menu.classList.remove('show');
+    panel.style.transition = ''; panel.style.opacity = '';   // 清掉 closePanel 的瞬间隐藏，恢复 CSS 淡入
     if (viewCleanup) { try { viewCleanup(); } catch (e) {} viewCleanup = null; }
-    panel.classList.add('show');
+    panelBody.innerHTML = '';
+    panelTitle.textContent = kind === 'today' ? '今日' : '日历';
+    let side = 'right';
+    try {
+      const scr = scrSize();
+      const pos = await petScreenPos();
+      side = chooseSide(pos.x, scr);
+      const g = panelGeom(side, scr, pos.x);
+      const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
+      await setGeom(g.ww, H0, g.wx, wy, g.petLeft, pos.y - wy);  // 先定位窗口+宠物，再亮面板
+    } catch (e) { /* 兜底：展开失败就仍在原窗口内显示面板 */ }
+    panel.classList.remove('left', 'right');
+    panel.classList.add('show', side);
     if (kind === 'today') viewCleanup = renderToday(panelBody);
     else if (kind === 'calendar') viewCleanup = renderCalendar(panelBody);
   }
-  function closePanel() {
-    panel.classList.remove('show');
+
+  async function closePanel() {
     if (viewCleanup) { try { viewCleanup(); } catch (e) {} viewCleanup = null; }
+    panelTitle.textContent = '';                     // 立即清空内容
+    panelBody.innerHTML = '';
+    panel.classList.remove('show', 'left', 'right');
+    // 瞬间隐藏面板容器（不走 .2s 过渡）：缩窗那几帧窗口在变小，若面板还以「淡出中」状态被绘制，
+    // 其背景框会画在宠物旁 → 收起时「弹框在宠物位置闪现」。隐藏后缩窗全程面板不可见。
+    panel.style.transition = 'none';
+    panel.style.opacity = '0';
+    void panel.offsetWidth;
+    let pos = null;
+    try { pos = await petScreenPos(); } catch (e) {}
+    if (!pos) { pet.style.left = ''; pet.style.top = ''; return; }
+    try {
+      const scr = scrSize();
+      const wx = clamp(pos.x - PET_PAD, 0, Math.max(0, scr.w - W0));
+      const wy = clamp(pos.y, 0, Math.max(0, scr.h - H0));
+      await setGeom(W0, H0, wx, wy, clamp(pos.x - wx, 0, W0 - PET_W), pos.y - wy);
+    } catch (_) { pet.style.left = ''; pet.style.top = ''; }
   }
 
   function fmt(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
@@ -156,7 +345,8 @@ function setup() {
     pet.classList.remove('dragging');
     const held = performance.now() - downT;
     if (held < CLICK_MS) {
-      toggleMenu();
+      if (ringVisible) closeRing();
+      else toggleMenu();
     } else if (menuOpen) {
       menuOpen = false; menu.classList.remove('show');
     }
@@ -218,14 +408,19 @@ function setup() {
   menu.addEventListener('click', (e) => {
     const b = e.target.closest('.mbtn'); if (!b) return;
     const act = b.dataset.act;
-    if (act === 'switch') onSwitch();
+    if (act === 'switch') openRing();
     else if (act === 'today') openPanel('today');
     else if (act === 'calendar') openPanel('calendar');
     else if (act === 'focus') startFocus();
   });
   back.addEventListener('click', closePanel);
   stage.addEventListener('pointerdown', (e) => {
-    if (menuOpen && !menu.contains(e.target) && e.target !== pet && !pet.contains(e.target)) {
+    const onPet = e.target === pet || pet.contains(e.target);
+    if (ringVisible) {
+      if (!onPet && !ring.contains(e.target)) closeRing();   // 点环外空白 → 收起环
+      return;
+    }
+    if (menuOpen && !menu.contains(e.target) && !onPet) {
       menuOpen = false; menu.classList.remove('show');
     }
   });

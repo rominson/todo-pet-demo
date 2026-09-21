@@ -180,12 +180,12 @@ body {
 .btn-primary.big { width: 100%; padding: 15px 0; font-size: 16px; margin-top: 8px; }
 
 /* iOS 风开关 */
-.switch { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.switch .slider { position: absolute; inset: 0; background: #ccc; border-radius: 999px; transition: .2s; }
-.switch .slider::before { content: ''; position: absolute; height: 22px; width: 22px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-.switch input:checked + .slider { background: var(--accent-d); }
-.switch input:checked + .slider::before { transform: translateX(18px); }
+.ios-switch { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; }
+.ios-switch input { opacity: 0; width: 0; height: 0; }
+.ios-switch .slider { position: absolute; inset: 0; background: #ccc; border-radius: 999px; transition: .2s; }
+.ios-switch .slider::before { content: ''; position: absolute; height: 22px; width: 22px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.ios-switch input:checked + .slider { background: var(--accent-d); }
+.ios-switch input:checked + .slider::before { transform: translateX(18px); }
 
 .freq-row { display: flex; gap: 6px; margin-bottom: 10px; }
 .freq-opt { flex: 1; text-align: center; padding: 8px 0; border-radius: 9px; background: #F1EDE5; color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -221,17 +221,31 @@ body {
 .cal-head .month { font-family: var(--serif); font-size: 18px; font-weight: 800; color: var(--ink); }
 .nav { width: 32px; height: 32px; border-radius: 10px; background: var(--card); box-shadow: var(--shadow); color: var(--ink-2); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
 .nav.off { opacity: .35; cursor: default; }
-.cal-week { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; font-size: 11px; color: var(--ink-3); font-weight: 700; text-align: center; margin: 4px 0; }
+/* ⚠️ 必须 minmax(0,1fr) 而不是 1fr：1fr = minmax(auto,1fr)，自动最小值会被下面 .cal-cell 的
+   aspect-ratio:1 撑到 60px，7 列合计 444px 溢出卡片 134px → 一行只看得见 5 个格子、
+   剩下的露在卡片外（用户截图反馈）。minmax(0,1fr) 让轨道老老实实等于 1/7 宽。 */
+.cal-week { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; font-size: 11px; color: var(--ink-3); font-weight: 700; text-align: center; margin: 4px 0; }
 .cal-week span { text-align: center; }
-.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; }
 .cal-cell {
+  /* min-width:0 管列方向（配 minmax(0,1fr)），min-height:0 管行方向：grid item 的自动最小尺寸
+     是 content-based 的，少了这条行高就会被内容/宽高比撑开。 */
+  min-width: 0; min-height: 0;
   aspect-ratio: 1; border-radius: 6px; background: var(--card); box-shadow: var(--shadow);
   position: relative; display: flex; align-items: center; justify-content: center;
   font-size: 13px; color: var(--ink-2); cursor: pointer;
 }
-.cal-cell.empty { background: transparent; box-shadow: none; cursor: default; }
+/* ⚠️ padding:0 必须显式写死。全局 .empty{ padding:30px 0 }（今日页空态在用）会命中日历空格子，
+   在 * { box-sizing: border-box } 下元素高度下限 = 上下 padding 之和 = 60px，
+   于是「含空格的月份第一行」整行被撑到 60、与第二行的间距比别行多 22px（用户截图反馈）。
+   实测 grid-template-rows 修复前 = 60px 38px 38px 38px 38px，修复后全 38px。
+   同类撞车已犯三次：.switch（iOS 开关压扁图标）、.num（日历日期叠到卡片角）、.empty（本条）。
+   → 新增通用单词类名（switch/num/empty/on/active/line…）前先 grep 全表。 */
+.cal-cell.empty { padding: 0; background: transparent; box-shadow: none; cursor: default; }
 .cal-cell.today, .cal-cell.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
-.num {
+/* ⚠️ 必须限定在 .cal-cell 内：今日页的统计数字也用 class="num"（见 .stat .num），
+   裸 .num 带 position:absolute → 三个统计数字会全部叠到卡片右上角（截图里那个孤零零的大「0」）。 */
+.cal-cell .num {
   position: absolute; top: 3px; right: 5px; z-index: 4; font-size: 10px; color: var(--ink-2);
   text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff;
 }
@@ -286,10 +300,7 @@ html, body { background: transparent; }
   cursor: grab; touch-action: none; z-index: 5; }
 .pet:active { cursor: grabbing; }
 .pet.dragging { animation: none; }
-.pet img { width: 100%; height: 100%; object-fit: contain; pointer-events: none;
-  filter: drop-shadow(0 14px 20px rgba(80,60,120,.28)); }
-.pet.bob { animation: bob 3.4s ease-in-out infinite; }
-@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.pet img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .focus-tag { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); display: none;
   background: var(--accent-d); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 11px;
   border-radius: 999px; white-space: nowrap; box-shadow: 0 4px 12px rgba(126,111,214,.4); }
@@ -298,37 +309,75 @@ html, body { background: transparent; }
   max-width: 220px; background: #fff; border: 1px solid var(--line); border-radius: 14px;
   padding: 9px 12px; font-size: 13px; color: var(--ink); line-height: 1.5; text-align: center;
   box-shadow: 0 6px 18px rgba(60,40,90,.18); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 8; }
-.pet-bubble.show { opacity: 1; }
-.hint { position: absolute; left: 50%; transform: translateX(-50%); top: 250px;
+.pet-bubble.show { opacity: 1; }   /* 气泡与提示现在是 .pet 的子元素，跟着宠物走（此前按窗口定位，气泡被算到 100% 高度外而看不见） */
+.hint { position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 62px);
   font-size: 12px; color: var(--ink-2); background: rgba(255,255,255,.72); padding: 3px 10px; border-radius: 999px;
   transition: opacity .4s; pointer-events: none; z-index: 4; }
 
 /* 菜单（从宠物下方弹出） */
 .menu { position: absolute; display: flex; gap: 10px; padding: 10px 12px; border-radius: 22px;
-  background: rgba(255,255,255,.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 12px 30px rgba(80,60,120,.25); transform: scale(.6); opacity: 0;
+  background: rgba(255,255,255,.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  /* 不要弥散阴影：窗口只有 320 宽，30px 模糊的投影会在窗口左右边缘被裁成硬边，比没有还难看；
+     改用一道发丝描边把菜单和桌面背景分开。 */
+  border: 1px solid rgba(45,42,38,.07);
+  transform: scale(.6); opacity: 0;
   transform-origin: bottom center; transition: transform .22s cubic-bezier(.2,.9,.25,1), opacity .18s;
   pointer-events: none; z-index: 10; }
 .menu.show { transform: scale(1); opacity: 1; pointer-events: auto; }
 .mbtn { width: 58px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
 .mbtn .ic { width: 50px; height: 50px; border-radius: 16px; background: #fff; color: #2D2A26; display: flex; align-items: center; justify-content: center;
-  font-size: 22px; box-shadow: 0 5px 14px rgba(120,100,160,.18); border: 1px solid rgba(168,152,250,.4); transition: transform .12s, background .12s; }
+  font-size: 22px; border: 1px solid rgba(168,152,250,.45); transition: transform .12s, background .12s; }
 .mbtn .ic svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
 .mbtn:active .ic { transform: scale(.88); background: #F3EFFF; }
 .mbtn .lb { font-size: 11px; color: var(--ink-2); }
-.mbtn.switch .ic { background: var(--accent); color: #fff; border-color: transparent; }
 .mbtn.on .ic { background: var(--accent-d); color: #fff; border-color: transparent; }
 
-/* 面板（承载今日 / 日历真实功能） */
-.panel { position: absolute; inset: 14px; background: var(--bg); border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(40,30,60,.28); z-index: 20; display: flex; flex-direction: column; overflow: hidden;
+/* 面板（今日 / 日历 / 切换宠物）：展开窗口，置于宠物左或右侧，不遮挡宠物 */
+.panel { position: absolute; top: 14px; bottom: 14px; width: 330px; background: var(--bg-soft); border-radius: 22px;
+  /* ⚠️ 不要给面板加 box-shadow：面板距窗口边只有 14px，50px 模糊必然超出窗口被裁成硬边，
+     看起来就是「左右/下边被切了一刀」的半透明黑影（用户截图反馈）。改用 1px 内描边做边界。 */
+  box-shadow: 0 0 0 1px rgba(45,42,38,.07); z-index: 20; display: flex; flex-direction: column; overflow: hidden;
   transform: translateY(14px) scale(.98); opacity: 0; pointer-events: none;
   transition: transform .26s cubic-bezier(.2,.9,.25,1), opacity .2s; }
+.panel.right { right: 14px; }
+.panel.left { left: 14px; }
 .panel.show { transform: none; opacity: 1; pointer-events: auto; }
 .panel-bar { flex: none; display: flex; align-items: center; padding: 12px 14px 4px; }
 .panel-back { font-size: 14px; color: var(--accent-d); cursor: pointer; font-weight: 600; }
-.panel-body { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-.panel .page { padding: 4px 4px 16px; background: transparent; }
+.panel-title { flex: 1; text-align: center; font-weight: 600; font-size: 16px; color: var(--ink); margin-right: 44px; }
+/* flex 列：为了让 ＋按钮能用 margin-top:auto 在内容不足时也贴到面板底部（sticky 的配套） */
+.panel-body { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; }
+/* flex:none —— .panel-body 是 flex 列，不能让 .page 被压缩（否则内容不再溢出、滚动会失效） */
+.panel .page { flex: none; padding: 4px 4px 24px; background: transparent; }
 .panel .cal-page { padding: 4px 8px 8px; }
 .panel .pet-card, .panel .greet-block { display: none; }
-.panel .fab { position: static; margin: 16px 14px 4px; width: auto; right: auto; bottom: auto; }
+/* ＋按钮（加待办）：要「浮」在面板上、滚动时不跟着走。
+   - position: static → 跟着内容滚（东西一多就得滚到底才能新建）；
+   - position: fixed → 会被 .panel 的 transform/overflow 改成相对面板定位，开合动画期间会跳；
+   - 用 sticky：内容长时钉在面板底部 18px，内容短时靠 margin-top:auto 贴底（.panel-body 是 flex 列）。
+   ⚠️ 不能写 width:auto —— auto 会让它撑满整行、变成一颗扁椭圆（实测 302×56）。 */
+.panel .fab { position: sticky; flex: none; bottom: 18px; margin: auto auto 6px; width: 56px; height: 56px; right: auto; left: auto; }
+
+/* 「新建任务」弹层在面板内呈现：只盖住面板本身，而不是整个窗口。
+   原来走全局 fixed 蒙版 → 桌面上会把宠物所在那一整窗糊成一大片黑，既挡宠物又显得山寨；
+   且 .modal 的 max-width:480 比面板(330)还宽。这里收回到面板内、做成底部抽屉。 */
+.panel .modal-mask { position: absolute; inset: 0; align-items: flex-start; overflow-y: auto; background: rgba(45,42,38,.34); }
+.panel .modal { width: 100%; max-width: none; margin-top: auto; padding: 20px 16px 16px; border-radius: 22px 22px 0 0; }
+
+/* 切换宠物：本只以外的 12 只绕当前宠物围成一圈。
+   无卡片、无底板 —— 直接用抠好的透明贴图，下面两行「星座 + 一句话（星座特质）」。
+   环心固定在窗口内的 (RING_HW, RING_TOP)，由 main.js 按屏幕边缘钳制后把宠物摆到环心。 */
+.ring { position: absolute; inset: 0; z-index: 22; opacity: 0; pointer-events: none;
+  transition: opacity .24s ease; }
+.ring.show { opacity: 1; }
+.ritem { position: absolute; width: 78px; margin-left: -39px; margin-top: -30px;   /* 头像中心 = 环上的点 */
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; pointer-events: none; }
+.ring.show .ritem { pointer-events: auto; animation: ringIn .28s cubic-bezier(.2,.9,.25,1) both;
+  animation-delay: calc(var(--i) * 16ms); }      /* 依次亮起，像一圈被点着 */
+@keyframes ringIn { from { opacity: 0; transform: scale(.68) translateY(6px); } to { opacity: 1; transform: none; } }
+.rimg { width: 60px; height: 60px; object-fit: contain; transition: transform .16s ease; }
+.ritem:hover .rimg { transform: scale(1.14) translateY(-3px); }
+.rz { margin-top: 1px; font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.25; white-space: nowrap; }
+.ritem:hover .rz { color: var(--accent-d); }
+.rs { font-size: 11px; color: var(--ink-2); line-height: 1.25; white-space: nowrap; }

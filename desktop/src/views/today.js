@@ -180,11 +180,11 @@ export function renderToday(root) {
           <input class="input picker" type="date" value="${esc(form.due)}" data-act="due" />
           <div class="opt-row">
             <div class="opt-lbl"><div>标为重要</div><div class="opt-sub">会进四象限「重要」区</div></div>
-            <label class="switch"><input type="checkbox" data-act="important" ${form.important ? 'checked' : ''}/><span class="slider"></span></label>
+            <label class="ios-switch"><input type="checkbox" data-act="important" ${form.important ? 'checked' : ''}/><span class="slider"></span></label>
           </div>
           <div class="opt-row">
             <div class="opt-lbl"><div>重复</div><div class="opt-sub">完成后自动生成下一条</div></div>
-            <label class="switch"><input type="checkbox" data-act="repeatOn" ${form.repeatOn ? 'checked' : ''}/><span class="slider"></span></label>
+            <label class="ios-switch"><input type="checkbox" data-act="repeatOn" ${form.repeatOn ? 'checked' : ''}/><span class="slider"></span></label>
           </div>
           ${form.repeatOn ? `<div class="freq-row">${freqRow}</div>${custom}` : ''}
           <button class="btn-primary" data-act="create">添加任务</button>
@@ -208,8 +208,6 @@ export function renderToday(root) {
       else if (act === 'customNum') el.oninput = (e) => { form.customNum = e.target.value; };
       else if (act === 'customUnit') el.onclick = () => { form.unitIdx = (form.unitIdx + 1) % units.length; paint(); };
       else if (act === 'create') el.onclick = onCreate;
-      else if (act === 'toggle') el.onclick = () => onToggle(el.dataset.id);
-      else if (act === 'remove') el.onclick = (e) => { e.stopPropagation(); onRemove(el.dataset.id); };
     });
 
     // 点击弹层内部不关闭
@@ -221,11 +219,12 @@ export function renderToday(root) {
 
   function bindSwipe() {
     root.querySelectorAll('.task-swipe').forEach((row) => {
-      let sx = null, sy = null, lock = '';
+      let sx = null, sy = null, lock = '', pressTarget = null;
       const item = row.querySelector('.task-item');
       row.addEventListener('pointerdown', (e) => {
         sx = e.clientX; sy = e.clientY; lock = '';
-        row.setPointerCapture(e.pointerId);
+        pressTarget = e.target; // 真实按下目标；setPointerCapture 之后后续事件的 target 会变成 row
+        try { row.setPointerCapture(e.pointerId); } catch (_) {}
       });
       row.addEventListener('pointermove', (e) => {
         if (sx == null) return;
@@ -238,13 +237,27 @@ export function renderToday(root) {
       });
       row.addEventListener('pointerup', (e) => {
         if (sx == null) return;
-        const dx = e.clientX - sx;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
         item.style.transform = '';
-        if (lock === 'v') { sx = null; return; }
-        if (dx < -50) { openId = row.dataset.id; paint(); }
-        else if (dx > 30) { openId = ''; paint(); }
+        const adx = Math.abs(dx), ady = Math.abs(dy);
+        // 竖向滚动：交给页面，不处理
+        if (lock === 'v' && ady > 6) { sx = null; pressTarget = null; return; }
+        // 横向滑动：左滑露出删除，右滑收起
+        if (adx > 6 && adx >= ady) {
+          if (dx < -50) { openId = row.dataset.id; paint(); }
+          else if (dx > 30) { openId = ''; paint(); }
+          else if (openId) { openId = ''; paint(); }
+          sx = null; pressTarget = null; return;
+        }
+        // 轻点（位移很小）：交给 pointerup 处理，不依赖 click——
+        // WebKit 下 setPointerCapture 会把 click 重定向到 row，
+        // 导致 .check/.task-body 上的 onclick 永远不触发（勾选失效）。
+        const tgt = pressTarget; pressTarget = null;
+        if (tgt && tgt.closest && tgt.closest('.swipe-btn')) onRemove(row.dataset.id);
+        else onToggle(row.dataset.id);
         sx = null;
       });
+      row.addEventListener('pointercancel', () => { sx = null; pressTarget = null; item.style.transform = ''; });
     });
   }
 

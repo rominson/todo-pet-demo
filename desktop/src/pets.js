@@ -31,11 +31,30 @@ const PET_SHIFT = {
   pisces: { l: 209, r: 212 }
 };
 
+// 「宠物在 210×210 壳内的可见内容边界」（逻辑 px，由 scripts/scan_pet_box.py 扫 GIF 的 alpha 通道得出，
+// 取全部动画帧的并集 → 稳定、永不被宠物压到）。桌面端所有「贴边定位」都必须用它：
+// 素材四周透明留白极大（可见内容仅占壳宽 36%~79%），拿 210 的壳算间距会得出「离宠物老远」的观感。
+export const PET_BOX = {
+  aquarius: { l: 49, r: 155, t: 57, b: 158 }, aries: { l: 57, r: 159, t: 55, b: 159 },
+  cancer: { l: 70, r: 168, t: 62, b: 158 }, capricorn: { l: 62, r: 151, t: 57, b: 152 },
+  gemini: { l: 67, r: 171, t: 62, b: 160 }, leo: { l: 69, r: 145, t: 63, b: 148 },
+  libra: { l: 59, r: 142, t: 51, b: 161 }, orange: { l: 43, r: 168, t: 35, b: 176 },
+  pisces: { l: 74, r: 134, t: 53, b: 154 }, sagittarius: { l: 58, r: 162, t: 60, b: 158 },
+  scorpio: { l: 66, r: 174, t: 63, b: 159 }, taurus: { l: 73, r: 138, t: 66, b: 151 },
+  virgo: { l: 63, r: 149, t: 62, b: 154 }
+};
+
 export const ZODIAC_TRAITS = {
   aries: '活力 · 冲动', taurus: '稳重 · 慢热', gemini: '机灵 · 多变', cancer: '温柔 · 敏感',
   leo: '自信 · 张扬', virgo: '挑剔 · 细致', libra: '优雅 · 纠结', scorpio: '神秘 · 深沉',
   sagittarius: '自由 · 冒险', capricorn: '沉稳 · 长寿', aquarius: '独特 · 反叛', pisces: '梦幻 · 感性',
   orange: '慵懒 · 陪伴'
+};
+
+export const ZODIAC_NAME = {
+  aries: '白羊座', taurus: '金牛座', gemini: '双子座', cancer: '巨蟹座', leo: '狮子座',
+  virgo: '处女座', libra: '天秤座', scorpio: '天蝎座', sagittarius: '射手座',
+  capricorn: '摩羯座', aquarius: '水瓶座', pisces: '双鱼座', orange: '本命'
 };
 
 export function zodiacOf(m, d) {

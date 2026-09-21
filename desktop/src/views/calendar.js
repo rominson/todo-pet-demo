@@ -40,7 +40,8 @@ export function renderCalendar(root) {
     const today = agg.todayStr();
     let y = now.getFullYear();
     let m = now.getMonth() + offset;
-    const first = new Date(y, m, 1).getDay();
+    const first = (new Date(y, m, 1).getDay() + 6) % 7;  // ⚠️ 表头是「一…日」（周一首列），getDay() 是周日=0
+                                                          // → 必须换算成周一=0，否则整月每一天都错一格（今天会显示在「二」下）
     const days = new Date(y, m + 1, 0).getDate();
 
     const map = {};
