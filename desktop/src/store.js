@@ -61,11 +61,16 @@ export async function persist() {
     if (isTauri()) {
       const s = await getTauriStore();
       await s.set(LS_KEY, state);
+      // ⚠️ 必须显式 save：plugin-store 的 set 只写内存，autoSave 在 Rust 端是
+      // fire-and-forget 的异步 save。桌面宠物「关闭窗口=进程退出」，异步 save 常来不及
+      // 落盘就被 kill，表现为「重启后回到初始状态、待办全丢」。这里 await save 强制落盘。
+      await s.save();
     } else {
       localStorage.setItem(LS_KEY, JSON.stringify(state));
     }
   } catch (e) {
     // 持久化失败不阻塞 UI（例如浏览器隐私模式）
+    console.error('[store] persist failed', e);
   }
 }
 
